@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Star Map</title>
+    <style>
+        body { 
+            margin: 0; 
+            overflow: hidden; 
+            background-color: #050505; 
+            font-family: 'Courier New', Courier, monospace; 
+            color: #ffcc00; 
+
+            touch-action: none;          /* Disables native pinch-to-zoom and panning */
+            overscroll-behavior: none;   /* Disables mobile pull-to-refresh */
+        }
+        #canvas-container canvas {
+    width: 100vw !important;
+    height: 100vh !important;
+    display: block;
+    outline: none;
+}
+        .panel {
+            position: absolute; top: 5vh; height: 90vh; width: 340px; z-index: 10;
+            background: rgba(10, 5, 0, 0.6); border: 1px solid #ffcc00;
+            box-shadow: 0 0 10px rgba(255, 204, 0, 0.3), inset 0 0 15px rgba(255, 204, 0, 0.1);
+            backdrop-filter: blur(6px); padding: 20px; box-sizing: border-box;
+            display: flex; flex-direction: column; pointer-events: auto;
+            overflow-y: auto; scrollbar-width: none;
+        }
+        .panel::-webkit-scrollbar { display: none; }
+        #panel-left { left: 20px; } #panel-right { right: 20px; pointer-events: auto; }
+        .panel h2 { margin-top: 0; font-size: 1.2rem; text-transform: uppercase; border-bottom: 2px solid #ffcc00; padding-bottom: 5px; letter-spacing: 2px; }
+        .panel p { margin: 10px 0; font-size: 0.9rem; line-height: 1.4; color: #ff8c00; }
+        .control-group { margin-top: 20px; border: 1px solid rgba(255, 204, 0, 0.3); padding: 10px; background: rgba(0, 0, 0, 0.5); }
+        .control-group label { display: block; font-size: 0.8rem; margin-bottom: 5px; color: #ccaa00; }
+        
+        input[type="text"] { width: 100%; background: #110800; border: 1px solid #ffcc00; color: #ffcc00; font-family: 'Courier New', Courier, monospace; padding: 8px; box-sizing: border-box; outline: none; margin-bottom: 10px; font-size: 0.9rem; }
+        input[type="file"] { width: 100%; color: #ffcc00; font-size: 0.8rem; margin-bottom: 15px; cursor: pointer;}
+        input[type="range"] { width: 48%; accent-color: #ffcc00; cursor: pointer; }
+        
+        .btn-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; }
+        button { background: #110800; border: 1px solid #ffcc00; color: #ffcc00; padding: 5px 0; cursor: pointer; font-family: 'Courier New', Courier, monospace; font-size: 0.75rem; transition: all 0.2s; margin-bottom: 5px;}
+        button:hover, button.active { background: #ffcc00; color: #000; }
+        
+        .danger-btn { border-color: #ff3333; color: #ff3333; width: 100%; margin-bottom: 15px; font-weight: bold;}
+        .danger-btn:hover { background: #ff3333; color: #000; }
+        .full-btn { width: 100%; font-weight: bold; margin-bottom: 5px; }
+
+        .flex-row { display: flex; justify-content: space-between; align-items: center; gap: 5px; margin-bottom: 5px; }
+        .scrollable-list { max-height: 150px; overflow-y: auto; border: 1px solid rgba(255, 204, 0, 0.3); background: rgba(0, 0, 0, 0.5); margin-top: 5px; scrollbar-width: thin; scrollbar-color: #ffcc00 #110800; }
+        .list-item { padding: 6px; cursor: pointer; font-size: 0.75rem; border-bottom: 1px solid rgba(255, 204, 0, 0.1); display: flex; justify-content: space-between; align-items: center; }
+        .list-item:hover { background: rgba(255, 204, 0, 0.3); color: #fff; }
+
+        #crt-overlay { position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; z-index: 100; pointer-events: none; background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06)); background-size: 100% 4px, 6px 100%; animation: flicker 0.15s infinite; }
+        @keyframes flicker { 0% { opacity: 0.95; } 50% { opacity: 0.85; } 100% { opacity: 0.95; } }
+        .tactical-label { position: absolute; color: #ffcc00; font-weight: bold; font-size: 11px; text-shadow: 0 0 5px #ffcc00; z-index: 5; pointer-events: none; transform: translate(-50%, -100%); }
+        canvas { cursor: crosshair; }
+
+
+        /* =========================================
+           MOBILE TERMINAL RESPONSIVENESS
+        ========================================= */
+        #btn-mobile-toggle {
+            display: none; /* Hidden on desktop */
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            z-index: 1000;
+            padding: 10px 15px;
+            font-size: 1rem;
+            font-weight: bold;
+            font-family: 'Courier New', Courier, monospace;
+            background: rgba(10, 5, 0, 0.8);
+            border: 1px solid #ffcc00;
+            color: #ffcc00;
+            cursor: pointer;
+            text-shadow: 0 0 5px #ffcc00;
+            box-shadow: 0 0 10px rgba(255, 204, 0, 0.3);
+        }
+
+        @media (max-width: 768px) {
+            #btn-mobile-toggle {
+                display: block; /* Show button on mobile */
+            }
+
+            .panel {
+                width: 100vw !important;  /* Take up full screen width */
+                height: 90vh !important;
+                top: 65px !important;     /* Push down below the button */
+                left: 0 !important;
+                right: auto !important;
+                display: none;            /* Hide panels by default on mobile */
+                background: rgba(10, 5, 0, 0.95); 
+            }
+        
+            .panel.mobile-active {
+                display: flex !important;
+            }
+        }
+    </style>
+</head>
+<body oncontextmenu="return false;"> 
+
+    <div id="crt-overlay"></div>
+
+    <button id="btn-mobile-toggle">ACCESS TERMINAL</button>
+    <div id="panel-left" class="panel">
+        <h2>System Status</h2>
+        <p style="color: #ffcc00; font-weight: bold;">TARGET: <span id="current-target">NONE</span></p>
+        <p style="font-size: 0.7rem;">[CLICK: SELECT TARGET]</p>
+        <p style="font-size: 0.7rem;">[DRAG/PAN: MANUAL OVERRIDE]</p>
+        
+        <div class="control-group">
+            <label>TACTICAL DATABASE</label>
+            <input type="text" id="search-input" placeholder="SEARCH ALL (TEXT)...">
+            <div class="flex-row">
+                <button id="sort-toggle" class="full-btn">SORT: DIST</button>
+                <button id="btn-scan" class="full-btn" style="border-color: #00ffff; color: #00ffff;">SCAN LOCAL</button>
+            </div>
+            <div id="body-list" class="scrollable-list"></div>
+        </div>
+
+        <div class="control-group">
+            <label>MOON VIS (DIST AU) <span id="dist-val" style="float:right; color:#ffcc00">0.000 - 0.300</span></label>
+            <div class="flex-row">
+                <input type="range" id="moon-dist-min" min="0" max="0.3" step="0.001" value="0">
+                <input type="range" id="moon-dist-max" min="0" max="0.3" step="0.001" value="0.3">
+            </div>
+            
+            <label style="margin-top:10px;">MOON VIS (SIZE KM) <span id="size-val" style="float:right; color:#ffcc00">0 - 5000</span></label>
+            <div class="flex-row">
+                <input type="range" id="moon-size-min" min="0" max="5000" step="1" value="0">
+                <input type="range" id="moon-size-max" min="0" max="5000" step="1" value="5000">
+            </div>
+        </div>
+
+        <div class="control-group">
+            <label>VISIBILITY SETTINGS</label>
+            
+            <div id="dataset-list" class="scrollable-list" style="margin-bottom: 15px; max-height: 200px;"></div>
+            
+            <button id="btn-clear-map" class="danger-btn">PURGE SYSTEM MEMORY</button>
+
+            <label>J2000 CHRONOMETER (UTC)</label>
+            <input type="text" id="time-input" value="">
+            
+            <label>TIME DILATION MULTIPLIER</label>
+            <div class="btn-grid">
+                <button class="time-btn" data-mult="-10000000">-10Mx</button>
+                <button class="time-btn" data-mult="-1000000">-1Mx</button>
+                <button class="time-btn" data-mult="-100000">-100Kx</button>
+                <button class="time-btn" data-mult="0">PAUSE</button>
+                <button class="time-btn active" data-mult="1">1x</button>
+                <button class="time-btn" data-mult="100000">100Kx</button>
+                <button class="time-btn" data-mult="1000000">1Mx</button>
+                <button class="time-btn" data-mult="10000000">10Mx</button>
+                <button class="time-btn" data-mult="50000000">50Mx</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="panel-right" class="panel" id="telemetry">
+        <h2>Telemetry</h2>
+        <div id="telemetry-data">
+            <p>AWAITING DATA INPUT...</p>
+        </div>
+    </div>
+
+    <div id="canvas-container"></div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+
+    <script src="js/DataLoader.js"></script>
+    <script src="js/Shaders.js"></script> 
+    <script src="js/OrbitalMath.js"></script>
+    <script src="js/PhysicsEngine.js"></script>
+    <script src="js/UIController.js"></script>
+    <script src="js/SceneManager.js"></script>
+    <script src="js/TacticalScanner.js"></script>
+    <script src="js/SystemBuilder.js"></script>
+    <script src="js/InteractionController.js"></script>
+    <script src="js/RenderPipeline.js"></script>
+    <script src="js/main.js"></script>
+</body>
+</html>
