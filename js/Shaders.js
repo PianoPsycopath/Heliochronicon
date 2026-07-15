@@ -217,6 +217,8 @@ class Shaders {
                 uniform float uTime;
                 uniform vec3 uOrigin;
                 uniform float uZoom;
+                
+                // cameraPosition is automatically provided by Three.js
 
                 // Orbital Elements passed as binary buffers
                 attribute float a;
@@ -228,6 +230,7 @@ class Shaders {
                 attribute float n;
 
                 varying float vAlpha;
+                varying float vDarken; 
 
                 void main() {
                     // 1. Solve Kepler's Equation (Newton-Raphson 5 Iterations)
@@ -256,13 +259,20 @@ class Shaders {
 
                     vec4 mvPosition = viewMatrix * vec4(renderPos, 1.0);
                     
-                    // 5. Dynamic Sizing & Distance Alpha Fading
+                    // 5. Dynamic Sizing
                     float rawSize = 12.0 / uZoom;
                     gl_PointSize = clamp(rawSize, 1.0, 3.5); // Hard cap at 3.5 pixels max
                     
-                    // Drop alpha strictly when zoomed out, keep solid when zoomed in
-                    float visibility = smoothstep(0.1, 15.0, uZoom);
+                    // --- DISTANCE-BASED VISIBILITY & DARKENING ---
+                    // Calculate exact 3D distance from the camera to this specific asteroid
+                    float camDist = distance(cameraPosition, renderPos);
+                    
+                    // Invert the smoothstep: 1.0 when close, fading to 0.0 when far.
+                    // TWEAK THESE NUMBERS: 5.0 is the distance full brightness starts fading, 35.0 is max fade.
+                    float visibility = 1.0 - smoothstep(50.0, 800.0, camDist);
+                    
                     vAlpha = mix(0.1, 1.0, visibility);
+                    vDarken = mix(0.1, 1.0, visibility); 
                     
                     gl_Position = projectionMatrix * mvPosition;
                 }
@@ -270,6 +280,7 @@ class Shaders {
             fragmentShader: `
                 uniform vec3 uColor;
                 varying float vAlpha;
+                varying float vDarken;
 
                 void main() {
                     // Carve the square gl_Point into a perfect circular dot
@@ -279,8 +290,11 @@ class Shaders {
                     // Add a slight glowing core effect
                     float glow = 1.0 - (length(coord) * 2.0);
                     
+                    // Multiply the base color by your manual darken slider
+                    vec3 baseColor = uColor * vDarken;
+                    
                     // PRE-MULTIPLY the color by alpha so MaxEquation caps the brightness
-                    vec3 finalColor = uColor * glow * 1.5 * vAlpha;
+                    vec3 finalColor = baseColor * glow * 1.5 * vAlpha;
                     
                     gl_FragColor = vec4(finalColor, vAlpha);
                 }
@@ -292,5 +306,4 @@ class Shaders {
             blendEquation: THREE.MaxEquation 
         });
     }
-            
 }
