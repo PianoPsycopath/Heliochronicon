@@ -296,30 +296,37 @@ function animate() {
     renderPipeline.processFloatingOrigin(celestialBodies, trackingTargetData, currentOrigin, daysSinceJ2000);
     PhysicsEngine.zSortCelestialBodies(celestialBodies, camera.position, currentOrigin);
     
+    // 3. Hardware Updates (Camera, Telemetry, Shaders)
+    if (currentTargetData) {
+        const tBody = celestialBodies.find(x => x.data.name === currentTargetData.name);
+        if (tBody) {
+            let wDeg = (tBody.W_current * 180 / Math.PI) % 360;
+            if (wDeg < 0) wDeg += 360;
+            UI.updateLiveTelemetry(wDeg, tBody.RA_current_deg, tBody.DEC_current_deg);
+            interactionController.updateCamera(tBody.mesh.position);
+        }
+    }
+    
+    controls.update(); 
+    camera.updateMatrixWorld();
+    
     // 3. Render Pre-Pass (Projections, Culling, Matrices)
     const trackTargetPos = renderPipeline.processScreenProjectionsAndCulling(celestialBodies, currentTargetData, currentOrigin);
     
     // --- DUAL-GRID ARCHITECTURE LOGIC ---
     
-    // 3.1 Force the massive Ecliptic Grid to remain perfectly flat at the solar Y=0 baseline
+    // 4. Force the massive Ecliptic Grid to remain perfectly flat at the solar Y=0 baseline
     gridPlane.position.set(0, 0, 0);
     gridPlane.quaternion.setFromAxisAngle(new THREE.Vector3(1, 0, 0), -Math.PI / 2);
     
-    // --- DUAL-GRID ARCHITECTURE LOGIC ---
-
-    // 3.2 Manage the Targeted Equatorial Grid
+    // 5. Manage the Targeted Equatorial Grid
     if (currentTargetData) {
         const tBody = celestialBodies.find(x => x.data.name === currentTargetData.name);
-        
         const isPlanet = !tBody.isMoon && tBody.data.parent === "SUN";
-        
         if (tBody && tBody.data.name !== "SUN" && (isPlanet || tBody.isMoon)) {
             equatorialGridPlane.visible = true;
-            
-            // Default to the target itself (if it's a planet)
             let anchorPos = tBody.renderPos;
             let anchorQuat = tBody.poleQuaternion;
-            
             if (tBody.isMoon) {
                 const parentPlanet = celestialBodies.find(x => x.data.name === tBody.data.parent);
                 if (parentPlanet) {
@@ -327,13 +334,10 @@ function animate() {
                     anchorQuat = parentPlanet.poleQuaternion;
                 }
             }
-
             equatorialGridPlane.position.lerp(anchorPos, 0.1);
-
             const eclipticQuat = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), -Math.PI / 2);
             const finalQuat = anchorQuat.clone().multiply(eclipticQuat);
             equatorialGridPlane.quaternion.slerp(finalQuat, 0.1);
-            
             equatorialMaterial.uniforms.cameraPos.value.copy(camera.position);
         } else {
             equatorialGridPlane.visible = false;
@@ -341,21 +345,8 @@ function animate() {
     } else {
         equatorialGridPlane.visible = false;
     }
-
-    // 4. Hardware Updates (Camera, Telemetry, Shaders)
-    if (currentTargetData) {
-        const tBody = celestialBodies.find(x => x.data.name === currentTargetData.name);
-        if (tBody) {
-            let wDeg = (tBody.W_current * 180 / Math.PI) % 360;
-            if (wDeg < 0) wDeg += 360;
-            UI.updateLiveTelemetry(wDeg, tBody.RA_current_deg, tBody.DEC_current_deg);
-        }
-        interactionController.updateCamera(trackTargetPos);
-    }
-    
-    controls.update(); 
+    //6. Final GPU Updates
     renderPipeline.updateGPU(daysSinceJ2000, currentOrigin, gridPlane);
-
     renderer.render(scene, camera);
 }
 
