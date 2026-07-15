@@ -125,7 +125,9 @@ class RenderPipeline {
                 
                 if (b.label) {
                     const vec = b.renderPos.clone();
-                    vec.y += 15; vec.project(this.camera);
+                    const starScale = this.STAR_SPRITE_SIZE / this.camera.zoom;
+                    vec.y += (starScale * 0.6); 
+                    vec.project(this.camera);
                     if (vec.z < 1 && !isOccluded) { 
                         b.label.style.display = 'block'; 
                         b.label.style.left = `${(vec.x * .5 + .5) * window.innerWidth}px`; 
