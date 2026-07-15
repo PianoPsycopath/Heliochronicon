@@ -260,8 +260,9 @@ class Shaders {
                     float rawSize = 12.0 / uZoom;
                     gl_PointSize = clamp(rawSize, 1.0, 3.5); // Hard cap at 3.5 pixels max
                     
-                    // Fade out smoothly when uZoom gets very small (zoomed out)
-                    vAlpha = smoothstep(0.001, 0.05, uZoom); 
+                    // Drop alpha strictly when zoomed out, keep solid when zoomed in
+                    float visibility = smoothstep(0.1, 15.0, uZoom);
+                    vAlpha = mix(0.1, 1.0, visibility);
                     
                     gl_Position = projectionMatrix * mvPosition;
                 }
@@ -275,13 +276,21 @@ class Shaders {
                     vec2 coord = gl_PointCoord - vec2(0.5);
                     if(length(coord) > 0.5) discard;
                     
-                    // Add a slight glowing core effect and multiply by our distance fade
+                    // Add a slight glowing core effect
                     float glow = 1.0 - (length(coord) * 2.0);
-                    gl_FragColor = vec4(uColor, glow * 1.5 * vAlpha);
+                    
+                    // PRE-MULTIPLY the color by alpha so MaxEquation caps the brightness
+                    vec3 finalColor = uColor * glow * 1.5 * vAlpha;
+                    
+                    gl_FragColor = vec4(finalColor, vAlpha);
                 }
             `,
             transparent: true,
-            depthTest: false
+            depthTest: true,
+            depthWrite: false,
+            blending: THREE.CustomBlending,
+            blendEquation: THREE.MaxEquation 
         });
     }
+            
 }
