@@ -94,11 +94,11 @@ class Shaders {
         });
     }
 
-    // --- NEW PURE 2D EQUATORIAL GRID ---
     static getEquatorialGridMaterial() {
         return new THREE.ShaderMaterial({
             uniforms: { 
-                cameraPos: { value: new THREE.Vector3() }
+                cameraPos: { value: new THREE.Vector3() },
+                uGridRadius: { value: 0.5 } // NEW: Dynamic grid size uniform
             },
             vertexShader: `
                 varying vec3 vWorldPosition;
@@ -112,6 +112,8 @@ class Shaders {
             `,
             fragmentShader: `
                 uniform vec3 cameraPos;
+                uniform float uGridRadius;
+                
                 varying vec3 vWorldPosition;
                 varying vec2 vLocalPlane;
 
@@ -139,8 +141,8 @@ class Shaders {
                     intensity = max(intensity, drawGrid(coord, 0.01,    0.60)); // Hill Sphere
                     intensity = max(intensity, drawGrid(coord, 0.1,     0.80)); // System Space
                     
-                    // Radial fade (0.1 to 0.5 AU) so it gracefully dissolves into space
-                    float edgeFade = 1.0 - smoothstep(0.1, 0.5, length(coord)); 
+                    // NEW: Dynamic Radial Fade using the mass-calculated uGridRadius
+                    float edgeFade = 1.0 - smoothstep(uGridRadius * 0.2, uGridRadius, length(coord)); 
                     
                     if (intensity < 0.015) discard;
                     gl_FragColor = vec4(lineColor, intensity * edgeFade * 0.35);

@@ -36,7 +36,6 @@ gridPlane.rotation.x = -Math.PI / 2;
 gridPlane.renderOrder = -2;
 scene.add(gridPlane);
 
-// NEW: The Local Equatorial Grid
 const equatorialMaterial = Shaders.getEquatorialGridMaterial();
 const equatorialGridPlane = new THREE.Mesh(
     new THREE.PlaneGeometry(1000, 1000, 4, 4), 
@@ -327,13 +326,21 @@ function animate() {
             equatorialGridPlane.visible = true;
             let anchorPos = tBody.renderPos;
             let anchorQuat = tBody.poleQuaternion;
+            
+            let targetMass = tBody.data.mass;
+
             if (tBody.isMoon) {
                 const parentPlanet = celestialBodies.find(x => x.data.name === tBody.data.parent);
                 if (parentPlanet) {
                     anchorPos = parentPlanet.renderPos;
                     anchorQuat = parentPlanet.poleQuaternion;
+                    targetMass = parentPlanet.data.mass; // Inherit parent planet's mass size
                 }
             }
+            const massRatio = targetMass / 5.97;
+            const dynamicRadius = 0.5 * Math.pow(massRatio, 0.3333);
+            equatorialMaterial.uniforms.uGridRadius.value = dynamicRadius;
+
             equatorialGridPlane.position.lerp(anchorPos, 0.1);
             const eclipticQuat = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), -Math.PI / 2);
             const finalQuat = anchorQuat.clone().multiply(eclipticQuat);
