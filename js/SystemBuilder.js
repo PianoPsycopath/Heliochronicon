@@ -102,6 +102,7 @@ class SystemBuilder {
             datasetMaterials[datasetName] = material; 
 
             const particleSystem = new THREE.Points(geometry, material);
+            particleSystem.frustumCulled = false;
             particleSystem.userData = { 
                 datasetName: datasetName, 
                 datasetVisible: true, 

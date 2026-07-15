@@ -227,6 +227,8 @@ class Shaders {
                 attribute float M0;
                 attribute float n;
 
+                varying float vAlpha;
+
                 void main() {
                     // 1. Solve Kepler's Equation (Newton-Raphson 5 Iterations)
                     float M_current = M0 + n * uTime;
@@ -254,21 +256,28 @@ class Shaders {
 
                     vec4 mvPosition = viewMatrix * vec4(renderPos, 1.0);
                     
-                    // Dynamic Point Sizing based on Tactical Camera Zoom
-                    gl_PointSize = max(1.0, (12.0 / uZoom)); 
+                    // 5. Dynamic Sizing & Distance Alpha Fading
+                    float rawSize = 12.0 / uZoom;
+                    gl_PointSize = clamp(rawSize, 1.0, 3.5); // Hard cap at 3.5 pixels max
+                    
+                    // Fade out smoothly when uZoom gets very small (zoomed out)
+                    vAlpha = smoothstep(0.001, 0.05, uZoom); 
+                    
                     gl_Position = projectionMatrix * mvPosition;
                 }
             `,
             fragmentShader: `
                 uniform vec3 uColor;
+                varying float vAlpha;
+
                 void main() {
                     // Carve the square gl_Point into a perfect circular dot
                     vec2 coord = gl_PointCoord - vec2(0.5);
                     if(length(coord) > 0.5) discard;
                     
-                    // Add a slight glowing core effect
+                    // Add a slight glowing core effect and multiply by our distance fade
                     float glow = 1.0 - (length(coord) * 2.0);
-                    gl_FragColor = vec4(uColor, glow * 1.5);
+                    gl_FragColor = vec4(uColor, glow * 1.5 * vAlpha);
                 }
             `,
             transparent: true,
