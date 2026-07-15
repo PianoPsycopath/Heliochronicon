@@ -5,64 +5,150 @@ class Shaders {
         const wellPositions = new Array(maxWells).fill(null).map(() => new THREE.Vector2());
         const wellDepths = new Array(maxWells).fill(0.0);
         const wellRadii = new Array(maxWells).fill(0.0);
-
+        
         return new THREE.ShaderMaterial({
             uniforms: { 
-                zoomScale: { value: 1.0 },
+                zoomScale: { value: 1.0 }, // Kept for pipeline safety
+                cameraPos: { value: new THREE.Vector3() }, 
                 wellPositions: { value: wellPositions },
                 wellDepths: { value: wellDepths },
                 wellRadii: { value: wellRadii },
                 numWells: { value: 0 }
             },
             vertexShader: `
-                uniform vec2 wellPositions[${maxWells}];
-                uniform float wellDepths[${maxWells}];
-                uniform float wellRadii[${maxWells}];
-                uniform int numWells;
-                
                 varying vec3 vWorldPosition;
-                
                 void main() {
                     vec4 worldPos = modelMatrix * vec4(position, 1.0);
-                    float totalWarp = 0.0;
-                    
-                    for(int i = 0; i < ${maxWells}; i++) {
-                        if (i >= numWells) break;
-                        float dist = distance(worldPos.xz, wellPositions[i]);
-                        float influence = exp(-(dist * dist) / wellRadii[i]);
-                        totalWarp += wellDepths[i] * influence;
-                    }
-                    
-                    worldPos.y += totalWarp;
                     vWorldPosition = worldPos.xyz;
                     gl_Position = projectionMatrix * viewMatrix * worldPos;
                 }
             `,
             fragmentShader: `
-                uniform float zoomScale;
+                uniform float zoomScale; 
+                uniform vec3 cameraPos;
+                
+                uniform vec2 wellPositions[${maxWells}];
+                uniform float wellDepths[${maxWells}];
+                uniform float wellRadii[${maxWells}];
+                uniform int numWells;
+
                 varying vec3 vWorldPosition;
+
+                float drawGrid(vec2 coord, float spacing, float baseAlpha) {
+                    vec2 gridCoord = coord / spacing;
+                    vec2 derivative = fwidth(gridCoord);
+                    vec2 gridPhase = abs(fract(gridCoord - 0.5) - 0.5);
+                    
+                    vec2 line = gridPhase / derivative;
+                    float val = 1.0 - min(min(line.x, line.y), 1.0);
+                    
+                    float fade = smoothstep(0.2, 0.05, max(derivative.x, derivative.y));
+                    return val * fade * baseAlpha;
+                }
                 
                 void main() {
                     vec2 coord = vWorldPosition.xz;
+                    vec3 viewDir = normalize(vWorldPosition - cameraPos);
                     
-                    float dynamicStep = max(0.1, 1.0 / (zoomScale * 0.5));
-                    vec2 grid = abs(fract(coord / dynamicStep - 0.5) - 0.5) / fwidth(coord / dynamicStep);
-                    float line = min(grid.x, grid.y);
+                    float virtualDepth = 0.0;
+                    for(int i = 0; i < ${maxWells}; i++) {
+                        if (i >= numWells) break;
+                        
+                        float dist = distance(coord, wellPositions[i]);
+                        float r = wellRadii[i];
+                        
+                        if (r > 0.0) {
+                            float influence = exp(-(dist * dist) / (r * r));
+                            virtualDepth += wellDepths[i] * influence;
+                        }
+                    }
+
+                    float safeY = min(viewDir.y, -0.2); 
+                    float zoomDampener = clamp(1.2 / pow(zoomScale, 0.7), 0.15, 1.0);
                     
-                    vec2 majorCoord = coord / (dynamicStep * 10.0);
-                    vec2 majorGrid = abs(fract(majorCoord - 0.5) - 0.5) / fwidth(majorCoord);
-                    float majorLine = min(majorGrid.x, majorGrid.y);
+                    vec2 parallaxCoord = coord;
+                    parallaxCoord += viewDir.xz * (virtualDepth / safeY) * 0.35 * zoomDampener;
+
+                    vec3 lineColor = vec3(1.0, 0.6, 0.15);
+                    float intensity = 0.0;
                     
-                    float finalAlpha = max((1.0 - min(line, 1.0)) * 0.3, (1.0 - min(majorLine, 1.0)) * 0.8);
+                    // --- ECLIPTIC GRID (6 TIERS) ---
+                    // The micro-tiers are removed, leaving only macroscopic layers
+                    intensity = max(intensity, drawGrid(parallaxCoord, 0.01,    0.35)); // Hill Sphere
+                    intensity = max(intensity, drawGrid(parallaxCoord, 0.1,     0.45)); // Interplanetary
+                    intensity = max(intensity, drawGrid(parallaxCoord, 1.0,     0.55)); // Inner System
+                    intensity = max(intensity, drawGrid(parallaxCoord, 10.0,    0.70)); // Jovian
+                    intensity = max(intensity, drawGrid(parallaxCoord, 100.0,   0.85)); // Deep Space
+                    intensity = max(intensity, drawGrid(parallaxCoord, 1000.0,  1.00)); // Interstellar
                     
-                    float fade = 1.0 - smoothstep(4000.0, 7000.0, length(vWorldPosition.xz));
+                    float fade = 1.0 - smoothstep(50000.0, 150000.0, length(vWorldPosition.xz - cameraPos.xz));
                     
-                    if (finalAlpha < 0.01) discard;
-                    gl_FragColor = vec4(1.0, 0.55, 0.0, finalAlpha * fade * 0.20);
+                    if (intensity < 0.015) discard;
+                    gl_FragColor = vec4(lineColor, intensity * fade * 0.35);
                 }
             `,
             transparent: true, 
             side: THREE.DoubleSide, 
+            depthWrite: false,
+            extensions: { derivatives: true } 
+        });
+    }
+
+    // --- NEW PURE 2D EQUATORIAL GRID ---
+    static getEquatorialGridMaterial() {
+        return new THREE.ShaderMaterial({
+            uniforms: { 
+                cameraPos: { value: new THREE.Vector3() }
+            },
+            vertexShader: `
+                varying vec3 vWorldPosition;
+                varying vec2 vLocalPlane;
+                void main() {
+                    vec4 worldPos = modelMatrix * vec4(position, 1.0);
+                    vWorldPosition = worldPos.xyz;
+                    vLocalPlane = position.xy; // Extracts geometry scale cleanly
+                    gl_Position = projectionMatrix * viewMatrix * worldPos;
+                }
+            `,
+            fragmentShader: `
+                uniform vec3 cameraPos;
+                varying vec3 vWorldPosition;
+                varying vec2 vLocalPlane;
+
+                float drawGrid(vec2 coord, float spacing, float baseAlpha) {
+                    vec2 gridCoord = coord / spacing;
+                    vec2 derivative = fwidth(gridCoord);
+                    vec2 gridPhase = abs(fract(gridCoord - 0.5) - 0.5);
+                    
+                    vec2 line = gridPhase / derivative;
+                    float val = 1.0 - min(min(line.x, line.y), 1.0);
+                    
+                    float fade = smoothstep(0.2, 0.05, max(derivative.x, derivative.y));
+                    return val * fade * baseAlpha;
+                }
+                
+                void main() {
+                    vec2 coord = vLocalPlane; 
+                    vec3 lineColor = vec3(1.0, 1.0, 1.0); // Pure White Line
+                    float intensity = 0.0;
+                    
+                    // --- 5-TIER EQUATORIAL FRACTAL ---
+                    intensity = max(intensity, drawGrid(coord, 0.00001, 0.15)); // LEO
+                    intensity = max(intensity, drawGrid(coord, 0.0001,  0.25)); // Geosynchronous
+                    intensity = max(intensity, drawGrid(coord, 0.001,   0.40)); // Sub-Lunar
+                    intensity = max(intensity, drawGrid(coord, 0.01,    0.60)); // Hill Sphere
+                    intensity = max(intensity, drawGrid(coord, 0.1,     0.80)); // System Space
+                    
+                    // Radial fade (0.1 to 0.5 AU) so it gracefully dissolves into space
+                    float edgeFade = 1.0 - smoothstep(0.1, 0.5, length(coord)); 
+                    
+                    if (intensity < 0.015) discard;
+                    gl_FragColor = vec4(lineColor, intensity * edgeFade * 0.35);
+                }
+            `,
+            transparent: true, 
+            side: THREE.DoubleSide, 
+            depthWrite: false,
             extensions: { derivatives: true } 
         });
     }
@@ -88,13 +174,11 @@ class Shaders {
             transparent: true 
         });
     }
-
-    // --- NEW: Clean White Dot for Asteroids ---
     static createDotTexture() {
         const canvas = document.createElement('canvas');
         canvas.width = 64; canvas.height = 64;
         const ctx = canvas.getContext('2d');
-        ctx.fillStyle = '#ffffff'; // Kept white so the SpriteMaterial color tint applies properly
+        ctx.fillStyle = '#ffffff'; 
         ctx.beginPath();
         ctx.arc(32, 32, 30, 0, Math.PI * 2);
         ctx.fill();

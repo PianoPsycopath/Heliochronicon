@@ -115,9 +115,11 @@ class RenderPipeline {
                 const starScale = this.STAR_SPRITE_SIZE / this.camera.zoom;
                 b.sprite.scale.set(starScale, starScale, 1);
                 
+                
                 this.gridMaterial.uniforms.wellPositions.value[wellIndex].set(0, 0);
-                this.gridMaterial.uniforms.wellDepths.value[wellIndex] = -40.0; 
-                this.gridMaterial.uniforms.wellRadii.value[wellIndex] = 12000.0; 
+                this.gridMaterial.uniforms.wellDepths.value[wellIndex] = -60.0;
+                this.gridMaterial.uniforms.wellRadii.value[wellIndex] = 0.15;
+                
                 wellIndex++;
                 if (isTarget) trackTargetPos = b.mesh.position;
                 
@@ -158,11 +160,31 @@ class RenderPipeline {
 
             if (wellIndex < this.MAX_WELLS && d.mass > 0 && !b.isMoon) {
                 this.gridMaterial.uniforms.wellPositions.value[wellIndex].set(b.renderPos.x, b.renderPos.z);
-                const logMass = Math.max(0.1, Math.log10(d.mass + 1)); 
-                this.gridMaterial.uniforms.wellDepths.value[wellIndex] = -(logMass * 4.0);
-                this.gridMaterial.uniforms.wellRadii.value[wellIndex] = (logMass * 200.0) + 100.0;
+
+                // === VISUAL DEPTH ===
+                const isBeingRendered = b.mesh.visible || b.sprite.visible;
+
+                if (isBeingRendered && wellIndex < this.MAX_WELLS && d.mass > 0 && d.name !== "SUN") {
+                this.gridMaterial.uniforms.wellPositions.value[wellIndex].set(b.renderPos.x, b.renderPos.z);
+                
+                const sunMass = 1988500; 
+                const a = b.scaledA || d.a_au || 1.0;
+                const hillRadius = a * Math.pow(d.mass / sunMass, 1.0 / 3.0);
+                
+                let targetDepth = b.isMoon ? -4.0 : -15.0;
+                let targetRadius = Math.max(hillRadius * 2.5, b.isMoon ? 0.005 : 0.05);
+
+                if (!b.isMoon) {
+                    const zoom = this.camera.zoom;
+                    const fadeFactor = Math.max(0.0, Math.min(1.0, 1.0 - ((zoom - 50.0) / 150.0)));
+                    
+                    targetDepth *= fadeFactor;
+                }
+                this.gridMaterial.uniforms.wellDepths.value[wellIndex] = targetDepth;
+                this.gridMaterial.uniforms.wellRadii.value[wellIndex] = targetRadius;
                 wellIndex++;
             }
+        }
 
             if (isTarget) {
                 trackTargetPos = b.mesh.position;
@@ -230,6 +252,7 @@ class RenderPipeline {
 
     updateGPU(daysSinceJ2000, currentOrigin) {
         this.gridMaterial.uniforms.zoomScale.value = this.camera.zoom;
+        this.gridMaterial.uniforms.cameraPos.value.copy(this.camera.position);
         
         this.gpuParticleSystems.forEach(system => {
             system.visible = system.userData.datasetVisible !== false;

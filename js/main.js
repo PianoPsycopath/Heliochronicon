@@ -1,6 +1,6 @@
 // js/main.js
 const AU_IN_KM = 149597870.7; 
-const MAX_WELLS = 15; 
+const MAX_WELLS = 35; 
 
 // --- INITIALIZE SCENE MANAGER ---
 const sceneManager = new SceneManager('canvas-container');
@@ -28,9 +28,23 @@ const savedColors = JSON.parse(localStorage.getItem('tacticalMapColors')) || {};
 
 // --- INITIALIZE UI & MATERIALS ---
 const gridMaterial = Shaders.getGridMaterial(MAX_WELLS);
-const gridPlane = new THREE.Mesh(new THREE.PlaneGeometry(50000, 50000, 600, 600), gridMaterial);
-gridPlane.rotation.x = -Math.PI / 2; gridPlane.renderOrder = 0;
+const gridPlane = new THREE.Mesh(
+    new THREE.PlaneGeometry(1000000, 1000000, 4, 4), 
+    gridMaterial
+);
+gridPlane.rotation.x = -Math.PI / 2;
+gridPlane.renderOrder = -2;
 scene.add(gridPlane);
+
+// NEW: The Local Equatorial Grid
+const equatorialMaterial = Shaders.getEquatorialGridMaterial();
+const equatorialGridPlane = new THREE.Mesh(
+    new THREE.PlaneGeometry(1000, 1000, 4, 4), 
+    equatorialMaterial
+);
+equatorialGridPlane.visible = false;
+equatorialGridPlane.renderOrder = -1; 
+scene.add(equatorialGridPlane);
 
 const tacticalMaterial = Shaders.getTacticalMaterial();
 const UI = new UIController();
@@ -285,6 +299,49 @@ function animate() {
     // 3. Render Pre-Pass (Projections, Culling, Matrices)
     const trackTargetPos = renderPipeline.processScreenProjectionsAndCulling(celestialBodies, currentTargetData, currentOrigin);
     
+    // --- DUAL-GRID ARCHITECTURE LOGIC ---
+    
+    // 3.1 Force the massive Ecliptic Grid to remain perfectly flat at the solar Y=0 baseline
+    gridPlane.position.set(0, 0, 0);
+    gridPlane.quaternion.setFromAxisAngle(new THREE.Vector3(1, 0, 0), -Math.PI / 2);
+    
+    // --- DUAL-GRID ARCHITECTURE LOGIC ---
+
+    // 3.2 Manage the Targeted Equatorial Grid
+    if (currentTargetData) {
+        const tBody = celestialBodies.find(x => x.data.name === currentTargetData.name);
+        
+        const isPlanet = !tBody.isMoon && tBody.data.parent === "SUN";
+        
+        if (tBody && tBody.data.name !== "SUN" && (isPlanet || tBody.isMoon)) {
+            equatorialGridPlane.visible = true;
+            
+            // Default to the target itself (if it's a planet)
+            let anchorPos = tBody.renderPos;
+            let anchorQuat = tBody.poleQuaternion;
+            
+            if (tBody.isMoon) {
+                const parentPlanet = celestialBodies.find(x => x.data.name === tBody.data.parent);
+                if (parentPlanet) {
+                    anchorPos = parentPlanet.renderPos;
+                    anchorQuat = parentPlanet.poleQuaternion;
+                }
+            }
+
+            equatorialGridPlane.position.lerp(anchorPos, 0.1);
+
+            const eclipticQuat = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), -Math.PI / 2);
+            const finalQuat = anchorQuat.clone().multiply(eclipticQuat);
+            equatorialGridPlane.quaternion.slerp(finalQuat, 0.1);
+            
+            equatorialMaterial.uniforms.cameraPos.value.copy(camera.position);
+        } else {
+            equatorialGridPlane.visible = false;
+        }
+    } else {
+        equatorialGridPlane.visible = false;
+    }
+
     // 4. Hardware Updates (Camera, Telemetry, Shaders)
     if (currentTargetData) {
         const tBody = celestialBodies.find(x => x.data.name === currentTargetData.name);
@@ -297,7 +354,7 @@ function animate() {
     }
     
     controls.update(); 
-    renderPipeline.updateGPU(daysSinceJ2000, currentOrigin);
+    renderPipeline.updateGPU(daysSinceJ2000, currentOrigin, gridPlane);
 
     renderer.render(scene, camera);
 }
