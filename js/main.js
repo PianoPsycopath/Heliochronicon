@@ -20,6 +20,8 @@ const pickableObjects = [];
 const gpuParticleSystems = []; 
 const currentOrigin = new THREE.Vector3(0, 0, 0); 
 
+let assetManifest = null;      // cached data/manifest.json, used by the deep asteroid lookup
+let lookupInFlight = false;    // guards against overlapping lookups
 
 // --- GLOBAL ASSETS & MEMORY ---
 const dotTexture = Shaders.createDotTexture();
@@ -217,6 +219,43 @@ UI.onPurgeRequested = (data) => {
     UI.updateTargetPanel(null);
     UI.renderBodyList(celestialBodies, currentTargetData);
 };
+UI.onAsteroidLookup = async (rawQuery) => {
+    if (lookupInFlight) return;
+    const query = rawQuery.trim();
+    if (!query) return;
+
+    const target = DataLoader.normalizeDesignation(query);
+
+    const tracked = celestialBodies.find(b => DataLoader.normalizeDesignation(b.data.name) === target);
+    if (tracked) {
+        UI.onFocusBody(tracked.data);
+        return;
+    }
+
+    for (const system of gpuParticleSystems) {
+        const source = system.userData && system.userData.sourceData;
+        if (!source) continue;
+        const hit = source.find(d => DataLoader.normalizeDesignation(d.name) === target);
+        if (hit) {
+            UI.onFocusBody(hit);
+            return;
+        }
+    }
+
+    lookupInFlight = true;
+    UI.showLookupPending(query);
+    try {
+        const skipGroups = [...activeDatasets, 'planets', 'moons'];
+        const found = await DataLoader.findAsteroidInManifest(query, assetManifest, skipGroups);
+        if (found) {
+            UI.onFocusBody(found);
+        } else {
+            UI.showLookupNotFound(query);
+        }
+    } finally {
+        lookupInFlight = false;
+    }
+};
 
 UI.onScanRequested = (isActive) => { 
     if (isActive) {
@@ -225,7 +264,9 @@ UI.onScanRequested = (isActive) => {
         tacticalScanner.purgeTacticalClones();
     }
 };
-
+UI.onSearch = (query) => {
+    tacticalScanner.executeSearch(query);
+};
 // ==========================================
 // SYSTEM BOOTLOADER
 // ==========================================
@@ -254,7 +295,7 @@ async function bootEngine() {
     try {
         const manifest = await DataLoader.fetchJSONDataset('data/manifest.json');
         if (manifest && manifest.datasets) {
-            
+            assetManifest = manifest;
             
             const defaultColors = ['#ff3333', '#ff8800', '#ffff00', '#00ff00', '#00ffff', '#ff00ff'];
             let colorIdx = 0;

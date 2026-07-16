@@ -42,6 +42,8 @@ class UIController {
         this.isScanActive = false;
         this.onScanRequested = null;
 
+        this.onAsteroidLookup = null;
+        
         this.initBindings();
     }
 
@@ -83,6 +85,11 @@ class UIController {
         });
         this.searchEl.addEventListener('input', () => {
             if (this.onRefreshList) this.onRefreshList();
+        });
+        this.searchEl.addEventListener('keypress', (e) => {
+            if (e.key !== 'Enter') return;
+            const query = this.searchEl.value.trim();
+            if (query && this.onAsteroidLookup) this.onAsteroidLookup(query);
         });
 
         
@@ -372,5 +379,24 @@ class UIController {
         });
         
         this.triggerCRTFlash();
+    }
+   
+    showLookupPending(query) {
+        const safe = this._escapeHtml(query.toUpperCase());
+        this.telemetryDataEl.innerHTML = `
+            <p style="color: #00ffff; font-weight: bold; animation: flicker 0.5s infinite;">
+                SEARCHING DATABASE FOR "${safe}"...
+            </p>`;
+    }
+
+    showLookupNotFound(query) {
+        const safe = this._escapeHtml(query.toUpperCase());
+        this.telemetryDataEl.innerHTML = `
+            <p style="color: #ff3333; font-weight: bold;">NO RECORD FOUND FOR "${safe}"</p>
+            <p style="font-size: 0.75rem;">Checked loaded datasets and all on-disk chunks.</p>`;
+    }
+
+    _escapeHtml(str) {
+        return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
     }
 }
