@@ -230,7 +230,7 @@ class Shaders {
                 attribute float Node;
                 attribute float M0;
                 attribute float n;
-
+            
                 varying float vAlpha;
                 varying float vDarken; 
 

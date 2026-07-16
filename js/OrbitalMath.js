@@ -7,9 +7,22 @@ class OrbitalMath {
     }
 
     static solveKepler(M, e) {
-        let E = M;
-        for (let i = 0; i < 10; i++) {
-            E = E - (E - e * Math.sin(E) - M) / (1 - e * Math.cos(E));
+        const M_norm = M % (2 * Math.PI);
+        const e_capped = Math.min(e, 0.9999);
+
+        let E = M_norm + e_capped * Math.sin(M_norm) * (1.0 + e_capped * Math.cos(M_norm));
+
+        for (let i = 0; i < 30; i++) {
+            const f = E - e_capped * Math.sin(E) - M_norm;
+            const fPrime = 1 - e_capped * Math.cos(E);
+
+            let delta = f / fPrime;
+
+            delta = Math.max(-1.0, Math.min(1.0, delta));
+            
+            E -= delta;
+
+            if (Math.abs(delta) < 1e-6) break;
         }
         return E;
     }
