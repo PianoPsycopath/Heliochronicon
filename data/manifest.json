@@ -24,10 +24,10 @@
         "aten_chunk_0.json"
       ]
     },
-    "atiraUNI": {
+    "atira": {
       "totalRecords": 38,
       "chunks": [
-        "atiraUNI_chunk_0.json"
+        "atira_chunk_0.json"
       ]
     },
     "centaur": {
@@ -364,18 +364,6 @@
         "outer-belt_chunk_7.json",
         "outer-belt_chunk_8.json",
         "outer-belt_chunk_9.json"
-      ]
-    },
-    "planets": {
-      "totalRecords": 9,
-      "chunks": [
-        "planets.json"
-      ]
-    },
-    "moons": {
-      "totalRecords": 460,
-      "chunks": [
-        "moons.json"
       ]
     },
     "transneptunian": {
