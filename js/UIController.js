@@ -48,20 +48,91 @@ class UIController {
     }
 
     initBindings() {
-        document.querySelectorAll('.time-btn').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                document.querySelectorAll('.time-btn').forEach(b => b.classList.remove('active'));
-                e.target.classList.add('active');
-                this.timeMultiplier = parseFloat(e.target.dataset.mult);
-            });
+        // --- 1. DOM Element Grabs ---
+        this.timeInput = document.getElementById('time-input-bottom');
+        const btnLive = document.getElementById('btn-live');
+        const timeSlider = document.getElementById('time-slider');
+        const throttleLabel = document.getElementById('throttle-label');
+        const btnRev = document.getElementById('btn-time-rev');
+        const btnFwd = document.getElementById('btn-time-fwd');
+        const btnPause = document.getElementById('btn-time-pause');
+        const btn1x = document.getElementById('btn-time-1x');
+
+        this.isLiveTime = false;
+
+        // --- 2. The Throttle Dictionary ---
+        // 21 steps (0 to 20). Index 10 is PAUSED. Index 11 is 1x Speed.
+        const timeScaleMap = [
+            { label: "-100 YEARS / SEC", mult: -3153600000 },
+            { label: "-10 YEARS / SEC", mult: -315360000 },
+            { label: "-1 YEAR / SEC", mult: -31536000 },
+            { label: "-6 MONTHS / SEC", mult: -15552000 },
+            { label: "-1 MONTH / SEC", mult: -2592000 },
+            { label: "-1 WEEK / SEC", mult: -604800 },
+            { label: "-1 DAY / SEC", mult: -86400 },
+            { label: "-1 HOUR / SEC", mult: -3600 },
+            { label: "-1 MIN / SEC", mult: -60 },
+            { label: "-1 SEC / SEC", mult: -1 },
+            { label: "PAUSED", mult: 0 },             // Index 10
+            { label: "1 SEC / SEC", mult: 1 },        // Index 11
+            { label: "1 MIN / SEC", mult: 60 },
+            { label: "1 HOUR / SEC", mult: 3600 },
+            { label: "1 DAY / SEC", mult: 86400 },
+            { label: "1 WEEK / SEC", mult: 604800 },
+            { label: "1 MONTH / SEC", mult: 2592000 },
+            { label: "6 MONTHS / SEC", mult: 15552000 },
+            { label: "1 YEAR / SEC", mult: 31536000 },
+            { label: "10 YEARS / SEC", mult: 315360000 },
+            { label: "100 YEARS / SEC", mult: 3153600000 }
+        ];
+
+        // --- 3. Slider Application Logic ---
+        const applyThrottle = (index) => {
+            this.isLiveTime = false;
+            btnLive.classList.remove('active');
+            // Clamp bounds
+            index = Math.max(0, Math.min(20, index));
+            timeSlider.value = index;
+            
+            const mapping = timeScaleMap[index];
+            this.timeMultiplier = mapping.mult;
+            throttleLabel.innerText = mapping.label;
+            
+            if (index === 10) {
+                throttleLabel.style.color = "#ff3333"; // Paused
+            } else {
+                throttleLabel.style.color = "#ff8c00"; // Active
+            }
+        };
+
+        // --- 4. Wire Controls ---
+        timeSlider.addEventListener('input', (e) => applyThrottle(parseInt(e.target.value)));
+        btnRev.addEventListener('click', () => applyThrottle(parseInt(timeSlider.value) - 1));
+        btnFwd.addEventListener('click', () => applyThrottle(parseInt(timeSlider.value) + 1));
+        btnPause.addEventListener('click', () => applyThrottle(10)); // Index 10 is 0x
+        btn1x.addEventListener('click', () => applyThrottle(11));    // Index 11 is 1x
+
+        // --- 5. LIVE Button Logic ---
+        btnLive.addEventListener('click', () => {
+            this.isLiveTime = true;
+            btnLive.classList.add('active');
+            applyThrottle(11); 
+            this.isLiveTime = true; 
+            btnLive.classList.add('active'); 
         });
 
+        // --- 6. Manual Time Input ---
         const applyManualTime = () => {
+            this.isLiveTime = false;
+            btnLive.classList.remove('active');
+            
             const parsed = new Date(this.timeInput.value + "Z");
             if (!isNaN(parsed) && this.onTimeChanged) {
                 this.onTimeChanged(parsed);
+                applyThrottle(10); 
             }
         };
+
         this.timeInput.addEventListener('blur', applyManualTime);
         this.timeInput.addEventListener('keypress', (e) => { 
             if (e.key === 'Enter') { applyManualTime(); this.timeInput.blur(); } 
@@ -129,7 +200,7 @@ class UIController {
             this.btnMobileToggle.addEventListener('click', () => {
                 // Cycle the state: 0 -> 1 -> 2 -> 0
                 this.mobileUiState = (this.mobileUiState + 1) % 3;
-                
+                document.body.classList.toggle('panels-open', this.mobileUiState !== 0);
                 if (this.mobileUiState === 0) {
                     // STATE 0: View Map (Hide Both)
                     this.panelLeft.classList.remove('mobile-active');

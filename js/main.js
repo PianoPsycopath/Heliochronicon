@@ -326,6 +326,9 @@ function animate() {
     lastFrameTime = performance.now();
     
     // 1. Time Update
+    if (UI.isLiveTime) {
+        systemDate = new Date(); // Lock strictly to system clock
+    }
     const timeData = PhysicsEngine.updateSystemTime(UI, systemDate, deltaSec);
     systemDate = timeData.newDate;
     const daysSinceJ2000 = timeData.daysSinceJ2000;

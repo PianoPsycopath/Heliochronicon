@@ -99,6 +99,55 @@
                 display: flex !important;
             }
         }
+        /* =========================================
+           BOTTOM DECK CHRONOMETER
+        ========================================= */
+        #bottom-deck {
+            position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%);
+            width: 90vw; max-width: 700px; z-index: 15;
+            background: rgba(10, 5, 0, 0.85); border: 2px solid #ffcc00;
+            box-shadow: 0 0 15px rgba(255, 204, 0, 0.2), inset 0 0 20px rgba(255, 204, 0, 0.05);
+            display: flex; flex-direction: column; gap: 10px; padding: 15px;
+            backdrop-filter: blur(6px); transition: opacity 0.3s ease;
+        }
+        
+        .chrono-header { display: flex; gap: 10px; align-items: stretch; justify-content: center; }
+        
+        #btn-live {
+            background: #222; border: 1px solid #555; color: #555;
+            font-weight: bold; font-family: 'Courier New', Courier, monospace;
+            padding: 0 20px; cursor: pointer; transition: all 0.2s; letter-spacing: 2px;
+        }
+        #btn-live.active {
+            background: rgba(0, 255, 0, 0.15); border-color: #00ff00; color: #00ff00;
+            text-shadow: 0 0 8px #00ff00; box-shadow: inset 0 0 10px rgba(0, 255, 0, 0.3);
+        }
+        
+        #time-input-bottom {
+            flex-grow: 1; background: #0b0500; border: 1px solid #ffcc00;
+            color: #ffcc00; font-size: 1.2rem; text-align: center; padding: 10px;
+            font-weight: bold; letter-spacing: 2px; outline: none;
+        }
+
+        .throttle-container { display: flex; align-items: center; gap: 8px; }
+        
+        .throttle-btn {
+            background: #110800; border: 1px solid #ffcc00; color: #ffcc00;
+            padding: 8px 15px; cursor: pointer; font-weight: bold; font-size: 0.9rem;
+        }
+        .throttle-btn:hover { background: #ffcc00; color: #000; }
+        
+        #time-slider { flex-grow: 1; accent-color: #ffcc00; cursor: pointer; height: 6px; background: #333; outline: none; }
+        
+        #throttle-label {
+            text-align: center; color: #ff8c00; font-size: 0.85rem; 
+            font-weight: bold; letter-spacing: 1px; margin-top: -5px;
+        }
+
+        /* Mobile Hiding Logic */
+        @media (max-width: 768px) {
+            body.panels-open #bottom-deck { display: none !important; }
+        }
     </style>
 </head>
 <body oncontextmenu="return false;"> 
@@ -143,21 +192,6 @@
             
             <button id="btn-clear-map" class="danger-btn">PURGE SYSTEM MEMORY</button>
 
-            <label>J2000 CHRONOMETER (UTC)</label>
-            <input type="text" id="time-input" value="">
-            
-            <label>TIME DILATION MULTIPLIER</label>
-            <div class="btn-grid">
-                <button class="time-btn" data-mult="-10000000">-10Mx</button>
-                <button class="time-btn" data-mult="-1000000">-1Mx</button>
-                <button class="time-btn" data-mult="-100000">-100Kx</button>
-                <button class="time-btn" data-mult="0">PAUSE</button>
-                <button class="time-btn active" data-mult="1">1x</button>
-                <button class="time-btn" data-mult="100000">100Kx</button>
-                <button class="time-btn" data-mult="1000000">1Mx</button>
-                <button class="time-btn" data-mult="10000000">10Mx</button>
-                <button class="time-btn" data-mult="50000000">50Mx</button>
-            </div>
         </div>
     </div>
 
@@ -167,7 +201,21 @@
             <p>AWAITING DATA INPUT...</p>
         </div>
     </div>
-
+    <div id="bottom-deck">
+        <div class="chrono-header">
+            <button id="btn-live">LIVE</button>
+            <input type="text" id="time-input-bottom" value="">
+        </div>
+        
+        <div class="throttle-container">
+            <button id="btn-time-rev" class="throttle-btn">◀◀</button>
+            <button id="btn-time-pause" class="throttle-btn">▐▐</button>
+            <input type="range" id="time-slider" min="0" max="20" step="1" value="11">
+            <button id="btn-time-fwd" class="throttle-btn">▶▶</button>
+            <button id="btn-time-1x" class="throttle-btn">1X</button>
+        </div>
+        <div id="throttle-label">1 SEC / SEC</div>
+    </div>
     <div id="canvas-container"></div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
