@@ -187,11 +187,15 @@
 
         <div class="control-group">
             <label>VISIBILITY SETTINGS</label>
-            
-            <div id="dataset-list" class="scrollable-list" style="margin-bottom: 15px; max-height: 200px;"></div>
-            
-            <button id="btn-clear-map" class="danger-btn">PURGE SYSTEM MEMORY</button>
 
+            <div class="list-item flex-row" style="background: rgba(255, 204, 0, 0.1); border-bottom: 1px solid #ffcc00; margin-bottom: 5px;">
+                <input type="checkbox" id="master-asteroid-toggle">
+                <label for="master-asteroid-toggle" style="margin-left: 10px; font-weight: bold; flex-grow: 1; cursor: pointer;">TOGGLE ALL ASTEROIDS</label>
+            </div>
+
+            <div id="dataset-list" class="scrollable-list" style="margin-bottom: 15px; max-height: 200px;"></div>
+
+            <button id="btn-clear-map" class="danger-btn">PURGE SYSTEM MEMORY</button>
         </div>
     </div>
 

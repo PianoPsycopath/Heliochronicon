@@ -162,9 +162,27 @@ class UIController {
             const query = this.searchEl.value.trim();
             if (query && this.onAsteroidLookup) this.onAsteroidLookup(query);
         });
-
-        
-
+        // Master Asteroid Toggle Logic
+        const masterAsteroidToggle = document.getElementById('master-asteroid-toggle');
+        if (masterAsteroidToggle) {
+            masterAsteroidToggle.addEventListener('change', (e) => {
+                const isMasterChecked = e.target.checked;
+                const list = document.getElementById('dataset-list');
+                const allRows = list.querySelectorAll('.list-item');
+            
+                allRows.forEach(row => {
+                    const labelEl = row.querySelector('label');
+                    if (labelEl && labelEl.textContent.includes('[ASTEROID]')) {
+                        const toggle = row.querySelector('input[type="checkbox"]');
+                        if (toggle && toggle.checked !== isMasterChecked) {
+                            toggle.checked = isMasterChecked;
+                            toggle.dispatchEvent(new Event('change'));
+                        }
+                    }
+                });
+            });
+        }
+        // Disable scan
         document.getElementById('btn-clear-map').addEventListener('click', () => {
             if (this.onClearData) {
                 this.onClearData();
@@ -178,6 +196,7 @@ class UIController {
                 this.btnScan.innerText = 'SCAN LOCAL';
             }
         });
+        // Scan For Nearby Asteroids
         this.btnScan.addEventListener('click', () => {
             this.isScanActive = !this.isScanActive;
             
@@ -263,7 +282,6 @@ class UIController {
         });
 
         // 3. Labels
-        //TODO: Fix label drag, Sun label offset
         const label = document.createElement('label');
         label.style.cursor = 'pointer';
         label.style.flexGrow = '1';
@@ -274,8 +292,7 @@ class UIController {
         div.appendChild(colorPicker);
         div.appendChild(label);
         list.appendChild(div);
-}
-
+    }
     getMoonFilters() {
         const dMin = parseFloat(this.distMinEl.value);
         const dMax = parseFloat(this.distMaxEl.value);

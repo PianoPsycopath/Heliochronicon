@@ -276,6 +276,13 @@ async function bootEngine() {
         { name: 'Planets', category: 'PLANET', color: '#ffffff', urls: ['data/planets.json'] },
         { name: 'Moons',   category: 'MOON',   color: '#aaaaaa', urls: ['data/moons.json'] }
     ];
+
+    try {
+        const manifest = await DataLoader.fetchJSONDataset('data/manifest.json');
+    } 
+    catch (err) {
+        console.error("Failed to load manifest.json", err);
+    }
     
     for (const ds of baseDatasets) {
         try {
