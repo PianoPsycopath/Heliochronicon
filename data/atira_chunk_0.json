@@ -1,6 +1,6 @@
 [
   {
-    "name": 163693,
+    "name": "Atira",
     "parent": "SUN",
     "category": "ASTEROID",
     "a_au": 0.741,
@@ -9,7 +9,7 @@
     "i_deg": 25.62,
     "w_deg": 252.93,
     "node_deg": 103.87,
-    "m_deg": 346.32,
+    "m_deg": 188.5725,
     "period_days": 233,
     "mass_10_24_kg": null,
     "radius_km": null,
@@ -19,7 +19,7 @@
     "pole_dec_rate_deg_per_cy": null,
     "pm_w_deg": null,
     "pm_w_rate_deg_per_day": 3.398,
-    "symbol": "•"
+    "symbol": "\u2022"
   },
   {
     "name": 164294,
@@ -31,7 +31,7 @@
     "i_deg": 2.95,
     "w_deg": 5.46,
     "node_deg": 211.13,
-    "m_deg": 272.86,
+    "m_deg": 102.5395,
     "period_days": 177,
     "mass_10_24_kg": null,
     "radius_km": null,
@@ -41,7 +41,7 @@
     "pole_dec_rate_deg_per_cy": null,
     "pm_w_deg": null,
     "pm_w_rate_deg_per_day": null,
-    "symbol": "•"
+    "symbol": "\u2022"
   },
   {
     "name": 413563,
@@ -53,7 +53,7 @@
     "i_deg": 23.33,
     "w_deg": 230.43,
     "node_deg": 273.41,
-    "m_deg": 124.57,
+    "m_deg": 128.134,
     "period_days": 205,
     "mass_10_24_kg": null,
     "radius_km": null,
@@ -63,7 +63,7 @@
     "pole_dec_rate_deg_per_cy": null,
     "pm_w_deg": null,
     "pm_w_rate_deg_per_day": 1.3862,
-    "symbol": "•"
+    "symbol": "\u2022"
   },
   {
     "name": 418265,
@@ -75,7 +75,7 @@
     "i_deg": 28.26,
     "w_deg": 181.87,
     "node_deg": 100.94,
-    "m_deg": 140.23,
+    "m_deg": 252.6655,
     "period_days": 177,
     "mass_10_24_kg": null,
     "radius_km": null,
@@ -85,7 +85,7 @@
     "pole_dec_rate_deg_per_cy": null,
     "pm_w_deg": null,
     "pm_w_rate_deg_per_day": null,
-    "symbol": "•"
+    "symbol": "\u2022"
   },
   {
     "name": 434326,
@@ -97,7 +97,7 @@
     "i_deg": 18.94,
     "w_deg": 353.01,
     "node_deg": 37.01,
-    "m_deg": 64.98,
+    "m_deg": 345.7215,
     "period_days": 185,
     "mass_10_24_kg": null,
     "radius_km": null,
@@ -107,7 +107,7 @@
     "pole_dec_rate_deg_per_cy": null,
     "pm_w_deg": null,
     "pm_w_rate_deg_per_day": null,
-    "symbol": "•"
+    "symbol": "\u2022"
   },
   {
     "name": 481817,
@@ -119,7 +119,7 @@
     "i_deg": 24.31,
     "w_deg": 183.66,
     "node_deg": 81.12,
-    "m_deg": 303.05,
+    "m_deg": 79.0445,
     "period_days": 212,
     "mass_10_24_kg": null,
     "radius_km": null,
@@ -129,10 +129,10 @@
     "pole_dec_rate_deg_per_cy": null,
     "pm_w_deg": null,
     "pm_w_rate_deg_per_day": null,
-    "symbol": "•"
+    "symbol": "\u2022"
   },
   {
-    "name": 594913,
+    "name": "'Aylo'chaxnim",
     "parent": "SUN",
     "category": "ASTEROID",
     "a_au": 0.5553,
@@ -141,7 +141,7 @@
     "i_deg": 15.87,
     "w_deg": 187.4,
     "node_deg": 6.68,
-    "m_deg": 61.03,
+    "m_deg": 101.629,
     "period_days": 151,
     "mass_10_24_kg": null,
     "radius_km": null,
@@ -151,7 +151,7 @@
     "pole_dec_rate_deg_per_cy": null,
     "pm_w_deg": null,
     "pm_w_rate_deg_per_day": null,
-    "symbol": "•"
+    "symbol": "\u2022"
   },
   {
     "name": 613676,
@@ -163,7 +163,7 @@
     "i_deg": 24.77,
     "w_deg": 318.61,
     "node_deg": 310.99,
-    "m_deg": 239.57,
+    "m_deg": 228.071,
     "period_days": 254,
     "mass_10_24_kg": null,
     "radius_km": null,
@@ -173,7 +173,7 @@
     "pole_dec_rate_deg_per_cy": null,
     "pm_w_deg": null,
     "pm_w_rate_deg_per_day": null,
-    "symbol": "•"
+    "symbol": "\u2022"
   },
   {
     "name": 678861,
@@ -185,7 +185,7 @@
     "i_deg": 19.85,
     "w_deg": 147.53,
     "node_deg": 134.14,
-    "m_deg": 101.15,
+    "m_deg": 352.925,
     "period_days": 185,
     "mass_10_24_kg": null,
     "radius_km": null,
@@ -195,7 +195,7 @@
     "pole_dec_rate_deg_per_cy": null,
     "pm_w_deg": null,
     "pm_w_rate_deg_per_day": 3.8896,
-    "symbol": "•"
+    "symbol": "\u2022"
   },
   {
     "name": "(1998 DK36)",
@@ -207,7 +207,7 @@
     "i_deg": 2.02,
     "w_deg": 180.04,
     "node_deg": 151.46,
-    "m_deg": 183.25,
+    "m_deg": 260.7415,
     "period_days": 210,
     "mass_10_24_kg": null,
     "radius_km": null,
@@ -217,7 +217,7 @@
     "pole_dec_rate_deg_per_cy": null,
     "pm_w_deg": null,
     "pm_w_rate_deg_per_day": null,
-    "symbol": "•"
+    "symbol": "\u2022"
   },
   {
     "name": "(2010 XB11)",
@@ -229,7 +229,7 @@
     "i_deg": 29.88,
     "w_deg": 202.51,
     "node_deg": 96.29,
-    "m_deg": 103.67,
+    "m_deg": 322.316,
     "period_days": 177,
     "mass_10_24_kg": null,
     "radius_km": null,
@@ -239,7 +239,7 @@
     "pole_dec_rate_deg_per_cy": null,
     "pm_w_deg": null,
     "pm_w_rate_deg_per_day": null,
-    "symbol": "•"
+    "symbol": "\u2022"
   },
   {
     "name": "(2012 VE46)",
@@ -251,7 +251,7 @@
     "i_deg": 6.67,
     "w_deg": 190.62,
     "node_deg": 8.64,
-    "m_deg": 43.74,
+    "m_deg": 77.6865,
     "period_days": 220,
     "mass_10_24_kg": null,
     "radius_km": null,
@@ -261,7 +261,7 @@
     "pole_dec_rate_deg_per_cy": null,
     "pm_w_deg": null,
     "pm_w_rate_deg_per_day": null,
-    "symbol": "•"
+    "symbol": "\u2022"
   },
   {
     "name": "(2013 JX28)",
@@ -273,7 +273,7 @@
     "i_deg": 10.76,
     "w_deg": 354.91,
     "node_deg": 39.92,
-    "m_deg": 200.23,
+    "m_deg": 279.5365,
     "period_days": 170,
     "mass_10_24_kg": null,
     "radius_km": null,
@@ -283,7 +283,7 @@
     "pole_dec_rate_deg_per_cy": null,
     "pm_w_deg": null,
     "pm_w_rate_deg_per_day": null,
-    "symbol": "•"
+    "symbol": "\u2022"
   },
   {
     "name": "(2013 TQ5)",
@@ -295,7 +295,7 @@
     "i_deg": 16.4,
     "w_deg": 247.22,
     "node_deg": 286.73,
-    "m_deg": 46.51,
+    "m_deg": 105.346,
     "period_days": 249,
     "mass_10_24_kg": null,
     "radius_km": null,
@@ -305,7 +305,7 @@
     "pole_dec_rate_deg_per_cy": null,
     "pm_w_deg": null,
     "pm_w_rate_deg_per_day": null,
-    "symbol": "•"
+    "symbol": "\u2022"
   },
   {
     "name": "(2014 FO47)",
@@ -317,7 +317,7 @@
     "i_deg": 19.2,
     "w_deg": 347.46,
     "node_deg": 358.62,
-    "m_deg": 91.65,
+    "m_deg": 262.1895,
     "period_days": 238,
     "mass_10_24_kg": null,
     "radius_km": null,
@@ -327,7 +327,7 @@
     "pole_dec_rate_deg_per_cy": null,
     "pm_w_deg": null,
     "pm_w_rate_deg_per_day": null,
-    "symbol": "•"
+    "symbol": "\u2022"
   },
   {
     "name": "(2015 DR215)",
@@ -339,7 +339,7 @@
     "i_deg": 4.06,
     "w_deg": 42.7,
     "node_deg": 314.56,
-    "m_deg": 91.82,
+    "m_deg": 245.7095,
     "period_days": 199,
     "mass_10_24_kg": null,
     "radius_km": null,
@@ -349,7 +349,7 @@
     "pole_dec_rate_deg_per_cy": null,
     "pm_w_deg": null,
     "pm_w_rate_deg_per_day": null,
-    "symbol": "•"
+    "symbol": "\u2022"
   },
   {
     "name": "(2017 XA1)",
@@ -361,7 +361,7 @@
     "i_deg": 17.18,
     "w_deg": 327.61,
     "node_deg": 239.62,
-    "m_deg": 104.37,
+    "m_deg": 0.4785,
     "period_days": 266,
     "mass_10_24_kg": null,
     "radius_km": null,
@@ -371,7 +371,7 @@
     "pole_dec_rate_deg_per_cy": null,
     "pm_w_deg": null,
     "pm_w_rate_deg_per_day": null,
-    "symbol": "•"
+    "symbol": "\u2022"
   },
   {
     "name": "(2018 JB3)",
@@ -383,7 +383,7 @@
     "i_deg": 40.39,
     "w_deg": 355.26,
     "node_deg": 106.41,
-    "m_deg": 230.46,
+    "m_deg": 301.6125,
     "period_days": 206,
     "mass_10_24_kg": null,
     "radius_km": null,
@@ -393,7 +393,7 @@
     "pole_dec_rate_deg_per_cy": null,
     "pm_w_deg": null,
     "pm_w_rate_deg_per_day": null,
-    "symbol": "•"
+    "symbol": "\u2022"
   },
   {
     "name": "(2019 AQ3)",
@@ -405,7 +405,7 @@
     "i_deg": 47.22,
     "w_deg": 163.17,
     "node_deg": 64.48,
-    "m_deg": 32.53,
+    "m_deg": 194.5735,
     "period_days": 165,
     "mass_10_24_kg": null,
     "radius_km": null,
@@ -415,7 +415,7 @@
     "pole_dec_rate_deg_per_cy": null,
     "pm_w_deg": null,
     "pm_w_rate_deg_per_day": null,
-    "symbol": "•"
+    "symbol": "\u2022"
   },
   {
     "name": "(2019 LF6)",
@@ -427,7 +427,7 @@
     "i_deg": 29.5,
     "w_deg": 213.79,
     "node_deg": 179.02,
-    "m_deg": 185.87,
+    "m_deg": 236.1245,
     "period_days": 151,
     "mass_10_24_kg": null,
     "radius_km": null,
@@ -437,7 +437,7 @@
     "pole_dec_rate_deg_per_cy": null,
     "pm_w_deg": null,
     "pm_w_rate_deg_per_day": null,
-    "symbol": "•"
+    "symbol": "\u2022"
   },
   {
     "name": "(2020 HA10)",
@@ -449,7 +449,7 @@
     "i_deg": 49.65,
     "w_deg": 26.71,
     "node_deg": 103.41,
-    "m_deg": 201.15,
+    "m_deg": 338.646,
     "period_days": 271,
     "mass_10_24_kg": null,
     "radius_km": null,
@@ -459,7 +459,7 @@
     "pole_dec_rate_deg_per_cy": null,
     "pm_w_deg": null,
     "pm_w_rate_deg_per_day": null,
-    "symbol": "•"
+    "symbol": "\u2022"
   },
   {
     "name": "(2020 OV1)",
@@ -471,7 +471,7 @@
     "i_deg": 32.58,
     "w_deg": 189.83,
     "node_deg": 296.01,
-    "m_deg": 50.01,
+    "m_deg": 76.962,
     "period_days": 186,
     "mass_10_24_kg": null,
     "radius_km": null,
@@ -481,7 +481,7 @@
     "pole_dec_rate_deg_per_cy": null,
     "pm_w_deg": null,
     "pm_w_rate_deg_per_day": null,
-    "symbol": "•"
+    "symbol": "\u2022"
   },
   {
     "name": "(2021 BS1)",
@@ -493,7 +493,7 @@
     "i_deg": 31.73,
     "w_deg": 332.67,
     "node_deg": 27.67,
-    "m_deg": 353.2,
+    "m_deg": 316.6405,
     "period_days": 169,
     "mass_10_24_kg": null,
     "radius_km": null,
@@ -503,7 +503,7 @@
     "pole_dec_rate_deg_per_cy": null,
     "pm_w_deg": null,
     "pm_w_rate_deg_per_day": null,
-    "symbol": "•"
+    "symbol": "\u2022"
   },
   {
     "name": "(2021 LJ4)",
@@ -515,7 +515,7 @@
     "i_deg": 9.82,
     "w_deg": 56.65,
     "node_deg": 277.54,
-    "m_deg": 269.15,
+    "m_deg": 79.604,
     "period_days": 203,
     "mass_10_24_kg": null,
     "radius_km": null,
@@ -525,7 +525,7 @@
     "pole_dec_rate_deg_per_cy": null,
     "pm_w_deg": null,
     "pm_w_rate_deg_per_day": null,
-    "symbol": "•"
+    "symbol": "\u2022"
   },
   {
     "name": "(2021 PB2)",
@@ -537,7 +537,7 @@
     "i_deg": 24.83,
     "w_deg": 278.31,
     "node_deg": 234.97,
-    "m_deg": 192.19,
+    "m_deg": 10.969,
     "period_days": 222,
     "mass_10_24_kg": null,
     "radius_km": null,
@@ -547,7 +547,7 @@
     "pole_dec_rate_deg_per_cy": null,
     "pm_w_deg": null,
     "pm_w_rate_deg_per_day": null,
-    "symbol": "•"
+    "symbol": "\u2022"
   },
   {
     "name": "(2021 PH27)",
@@ -559,7 +559,7 @@
     "i_deg": 31.94,
     "w_deg": 8.58,
     "node_deg": 39.39,
-    "m_deg": 316.68,
+    "m_deg": 228.7545,
     "period_days": 115,
     "mass_10_24_kg": null,
     "radius_km": null,
@@ -569,7 +569,7 @@
     "pole_dec_rate_deg_per_cy": null,
     "pm_w_deg": null,
     "pm_w_rate_deg_per_day": null,
-    "symbol": "•"
+    "symbol": "\u2022"
   },
   {
     "name": "(2021 VR3)",
@@ -581,7 +581,7 @@
     "i_deg": 18.07,
     "w_deg": 134.43,
     "node_deg": 129.03,
-    "m_deg": 95.67,
+    "m_deg": 185.877,
     "period_days": 143,
     "mass_10_24_kg": null,
     "radius_km": null,
@@ -591,7 +591,7 @@
     "pole_dec_rate_deg_per_cy": null,
     "pm_w_deg": null,
     "pm_w_rate_deg_per_day": null,
-    "symbol": "•"
+    "symbol": "\u2022"
   },
   {
     "name": "(2022 BJ8)",
@@ -603,7 +603,7 @@
     "i_deg": 15.83,
     "w_deg": 293.95,
     "node_deg": 95.82,
-    "m_deg": 207.54,
+    "m_deg": 215.352,
     "period_days": 254,
     "mass_10_24_kg": null,
     "radius_km": null,
@@ -613,7 +613,7 @@
     "pole_dec_rate_deg_per_cy": null,
     "pm_w_deg": null,
     "pm_w_rate_deg_per_day": null,
-    "symbol": "•"
+    "symbol": "\u2022"
   },
   {
     "name": "(2023 EL)",
@@ -625,7 +625,7 @@
     "i_deg": 13.88,
     "w_deg": 142.58,
     "node_deg": 263.37,
-    "m_deg": 358.61,
+    "m_deg": 349.8575,
     "period_days": 247,
     "mass_10_24_kg": null,
     "radius_km": null,
@@ -635,7 +635,7 @@
     "pole_dec_rate_deg_per_cy": null,
     "pm_w_deg": null,
     "pm_w_rate_deg_per_day": null,
-    "symbol": "•"
+    "symbol": "\u2022"
   },
   {
     "name": "(2023 EY2)",
@@ -647,7 +647,7 @@
     "i_deg": 35.47,
     "w_deg": 205.86,
     "node_deg": 95.96,
-    "m_deg": 157.82,
+    "m_deg": 21.959,
     "period_days": 171,
     "mass_10_24_kg": null,
     "radius_km": null,
@@ -657,7 +657,7 @@
     "pole_dec_rate_deg_per_cy": null,
     "pm_w_deg": null,
     "pm_w_rate_deg_per_day": null,
-    "symbol": "•"
+    "symbol": "\u2022"
   },
   {
     "name": "(2023 KQ5)",
@@ -669,7 +669,7 @@
     "i_deg": 67.43,
     "w_deg": 219.19,
     "node_deg": 215.67,
-    "m_deg": 63.2,
+    "m_deg": 260.045,
     "period_days": 298,
     "mass_10_24_kg": null,
     "radius_km": null,
@@ -679,7 +679,7 @@
     "pole_dec_rate_deg_per_cy": null,
     "pm_w_deg": null,
     "pm_w_rate_deg_per_day": null,
-    "symbol": "•"
+    "symbol": "\u2022"
   },
   {
     "name": "(2023 WK3)",
@@ -691,7 +691,7 @@
     "i_deg": 24.47,
     "w_deg": 11.17,
     "node_deg": 235.04,
-    "m_deg": 154.39,
+    "m_deg": 111.007,
     "period_days": 189,
     "mass_10_24_kg": null,
     "radius_km": null,
@@ -701,7 +701,7 @@
     "pole_dec_rate_deg_per_cy": null,
     "pm_w_deg": null,
     "pm_w_rate_deg_per_day": null,
-    "symbol": "•"
+    "symbol": "\u2022"
   },
   {
     "name": "(2024 UM9)",
@@ -713,7 +713,7 @@
     "i_deg": 21.17,
     "w_deg": 317.1,
     "node_deg": 252.67,
-    "m_deg": 205.55,
+    "m_deg": 170.663,
     "period_days": 292,
     "mass_10_24_kg": null,
     "radius_km": null,
@@ -723,7 +723,7 @@
     "pole_dec_rate_deg_per_cy": null,
     "pm_w_deg": null,
     "pm_w_rate_deg_per_day": null,
-    "symbol": "•"
+    "symbol": "\u2022"
   },
   {
     "name": "(2024 WD19)",
@@ -735,7 +735,7 @@
     "i_deg": 3.79,
     "w_deg": 263.73,
     "node_deg": 51.41,
-    "m_deg": 46.69,
+    "m_deg": 333.01,
     "period_days": 205,
     "mass_10_24_kg": null,
     "radius_km": null,
@@ -745,7 +745,7 @@
     "pole_dec_rate_deg_per_cy": null,
     "pm_w_deg": null,
     "pm_w_rate_deg_per_day": null,
-    "symbol": "•"
+    "symbol": "\u2022"
   },
   {
     "name": "(2025 GN1)",
@@ -757,7 +757,7 @@
     "i_deg": 32.83,
     "w_deg": 6.11,
     "node_deg": 41.01,
-    "m_deg": 106.96,
+    "m_deg": 38.3455,
     "period_days": 115,
     "mass_10_24_kg": null,
     "radius_km": null,
@@ -767,7 +767,7 @@
     "pole_dec_rate_deg_per_cy": null,
     "pm_w_deg": null,
     "pm_w_rate_deg_per_day": null,
-    "symbol": "•"
+    "symbol": "\u2022"
   },
   {
     "name": "(2025 LP)",
@@ -779,7 +779,7 @@
     "i_deg": 33.34,
     "w_deg": 327.92,
     "node_deg": 324.21,
-    "m_deg": 128.12,
+    "m_deg": 47.6165,
     "period_days": 234,
     "mass_10_24_kg": null,
     "radius_km": null,
@@ -789,7 +789,7 @@
     "pole_dec_rate_deg_per_cy": null,
     "pm_w_deg": null,
     "pm_w_rate_deg_per_day": null,
-    "symbol": "•"
+    "symbol": "\u2022"
   },
   {
     "name": "(2025 SC79)",
@@ -801,7 +801,7 @@
     "i_deg": 16.77,
     "w_deg": 2.9,
     "node_deg": 151.51,
-    "m_deg": 201.12,
+    "m_deg": 289.3935,
     "period_days": 128,
     "mass_10_24_kg": null,
     "radius_km": null,
@@ -811,7 +811,7 @@
     "pole_dec_rate_deg_per_cy": null,
     "pm_w_deg": null,
     "pm_w_rate_deg_per_day": null,
-    "symbol": "•"
+    "symbol": "\u2022"
   },
   {
     "name": "(2026 BX4)",
@@ -823,7 +823,7 @@
     "i_deg": 19.98,
     "w_deg": 341.56,
     "node_deg": 328.07,
-    "m_deg": 339.3,
+    "m_deg": 214.767,
     "period_days": 298,
     "mass_10_24_kg": null,
     "radius_km": null,
@@ -833,6 +833,6 @@
     "pole_dec_rate_deg_per_cy": null,
     "pm_w_deg": null,
     "pm_w_rate_deg_per_day": null,
-    "symbol": "•"
+    "symbol": "\u2022"
   }
 ]
