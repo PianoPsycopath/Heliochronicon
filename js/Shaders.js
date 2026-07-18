@@ -213,43 +213,78 @@ class Shaders {
                 uTime: { value: 0.0 }, // Days since J2000
                 uOrigin: { value: new THREE.Vector3(0, 0, 0) },
                 uColor: { value: new THREE.Color(colorHex) },
-                uZoom: { value: 1.0 }
+                uZoom: { value: 1.0 },
+                uFrameEpochOffset: { value: 7685.5 }
             },
             vertexShader: `
                 uniform float uTime;
                 uniform vec3 uOrigin;
                 uniform float uZoom;
+                uniform float uFrameEpochOffset;
                 
-                // cameraPosition is automatically provided by Three.js
-
-                // Orbital Elements passed as binary buffers
+                // Base Elements (current frame bracket slice)
                 attribute float a;
                 attribute float e;
                 attribute float i;
                 attribute float w;
                 attribute float Node;
                 attribute float M0;
-                attribute float n;
+                attribute float n; // Empirical n
+
+                // Target Elements (2030 AD Slice)
+                attribute float a2;
+                attribute float e2;
+                attribute float i2;
+                attribute float w2;
+                attribute float Node2;
             
                 varying float vAlpha;
                 varying float vDarken; 
 
                 void main() {
-                    // 1. Solve Kepler's Equation (Newton-Raphson 5 Iterations)
+                    // Days elapsed since the epoch of the currently loaded frame bracket
+                    float days_since_frame = uTime - uFrameEpochOffset;
+                    
+                    // Lerp factor: 0.0 at frame f1, 1.0 at frame f2 (3652.5 days later)
+                    float t_lerp = clamp(days_since_frame / 3652.5, 0.0, 1.0);
+
+                    // Interpolate Orbit Structure
+                    float a_cur = mix(a, a2, t_lerp);
+                    float e_cur = mix(e, e2, t_lerp);
+                    float i_cur = mix(i, i2, t_lerp);
+                    
+                    // Circular Interpolation for Angles (taking the shortest path)
+                    float n_diff = Node2 - Node;
+                    if (n_diff > 3.14159265) n_diff -= 6.2831853;
+                    if (n_diff < -3.14159265) n_diff += 6.2831853;
+                    float Node_cur = Node + n_diff * t_lerp;
+                    
+                    float w_diff = w2 - w;
+                    if (w_diff > 3.14159265) w_diff -= 6.2831853;
+                    if (w_diff < -3.14159265) w_diff += 6.2831853;
+                    float w_cur = w + w_diff * t_lerp;
+
+                    // M0 arrives already back-converted to a J2000-referenced mean
+                    // anomaly (see SystemBuilder.extractFrameElements), so this is
+                    // now correct at any uTime -- it no longer silently assumes
+                    // M0 was sampled at J2000 when it was actually sampled at
+                    // whichever frame bracket is currently loaded.
                     float M_current = M0 + n * uTime;
+
+                    // 1. Solve Kepler's Equation (Newton-Raphson 5 Iterations)
                     float E = M_current;
                     for (int iter = 0; iter < 5; iter++) {
-                        E = E - (E - e * sin(E) - M_current) / (1.0 - e * cos(E));
+                        E = E - (E - e_cur * sin(E) - M_current) / (1.0 - e_cur * cos(E));
                     }
 
                     // 2. 2D Orbital Plane Coordinates
-                    float xv = a * (cos(E) - e);
-                    float yv = a * (sqrt(1.0 - e * e) * sin(E));
+                    float xv = a_cur * (cos(E) - e_cur);
+                    float yv = a_cur * (sqrt(1.0 - e_cur * e_cur) * sin(E));
 
-                    // 3. 3D Ecliptic Rotation (with J2000 Angles)
-                    float cos_w = cos(w); float sin_w = sin(w);
-                    float cos_Node = cos(Node); float sin_Node = sin(Node);
-                    float cos_i = cos(i); float sin_i = sin(i);
+                    // 3. 3D Ecliptic Rotation
+                    float cos_w = cos(w_cur); float sin_w = sin(w_cur);
+                    float cos_Node = cos(Node_cur); float sin_Node = sin(Node_cur);
+                    float cos_i = cos(i_cur); float sin_i = sin(i_cur);
 
                     float ast_x = (cos_w*cos_Node - sin_w*sin_Node*cos_i) * xv + (-sin_w*cos_Node - cos_w*sin_Node*cos_i) * yv;
                     float ast_y = (cos_w*sin_Node + sin_w*cos_Node*cos_i) * xv + (-sin_w*sin_Node + cos_w*cos_Node*cos_i) * yv;

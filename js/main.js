@@ -20,8 +20,8 @@ const pickableObjects = [];
 const gpuParticleSystems = []; 
 const currentOrigin = new THREE.Vector3(0, 0, 0); 
 
-let assetManifest = null;      // cached data/manifest.json, used by the deep asteroid lookup
-let lookupInFlight = false;    // guards against overlapping lookups
+let assetManifest = null;      
+let lookupInFlight = false;    
 
 // --- GLOBAL ASSETS & MEMORY ---
 const dotTexture = Shaders.createDotTexture();
@@ -97,23 +97,24 @@ UI.onRefreshList = () => { UI.renderBodyList(celestialBodies, currentTargetData)
 // Stateful Toggles
 const activeDatasets = new Set(); 
 
-UI.onDatasetVisibilityChanged = async (datasetName, isVisible, urls) => {
+UI.onDatasetVisibilityChanged = async (datasetName, isVisible, chunks) => {
     if (isVisible) {
         if (activeDatasets.has(datasetName)) return; 
         
-        const urlArray = Array.isArray(urls) ? urls : [urls];
-        
         try {
-            // Fetch all chunks in parallel
-            const fetchPromises = urlArray.map(url => DataLoader.fetchJSONDataset(url));
+            const fetchPromises = chunks.map(async (chunk) => {
+                const metadataUrl = `data/${chunk.metadata}`;
+                const binaryUrl = `data/${chunk.binary}`;
+                
+                const metadata = await DataLoader.fetchJSONDataset(metadataUrl);
+                const binaryData = await DataLoader.fetchBinaryChunk(binaryUrl);
+                
+                return { metadata, binaryData };
+            });
+            
             const chunkResults = await Promise.all(fetchPromises);
+            systemBuilder.buildFromBinaryChunks(datasetName, chunkResults); 
             
-            // Merge all parsed chunk arrays into single dataset, 
-            // TODO: GET RID OF PLANET AND MOON DUPLICATE CHUNKS
-            const mergedJSON = chunkResults.flat();
-            
-            const processedData = DataLoader.processPlanetaryData(mergedJSON, datasetName);
-            systemBuilder.buildSolarSystem(processedData);
             activeDatasets.add(datasetName);
         } catch (error) {
             console.error(`Failed to load chunk group for ${datasetName}`, error);
@@ -123,7 +124,6 @@ UI.onDatasetVisibilityChanged = async (datasetName, isVisible, urls) => {
         // PURGE SEQUENCE
         activeDatasets.delete(datasetName);
         
-        // 1. Purge Standard Bodies
         for (let i = celestialBodies.length - 1; i >= 0; i--) {
             const b = celestialBodies[i];
             if (b.data.datasetName === datasetName) {
@@ -142,12 +142,10 @@ UI.onDatasetVisibilityChanged = async (datasetName, isVisible, urls) => {
             }
         }
         
-        // 2. BUG FIX: Purge GPU Particle Systems
         for (let i = gpuParticleSystems.length - 1; i >= 0; i--) {
             const sys = gpuParticleSystems[i];
             if (sys.userData && sys.userData.datasetName === datasetName) {
                 scene.remove(sys); 
-                // Best practice: dispose of GPU memory directly
                 if (sys.geometry) sys.geometry.dispose();
                 if (sys.material) sys.material.dispose();
                 gpuParticleSystems.splice(i, 1);
@@ -171,7 +169,6 @@ UI.onDatasetColorChanged = (datasetName, colorHex) => {
     savedColors[datasetName] = colorHex;
     localStorage.setItem('tacticalMapColors', JSON.stringify(savedColors));
 };
-
 
 UI.onFocusBody = (data, isHardLock = true) => {
     if (data.datasetCategory === 'ASTEROID' || data.datasetCategory === 'RADAR_CONTACT') {
@@ -219,6 +216,7 @@ UI.onPurgeRequested = (data) => {
     UI.updateTargetPanel(null);
     UI.renderBodyList(celestialBodies, currentTargetData);
 };
+
 UI.onAsteroidLookup = async (rawQuery) => {
     if (lookupInFlight) return;
     const query = rawQuery.trim();
@@ -267,57 +265,46 @@ UI.onScanRequested = (isActive) => {
 UI.onSearch = (query) => {
     tacticalScanner.executeSearch(query);
 };
+
 // ==========================================
 // SYSTEM BOOTLOADER
 // ==========================================
 async function bootEngine() {
-    // 1. Automatically load Core Datasets
-    const baseDatasets = [
-        { name: 'Planets', category: 'PLANET', color: '#ffffff', urls: ['data/planets.json'] },
-        { name: 'Moons',   category: 'MOON',   color: '#aaaaaa', urls: ['data/moons.json'] }
-    ];
-
+    // Load Manifest
     try {
         const manifest = await DataLoader.fetchJSONDataset('data/manifest.json');
+        if (manifest && manifest.datasets) {
+            assetManifest = manifest;
+        }
     } 
     catch (err) {
         console.error("Failed to load manifest.json", err);
     }
     
+    // 1. Automatically load Core Datasets through the NEW Binary Pipeline
+    const baseDatasets = [
+        { name: 'planets', category: 'PLANET', color: '#ffffff', chunks: [{ metadata: 'planets_chunk_0.json', binary: 'planets_chunk_0.bin' }] },
+        { name: 'moons',   category: 'MOON',   color: '#aaaaaa', chunks: [{ metadata: 'moons_chunk_0.json', binary: 'moons_chunk_0.bin' }] }
+    ];
+
     for (const ds of baseDatasets) {
-        try {
-            const rawData = await DataLoader.fetchJSONDataset(ds.urls[0]);
-            if (rawData && rawData.length > 0) {
-                const processed = DataLoader.processPlanetaryData(rawData, ds.name);
-                systemBuilder.buildSolarSystem(processed);
-                activeDatasets.add(ds.name);
-                UI.addDatasetToggle(ds.name, ds.category, ds.color, true, ds.urls);
-            }
-        } catch (err) {
-            console.error(`Base JSON missing: ${ds.urls[0]}`, err);
-        }
+        UI.addDatasetToggle(ds.name, ds.category, ds.color, true, ds.chunks);
+        // This triggers your UI.onDatasetVisibilityChanged which handles the Binary build logic
+        await UI.onDatasetVisibilityChanged(ds.name, true, ds.chunks);
     }
 
-    // 2. Fetch Manifest & Build Asteroid Group Toggles
-    try {
-        const manifest = await DataLoader.fetchJSONDataset('data/manifest.json');
-        if (manifest && manifest.datasets) {
-            assetManifest = manifest;
+    // 2. Build Asteroid Group Toggles from Manifest
+    if (assetManifest && assetManifest.datasets) {
+        const defaultColors = ['#ff3333', '#ff8800', '#ffff00', '#00ff00', '#00ffff', '#ff00ff'];
+        let colorIdx = 0;
+
+        for (const [groupName, groupData] of Object.entries(assetManifest.datasets)) {
+            // Skip the planets and moons as they are already loaded
+            if (groupName === 'planets' || groupName === 'moons') continue;
             
-            const defaultColors = ['#ff3333', '#ff8800', '#ffff00', '#00ff00', '#00ffff', '#ff00ff'];
-            let colorIdx = 0;
-
-            for (const [groupName, groupData] of Object.entries(manifest.datasets)) {
-
-                const chunkUrls = groupData.chunks.map(chunkFile => `data/${chunkFile}`);
-                const assignedColor = defaultColors[colorIdx % defaultColors.length];
-
-                UI.addDatasetToggle(groupName, 'ASTEROID', assignedColor, false, chunkUrls);
-                colorIdx++;
-            }
+            UI.addDatasetToggle(groupName, 'ASTEROID', defaultColors[colorIdx % defaultColors.length], false, groupData.chunks);
+            colorIdx++;
         }
-    } catch (err) {
-        console.error("Failed to load manifest.json from /data/", err);
     }
 }
 
@@ -334,13 +321,20 @@ function animate() {
     
     // 1. Time Update
     if (UI.isLiveTime) {
-        systemDate = new Date(); // Lock strictly to system clock
+        systemDate = new Date(); 
     }
     const timeData = PhysicsEngine.updateSystemTime(UI, systemDate, deltaSec);
     systemDate = timeData.newDate;
     const daysSinceJ2000 = timeData.daysSinceJ2000;
     
     // 2. Physics & Logic Pipelines
+    const desiredFrameF1 = SystemBuilder.frameIndexForDaysSinceJ2000(daysSinceJ2000);
+    for (const sys of gpuParticleSystems) {
+        if (sys.userData && sys.userData.rawSources) {
+            systemBuilder.updateFrameWindow(sys, desiredFrameF1);
+        }
+    }
+
     PhysicsEngine.calculateKeplerianKinematics(celestialBodies, daysSinceJ2000);
     PhysicsEngine.applyMoonParentOffsets(celestialBodies);
     renderPipeline.processFloatingOrigin(celestialBodies, trackingTargetData, currentOrigin, daysSinceJ2000);
@@ -365,11 +359,9 @@ function animate() {
     
     // --- DUAL-GRID ARCHITECTURE LOGIC ---
     
-    // 4. Force the massive Ecliptic Grid to remain perfectly flat at the solar Y=0 baseline
     gridPlane.position.set(0, 0, 0);
     gridPlane.quaternion.setFromAxisAngle(new THREE.Vector3(1, 0, 0), -Math.PI / 2);
     
-    // 5. Manage the Targeted Equatorial Grid
     if (currentTargetData) {
         const tBody = celestialBodies.find(x => x.data.name === currentTargetData.name);
         const isPlanet = !tBody.isMoon && tBody.data.parent === "SUN";
@@ -385,7 +377,7 @@ function animate() {
                 if (parentPlanet) {
                     anchorPos = parentPlanet.renderPos;
                     anchorQuat = parentPlanet.poleQuaternion;
-                    targetMass = parentPlanet.data.mass; // Inherit parent planet's mass size
+                    targetMass = parentPlanet.data.mass; 
                 }
             }
             const massRatio = targetMass / 5.97;
@@ -403,7 +395,8 @@ function animate() {
     } else {
         equatorialGridPlane.visible = false;
     }
-    //6. Final GPU Updates
+    
+    // 6. Final GPU Updates
     renderPipeline.updateGPU(daysSinceJ2000, currentOrigin, gridPlane);
     renderer.render(scene, camera);
 }

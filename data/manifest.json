@@ -1,385 +1,358 @@
 {
   "datasets": {
-    "amor": {
-      "totalRecords": 14645,
-      "chunks": [
-        "amor_chunk_0.json",
-        "amor_chunk_1.json",
-        "amor_chunk_2.json"
-      ]
-    },
-    "apollo": {
-      "totalRecords": 23906,
-      "chunks": [
-        "apollo_chunk_0.json",
-        "apollo_chunk_1.json",
-        "apollo_chunk_2.json",
-        "apollo_chunk_3.json",
-        "apollo_chunk_4.json"
-      ]
-    },
-    "aten": {
-      "totalRecords": 3421,
-      "chunks": [
-        "aten_chunk_0.json"
-      ]
-    },
     "atira": {
       "totalRecords": 38,
       "chunks": [
-        "atira_chunk_0.json"
-      ]
-    },
-    "centaur": {
-      "totalRecords": 1036,
-      "chunks": [
-        "centaur_chunk_0.json"
-      ]
-    },
-    "inner-belt": {
-      "totalRecords": 32821,
-      "chunks": [
-        "inner-belt_chunk_0.json",
-        "inner-belt_chunk_1.json",
-        "inner-belt_chunk_2.json",
-        "inner-belt_chunk_3.json",
-        "inner-belt_chunk_4.json",
-        "inner-belt_chunk_5.json",
-        "inner-belt_chunk_6.json"
-      ]
-    },
-    "interstellar": {
-      "totalRecords": 5,
-      "chunks": [
-        "interstellar_chunk_0.json"
-      ]
-    },
-    "main-belt": {
-      "totalRecords": 1374548,
-      "chunks": [
-        "main-belt_chunk_0.json",
-        "main-belt_chunk_1.json",
-        "main-belt_chunk_2.json",
-        "main-belt_chunk_3.json",
-        "main-belt_chunk_4.json",
-        "main-belt_chunk_5.json",
-        "main-belt_chunk_6.json",
-        "main-belt_chunk_7.json",
-        "main-belt_chunk_8.json",
-        "main-belt_chunk_9.json",
-        "main-belt_chunk_10.json",
-        "main-belt_chunk_11.json",
-        "main-belt_chunk_12.json",
-        "main-belt_chunk_13.json",
-        "main-belt_chunk_14.json",
-        "main-belt_chunk_15.json",
-        "main-belt_chunk_16.json",
-        "main-belt_chunk_17.json",
-        "main-belt_chunk_18.json",
-        "main-belt_chunk_19.json",
-        "main-belt_chunk_20.json",
-        "main-belt_chunk_21.json",
-        "main-belt_chunk_22.json",
-        "main-belt_chunk_23.json",
-        "main-belt_chunk_24.json",
-        "main-belt_chunk_25.json",
-        "main-belt_chunk_26.json",
-        "main-belt_chunk_27.json",
-        "main-belt_chunk_28.json",
-        "main-belt_chunk_29.json",
-        "main-belt_chunk_30.json",
-        "main-belt_chunk_31.json",
-        "main-belt_chunk_32.json",
-        "main-belt_chunk_33.json",
-        "main-belt_chunk_34.json",
-        "main-belt_chunk_35.json",
-        "main-belt_chunk_36.json",
-        "main-belt_chunk_37.json",
-        "main-belt_chunk_38.json",
-        "main-belt_chunk_39.json",
-        "main-belt_chunk_40.json",
-        "main-belt_chunk_41.json",
-        "main-belt_chunk_42.json",
-        "main-belt_chunk_43.json",
-        "main-belt_chunk_44.json",
-        "main-belt_chunk_45.json",
-        "main-belt_chunk_46.json",
-        "main-belt_chunk_47.json",
-        "main-belt_chunk_48.json",
-        "main-belt_chunk_49.json",
-        "main-belt_chunk_50.json",
-        "main-belt_chunk_51.json",
-        "main-belt_chunk_52.json",
-        "main-belt_chunk_53.json",
-        "main-belt_chunk_54.json",
-        "main-belt_chunk_55.json",
-        "main-belt_chunk_56.json",
-        "main-belt_chunk_57.json",
-        "main-belt_chunk_58.json",
-        "main-belt_chunk_59.json",
-        "main-belt_chunk_60.json",
-        "main-belt_chunk_61.json",
-        "main-belt_chunk_62.json",
-        "main-belt_chunk_63.json",
-        "main-belt_chunk_64.json",
-        "main-belt_chunk_65.json",
-        "main-belt_chunk_66.json",
-        "main-belt_chunk_67.json",
-        "main-belt_chunk_68.json",
-        "main-belt_chunk_69.json",
-        "main-belt_chunk_70.json",
-        "main-belt_chunk_71.json",
-        "main-belt_chunk_72.json",
-        "main-belt_chunk_73.json",
-        "main-belt_chunk_74.json",
-        "main-belt_chunk_75.json",
-        "main-belt_chunk_76.json",
-        "main-belt_chunk_77.json",
-        "main-belt_chunk_78.json",
-        "main-belt_chunk_79.json",
-        "main-belt_chunk_80.json",
-        "main-belt_chunk_81.json",
-        "main-belt_chunk_82.json",
-        "main-belt_chunk_83.json",
-        "main-belt_chunk_84.json",
-        "main-belt_chunk_85.json",
-        "main-belt_chunk_86.json",
-        "main-belt_chunk_87.json",
-        "main-belt_chunk_88.json",
-        "main-belt_chunk_89.json",
-        "main-belt_chunk_90.json",
-        "main-belt_chunk_91.json",
-        "main-belt_chunk_92.json",
-        "main-belt_chunk_93.json",
-        "main-belt_chunk_94.json",
-        "main-belt_chunk_95.json",
-        "main-belt_chunk_96.json",
-        "main-belt_chunk_97.json",
-        "main-belt_chunk_98.json",
-        "main-belt_chunk_99.json",
-        "main-belt_chunk_100.json",
-        "main-belt_chunk_101.json",
-        "main-belt_chunk_102.json",
-        "main-belt_chunk_103.json",
-        "main-belt_chunk_104.json",
-        "main-belt_chunk_105.json",
-        "main-belt_chunk_106.json",
-        "main-belt_chunk_107.json",
-        "main-belt_chunk_108.json",
-        "main-belt_chunk_109.json",
-        "main-belt_chunk_110.json",
-        "main-belt_chunk_111.json",
-        "main-belt_chunk_112.json",
-        "main-belt_chunk_113.json",
-        "main-belt_chunk_114.json",
-        "main-belt_chunk_115.json",
-        "main-belt_chunk_116.json",
-        "main-belt_chunk_117.json",
-        "main-belt_chunk_118.json",
-        "main-belt_chunk_119.json",
-        "main-belt_chunk_120.json",
-        "main-belt_chunk_121.json",
-        "main-belt_chunk_122.json",
-        "main-belt_chunk_123.json",
-        "main-belt_chunk_124.json",
-        "main-belt_chunk_125.json",
-        "main-belt_chunk_126.json",
-        "main-belt_chunk_127.json",
-        "main-belt_chunk_128.json",
-        "main-belt_chunk_129.json",
-        "main-belt_chunk_130.json",
-        "main-belt_chunk_131.json",
-        "main-belt_chunk_132.json",
-        "main-belt_chunk_133.json",
-        "main-belt_chunk_134.json",
-        "main-belt_chunk_135.json",
-        "main-belt_chunk_136.json",
-        "main-belt_chunk_137.json",
-        "main-belt_chunk_138.json",
-        "main-belt_chunk_139.json",
-        "main-belt_chunk_140.json",
-        "main-belt_chunk_141.json",
-        "main-belt_chunk_142.json",
-        "main-belt_chunk_143.json",
-        "main-belt_chunk_144.json",
-        "main-belt_chunk_145.json",
-        "main-belt_chunk_146.json",
-        "main-belt_chunk_147.json",
-        "main-belt_chunk_148.json",
-        "main-belt_chunk_149.json",
-        "main-belt_chunk_150.json",
-        "main-belt_chunk_151.json",
-        "main-belt_chunk_152.json",
-        "main-belt_chunk_153.json",
-        "main-belt_chunk_154.json",
-        "main-belt_chunk_155.json",
-        "main-belt_chunk_156.json",
-        "main-belt_chunk_157.json",
-        "main-belt_chunk_158.json",
-        "main-belt_chunk_159.json",
-        "main-belt_chunk_160.json",
-        "main-belt_chunk_161.json",
-        "main-belt_chunk_162.json",
-        "main-belt_chunk_163.json",
-        "main-belt_chunk_164.json",
-        "main-belt_chunk_165.json",
-        "main-belt_chunk_166.json",
-        "main-belt_chunk_167.json",
-        "main-belt_chunk_168.json",
-        "main-belt_chunk_169.json",
-        "main-belt_chunk_170.json",
-        "main-belt_chunk_171.json",
-        "main-belt_chunk_172.json",
-        "main-belt_chunk_173.json",
-        "main-belt_chunk_174.json",
-        "main-belt_chunk_175.json",
-        "main-belt_chunk_176.json",
-        "main-belt_chunk_177.json",
-        "main-belt_chunk_178.json",
-        "main-belt_chunk_179.json",
-        "main-belt_chunk_180.json",
-        "main-belt_chunk_181.json",
-        "main-belt_chunk_182.json",
-        "main-belt_chunk_183.json",
-        "main-belt_chunk_184.json",
-        "main-belt_chunk_185.json",
-        "main-belt_chunk_186.json",
-        "main-belt_chunk_187.json",
-        "main-belt_chunk_188.json",
-        "main-belt_chunk_189.json",
-        "main-belt_chunk_190.json",
-        "main-belt_chunk_191.json",
-        "main-belt_chunk_192.json",
-        "main-belt_chunk_193.json",
-        "main-belt_chunk_194.json",
-        "main-belt_chunk_195.json",
-        "main-belt_chunk_196.json",
-        "main-belt_chunk_197.json",
-        "main-belt_chunk_198.json",
-        "main-belt_chunk_199.json",
-        "main-belt_chunk_200.json",
-        "main-belt_chunk_201.json",
-        "main-belt_chunk_202.json",
-        "main-belt_chunk_203.json",
-        "main-belt_chunk_204.json",
-        "main-belt_chunk_205.json",
-        "main-belt_chunk_206.json",
-        "main-belt_chunk_207.json",
-        "main-belt_chunk_208.json",
-        "main-belt_chunk_209.json",
-        "main-belt_chunk_210.json",
-        "main-belt_chunk_211.json",
-        "main-belt_chunk_212.json",
-        "main-belt_chunk_213.json",
-        "main-belt_chunk_214.json",
-        "main-belt_chunk_215.json",
-        "main-belt_chunk_216.json",
-        "main-belt_chunk_217.json",
-        "main-belt_chunk_218.json",
-        "main-belt_chunk_219.json",
-        "main-belt_chunk_220.json",
-        "main-belt_chunk_221.json",
-        "main-belt_chunk_222.json",
-        "main-belt_chunk_223.json",
-        "main-belt_chunk_224.json",
-        "main-belt_chunk_225.json",
-        "main-belt_chunk_226.json",
-        "main-belt_chunk_227.json",
-        "main-belt_chunk_228.json",
-        "main-belt_chunk_229.json",
-        "main-belt_chunk_230.json",
-        "main-belt_chunk_231.json",
-        "main-belt_chunk_232.json",
-        "main-belt_chunk_233.json",
-        "main-belt_chunk_234.json",
-        "main-belt_chunk_235.json",
-        "main-belt_chunk_236.json",
-        "main-belt_chunk_237.json",
-        "main-belt_chunk_238.json",
-        "main-belt_chunk_239.json",
-        "main-belt_chunk_240.json",
-        "main-belt_chunk_241.json",
-        "main-belt_chunk_242.json",
-        "main-belt_chunk_243.json",
-        "main-belt_chunk_244.json",
-        "main-belt_chunk_245.json",
-        "main-belt_chunk_246.json",
-        "main-belt_chunk_247.json",
-        "main-belt_chunk_248.json",
-        "main-belt_chunk_249.json",
-        "main-belt_chunk_250.json",
-        "main-belt_chunk_251.json",
-        "main-belt_chunk_252.json",
-        "main-belt_chunk_253.json",
-        "main-belt_chunk_254.json",
-        "main-belt_chunk_255.json",
-        "main-belt_chunk_256.json",
-        "main-belt_chunk_257.json",
-        "main-belt_chunk_258.json",
-        "main-belt_chunk_259.json",
-        "main-belt_chunk_260.json",
-        "main-belt_chunk_261.json",
-        "main-belt_chunk_262.json",
-        "main-belt_chunk_263.json",
-        "main-belt_chunk_264.json",
-        "main-belt_chunk_265.json",
-        "main-belt_chunk_266.json",
-        "main-belt_chunk_267.json",
-        "main-belt_chunk_268.json",
-        "main-belt_chunk_269.json",
-        "main-belt_chunk_270.json",
-        "main-belt_chunk_271.json",
-        "main-belt_chunk_272.json",
-        "main-belt_chunk_273.json",
-        "main-belt_chunk_274.json"
-      ]
-    },
-    "martian": {
-      "totalRecords": 29700,
-      "chunks": [
-        "martian_chunk_0.json",
-        "martian_chunk_1.json",
-        "martian_chunk_2.json",
-        "martian_chunk_3.json",
-        "martian_chunk_4.json",
-        "martian_chunk_5.json"
-      ]
-    },
-    "other": {
-      "totalRecords": 152,
-      "chunks": [
-        "other_chunk_0.json"
-      ]
-    },
-    "outer-belt": {
-      "totalRecords": 49935,
-      "chunks": [
-        "outer-belt_chunk_0.json",
-        "outer-belt_chunk_1.json",
-        "outer-belt_chunk_2.json",
-        "outer-belt_chunk_3.json",
-        "outer-belt_chunk_4.json",
-        "outer-belt_chunk_5.json",
-        "outer-belt_chunk_6.json",
-        "outer-belt_chunk_7.json",
-        "outer-belt_chunk_8.json",
-        "outer-belt_chunk_9.json"
-      ]
-    },
-    "transneptunian": {
-      "totalRecords": 6388,
-      "chunks": [
-        "transneptunian_chunk_0.json",
-        "transneptunian_chunk_1.json"
+        {
+          "metadata": "atira_chunk_0.json",
+          "binary": "atira_chunk_0.bin",
+          "particle_count": 38
+        }
       ]
     },
     "trojans": {
       "totalRecords": 16357,
       "chunks": [
-        "trojans_chunk_0.json",
-        "trojans_chunk_1.json",
-        "trojans_chunk_2.json",
-        "trojans_chunk_3.json"
+        {
+          "metadata": "trojans_chunk_0.json",
+          "binary": "trojans_chunk_0.bin",
+          "particle_count": 256
+        },
+        {
+          "metadata": "trojans_chunk_1.json",
+          "binary": "trojans_chunk_1.bin",
+          "particle_count": 256
+        },
+        {
+          "metadata": "trojans_chunk_2.json",
+          "binary": "trojans_chunk_2.bin",
+          "particle_count": 256
+        },
+        {
+          "metadata": "trojans_chunk_3.json",
+          "binary": "trojans_chunk_3.bin",
+          "particle_count": 256
+        },
+        {
+          "metadata": "trojans_chunk_4.json",
+          "binary": "trojans_chunk_4.bin",
+          "particle_count": 256
+        },
+        {
+          "metadata": "trojans_chunk_5.json",
+          "binary": "trojans_chunk_5.bin",
+          "particle_count": 256
+        },
+        {
+          "metadata": "trojans_chunk_6.json",
+          "binary": "trojans_chunk_6.bin",
+          "particle_count": 256
+        },
+        {
+          "metadata": "trojans_chunk_7.json",
+          "binary": "trojans_chunk_7.bin",
+          "particle_count": 256
+        },
+        {
+          "metadata": "trojans_chunk_8.json",
+          "binary": "trojans_chunk_8.bin",
+          "particle_count": 256
+        },
+        {
+          "metadata": "trojans_chunk_9.json",
+          "binary": "trojans_chunk_9.bin",
+          "particle_count": 256
+        },
+        {
+          "metadata": "trojans_chunk_10.json",
+          "binary": "trojans_chunk_10.bin",
+          "particle_count": 256
+        },
+        {
+          "metadata": "trojans_chunk_11.json",
+          "binary": "trojans_chunk_11.bin",
+          "particle_count": 256
+        },
+        {
+          "metadata": "trojans_chunk_12.json",
+          "binary": "trojans_chunk_12.bin",
+          "particle_count": 256
+        },
+        {
+          "metadata": "trojans_chunk_13.json",
+          "binary": "trojans_chunk_13.bin",
+          "particle_count": 256
+        },
+        {
+          "metadata": "trojans_chunk_14.json",
+          "binary": "trojans_chunk_14.bin",
+          "particle_count": 256
+        },
+        {
+          "metadata": "trojans_chunk_15.json",
+          "binary": "trojans_chunk_15.bin",
+          "particle_count": 256
+        },
+        {
+          "metadata": "trojans_chunk_16.json",
+          "binary": "trojans_chunk_16.bin",
+          "particle_count": 256
+        },
+        {
+          "metadata": "trojans_chunk_17.json",
+          "binary": "trojans_chunk_17.bin",
+          "particle_count": 256
+        },
+        {
+          "metadata": "trojans_chunk_18.json",
+          "binary": "trojans_chunk_18.bin",
+          "particle_count": 256
+        },
+        {
+          "metadata": "trojans_chunk_19.json",
+          "binary": "trojans_chunk_19.bin",
+          "particle_count": 256
+        },
+        {
+          "metadata": "trojans_chunk_20.json",
+          "binary": "trojans_chunk_20.bin",
+          "particle_count": 256
+        },
+        {
+          "metadata": "trojans_chunk_21.json",
+          "binary": "trojans_chunk_21.bin",
+          "particle_count": 256
+        },
+        {
+          "metadata": "trojans_chunk_22.json",
+          "binary": "trojans_chunk_22.bin",
+          "particle_count": 256
+        },
+        {
+          "metadata": "trojans_chunk_23.json",
+          "binary": "trojans_chunk_23.bin",
+          "particle_count": 256
+        },
+        {
+          "metadata": "trojans_chunk_24.json",
+          "binary": "trojans_chunk_24.bin",
+          "particle_count": 256
+        },
+        {
+          "metadata": "trojans_chunk_25.json",
+          "binary": "trojans_chunk_25.bin",
+          "particle_count": 256
+        },
+        {
+          "metadata": "trojans_chunk_26.json",
+          "binary": "trojans_chunk_26.bin",
+          "particle_count": 256
+        },
+        {
+          "metadata": "trojans_chunk_27.json",
+          "binary": "trojans_chunk_27.bin",
+          "particle_count": 256
+        },
+        {
+          "metadata": "trojans_chunk_28.json",
+          "binary": "trojans_chunk_28.bin",
+          "particle_count": 256
+        },
+        {
+          "metadata": "trojans_chunk_29.json",
+          "binary": "trojans_chunk_29.bin",
+          "particle_count": 256
+        },
+        {
+          "metadata": "trojans_chunk_30.json",
+          "binary": "trojans_chunk_30.bin",
+          "particle_count": 256
+        },
+        {
+          "metadata": "trojans_chunk_31.json",
+          "binary": "trojans_chunk_31.bin",
+          "particle_count": 256
+        },
+        {
+          "metadata": "trojans_chunk_32.json",
+          "binary": "trojans_chunk_32.bin",
+          "particle_count": 256
+        },
+        {
+          "metadata": "trojans_chunk_33.json",
+          "binary": "trojans_chunk_33.bin",
+          "particle_count": 256
+        },
+        {
+          "metadata": "trojans_chunk_34.json",
+          "binary": "trojans_chunk_34.bin",
+          "particle_count": 256
+        },
+        {
+          "metadata": "trojans_chunk_35.json",
+          "binary": "trojans_chunk_35.bin",
+          "particle_count": 256
+        },
+        {
+          "metadata": "trojans_chunk_36.json",
+          "binary": "trojans_chunk_36.bin",
+          "particle_count": 256
+        },
+        {
+          "metadata": "trojans_chunk_37.json",
+          "binary": "trojans_chunk_37.bin",
+          "particle_count": 256
+        },
+        {
+          "metadata": "trojans_chunk_38.json",
+          "binary": "trojans_chunk_38.bin",
+          "particle_count": 256
+        },
+        {
+          "metadata": "trojans_chunk_39.json",
+          "binary": "trojans_chunk_39.bin",
+          "particle_count": 256
+        },
+        {
+          "metadata": "trojans_chunk_40.json",
+          "binary": "trojans_chunk_40.bin",
+          "particle_count": 256
+        },
+        {
+          "metadata": "trojans_chunk_41.json",
+          "binary": "trojans_chunk_41.bin",
+          "particle_count": 256
+        },
+        {
+          "metadata": "trojans_chunk_42.json",
+          "binary": "trojans_chunk_42.bin",
+          "particle_count": 256
+        },
+        {
+          "metadata": "trojans_chunk_43.json",
+          "binary": "trojans_chunk_43.bin",
+          "particle_count": 256
+        },
+        {
+          "metadata": "trojans_chunk_44.json",
+          "binary": "trojans_chunk_44.bin",
+          "particle_count": 256
+        },
+        {
+          "metadata": "trojans_chunk_45.json",
+          "binary": "trojans_chunk_45.bin",
+          "particle_count": 256
+        },
+        {
+          "metadata": "trojans_chunk_46.json",
+          "binary": "trojans_chunk_46.bin",
+          "particle_count": 256
+        },
+        {
+          "metadata": "trojans_chunk_47.json",
+          "binary": "trojans_chunk_47.bin",
+          "particle_count": 256
+        },
+        {
+          "metadata": "trojans_chunk_48.json",
+          "binary": "trojans_chunk_48.bin",
+          "particle_count": 256
+        },
+        {
+          "metadata": "trojans_chunk_49.json",
+          "binary": "trojans_chunk_49.bin",
+          "particle_count": 256
+        },
+        {
+          "metadata": "trojans_chunk_50.json",
+          "binary": "trojans_chunk_50.bin",
+          "particle_count": 256
+        },
+        {
+          "metadata": "trojans_chunk_51.json",
+          "binary": "trojans_chunk_51.bin",
+          "particle_count": 256
+        },
+        {
+          "metadata": "trojans_chunk_52.json",
+          "binary": "trojans_chunk_52.bin",
+          "particle_count": 256
+        },
+        {
+          "metadata": "trojans_chunk_53.json",
+          "binary": "trojans_chunk_53.bin",
+          "particle_count": 256
+        },
+        {
+          "metadata": "trojans_chunk_54.json",
+          "binary": "trojans_chunk_54.bin",
+          "particle_count": 256
+        },
+        {
+          "metadata": "trojans_chunk_55.json",
+          "binary": "trojans_chunk_55.bin",
+          "particle_count": 256
+        },
+        {
+          "metadata": "trojans_chunk_56.json",
+          "binary": "trojans_chunk_56.bin",
+          "particle_count": 256
+        },
+        {
+          "metadata": "trojans_chunk_57.json",
+          "binary": "trojans_chunk_57.bin",
+          "particle_count": 256
+        },
+        {
+          "metadata": "trojans_chunk_58.json",
+          "binary": "trojans_chunk_58.bin",
+          "particle_count": 256
+        },
+        {
+          "metadata": "trojans_chunk_59.json",
+          "binary": "trojans_chunk_59.bin",
+          "particle_count": 256
+        },
+        {
+          "metadata": "trojans_chunk_60.json",
+          "binary": "trojans_chunk_60.bin",
+          "particle_count": 256
+        },
+        {
+          "metadata": "trojans_chunk_61.json",
+          "binary": "trojans_chunk_61.bin",
+          "particle_count": 256
+        },
+        {
+          "metadata": "trojans_chunk_62.json",
+          "binary": "trojans_chunk_62.bin",
+          "particle_count": 256
+        },
+        {
+          "metadata": "trojans_chunk_63.json",
+          "binary": "trojans_chunk_63.bin",
+          "particle_count": 229
+        }
+      ]
+    },
+    "moons": {
+      "totalRecords": 460,
+      "chunks": [
+        {
+          "metadata": "moons_chunk_0.json",
+          "binary": "moons_chunk_0.bin",
+          "particle_count": 460
+        }
+      ]
+    },
+    "planets": {
+      "totalRecords": 9,
+      "chunks": [
+        {
+          "metadata": "planets_chunk_0.json",
+          "binary": "planets_chunk_0.bin",
+          "particle_count": 9
+        }
       ]
     }
   }
