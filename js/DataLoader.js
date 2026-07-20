@@ -1,6 +1,5 @@
 // js/DataLoader.js
 class DataLoader {
-    // TODO: Remove
     static parseCSV(text) {
         const lines = text.split('\n').filter(l => l.trim() !== '');
         if (lines.length === 0) return [];
@@ -40,7 +39,6 @@ class DataLoader {
         }
         return data;
     }
-
     static async fetchJSONDataset(url) {
         try {
             const response = await fetch(url);
@@ -51,20 +49,6 @@ class DataLoader {
             return [];
         }
     }
-
-    // NEW: Load binary data directly into a GPU-ready Float32 buffer
-    static async fetchBinaryChunk(url) {
-        try {
-            const response = await fetch(url);
-            if (!response.ok) throw new Error(`HTTP Error: ${response.status}`);
-            const arrayBuffer = await response.arrayBuffer();
-            return new Float32Array(arrayBuffer); 
-        } catch (error) {
-            console.error(`Failed to load binary dataset from ${url}:`, error);
-            return null;
-        }
-    }
-
     static processPlanetaryData(rawData, datasetName = "UNKNOWN_DATASET") {
         const rad = Math.PI / 180;
         if (rawData.length === 0) return [];
@@ -84,7 +68,7 @@ class DataLoader {
 
             // --- Orbital Elements ---
             let a = 0;
-            // The parser will automatically divide Moon a_km values by 149597870.7 
+            // The parser will automatically divide Moon a_km values by 149597870.7 [cite: 15]
             if (isMoon && row.a_km !== undefined && row.a_km !== "") {
                 a = parseF(row.a_km) / 149597870.7; 
             } else {
@@ -135,11 +119,10 @@ class DataLoader {
         processed.sort((a, b) => (b.radius_km || 0) - (a.radius_km || 0));
         return processed;
     }
-    
     // ==========================================
     // ASTEROID LOOKUP 
     // ==========================================
-    
+    // TODO: Move to separate module. Needs cheaper lookup
     static normalizeDesignation(value) {
         return value.toString().trim().toUpperCase().replace(/[()]/g, '');
     }
@@ -206,23 +189,22 @@ class DataLoader {
 
         if (isNumeric && mainBeltEntry) {
             const [groupName, groupData] = mainBeltEntry;
-            // Map strictly to the metadata JSON for search operations
-            const urls = groupData.chunks.map(chunk => `data/${chunk.metadata}`);
+            const urls = groupData.chunks.map(file => `data/${file}`);
             const hit = await DataLoader.binarySearchNumberedChunks(urls, parseInt(query, 10), groupName);
             if (hit) return hit;
         }
 
         for (const [groupName, groupData] of otherEntries) {
-            const urls = groupData.chunks.map(chunk => `data/${chunk.metadata}`);
+            const urls = groupData.chunks.map(file => `data/${file}`);
             const hit = await DataLoader.scanChunksForDesignation(urls, query, groupName);
             if (hit) return hit;
         }
-        
+
         // Backup search function for unnumbered main-belt objects (provisional designations) that are stored in the trailing chunks of the main-belt dataset. 
         // This is a linear scan, but it's only for a small fraction of the total records and future NASA additions.
         if (mainBeltEntry && !isNumeric) {
             const [groupName, groupData] = mainBeltEntry;
-            const urls = groupData.chunks.map(chunk => `data/${chunk.metadata}`);
+            const urls = groupData.chunks.map(file => `data/${file}`);
             return await DataLoader.scanChunksForDesignation(urls, query, groupName);
         }
 
