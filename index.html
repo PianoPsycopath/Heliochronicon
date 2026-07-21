@@ -24,10 +24,7 @@
         <div class="control-group">
             <label>TACTICAL DATABASE</label>
             <input type="text" id="search-input" placeholder="SEARCH ALL (TEXT)...">
-            <div class="flex-row">
-                <button id="sort-toggle" class="full-btn">SORT: DIST</button>
-                <button id="btn-scan" class="full-btn" style="border-color: #00ffff; color: #00ffff;">SCAN LOCAL</button>
-            </div>
+            <button id="sort-toggle" class="full-btn">SORT: DIST</button>
             <div id="body-list" class="scrollable-list"></div>
         </div>
 
@@ -67,6 +64,11 @@
         <div class="chrono-header">
             <button id="btn-live">LIVE</button>
             <input type="text" id="time-input-bottom" value="">
+            <button id="btn-scan" class="radar-btn">
+                <div class="ring outer"></div>
+                <div class="ring inner"></div>
+                <div class="sweep"></div>
+            </button>
         </div>
         
         <div class="throttle-container">

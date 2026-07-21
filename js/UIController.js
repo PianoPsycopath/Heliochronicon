@@ -188,30 +188,17 @@ class UIController {
                 this.onClearData();
                 this.datasets.clear();
                 if (this.datasetListEl) this.datasetListEl.innerHTML = '';
-                
                 // Reset Scan Toggle
                 this.isScanActive = false;
-                this.btnScan.style.backgroundColor = 'transparent';
-                this.btnScan.style.color = '#00ffff';
-                this.btnScan.innerText = 'SCAN LOCAL';
+                this.btnScan.classList.remove('active');
             }
         });
         // Scan For Nearby Asteroids
         this.btnScan.addEventListener('click', () => {
             this.isScanActive = !this.isScanActive;
-            
-            if (this.isScanActive) {
-                // Active Tactical State (Inverted Cyan)
-                this.btnScan.style.backgroundColor = '#00ffff';
-                this.btnScan.style.color = '#000';
-                this.btnScan.innerText = 'DISABLE SCAN';
-                if (this.onScanRequested) this.onScanRequested(true);
-            } else {
-                // Default State
-                this.btnScan.style.backgroundColor = 'transparent';
-                this.btnScan.style.color = '#00ffff';
-                this.btnScan.innerText = 'SCAN LOCAL';
-                if (this.onScanRequested) this.onScanRequested(false);
+            this.btnScan.classList.toggle('active', this.isScanActive);
+            if (this.onScanRequested) {
+                this.onScanRequested(this.isScanActive);
             }
         });
         // --- Mobile UI Cycling Logic ---

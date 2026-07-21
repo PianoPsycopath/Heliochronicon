@@ -264,7 +264,6 @@ canvas {
     text-shadow: 0 0 8px #00ff00;
     box-shadow: inset 0 0 10px rgba(0, 255, 0, 0.3);
 }
-
 #time-input-bottom {
     flex-grow: 1;
     background: #0b0500;
@@ -282,7 +281,6 @@ canvas {
     align-items: center;
     gap: 8px;
 }
-
 .throttle-btn {
     background: #110800;
     border: 1px solid #ffcc00;
@@ -296,7 +294,6 @@ canvas {
     background: #ffcc00;
     color: #000;
 }
-
 #time-slider { 
     flex-grow: 1;
     accent-color: #ffcc00;
@@ -305,7 +302,6 @@ canvas {
     background: #333;
     outline: none;
 }
-
 #throttle-label {
     text-align: center;
     color: #ff8c00;
@@ -330,4 +326,83 @@ canvas {
 #time-input-bottom {
     font-size: 1.3rem;
     padding-top: 12px;
+}
+/* =========================================
+   RADAR SCANNER BUTTON
+========================================= */
+.chrono-header { 
+    display: flex;
+    gap: 10px;
+    align-items: center; 
+    justify-content: center;
+}
+.radar-btn {
+    position: relative;
+    width: 48px; 
+    height: 48px;
+    border-radius: 50%;
+    background: #001a00; /* Dark green background */
+    border: 2px solid #00cc00; /* Bright green frame */
+    cursor: pointer;
+    outline: none;
+    overflow: hidden;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 0;
+    box-shadow: 0 0 8px rgba(0, 255, 0, 0.2), inset 0 0 10px rgba(0, 255, 0, 0.1);
+    transition: all 0.3s ease;
+    flex-shrink: 0;
+}
+.radar-btn:hover {
+    border-color: #00ff00;
+    box-shadow: 0 0 12px rgba(0, 255, 0, 0.4), inset 0 0 15px rgba(0, 255, 0, 0.2);
+    background: #002200;
+}
+.radar-btn .ring {
+    position: absolute;
+    border-radius: 50%;
+    border: 1px solid rgba(0, 255, 0, 0.3);
+    pointer-events: none;
+}
+.radar-btn .ring.outer {
+    width: 65%;
+    height: 65%;
+}
+.radar-btn .ring.inner {
+    width: 30%;
+    height: 30%;
+}
+.radar-btn .sweep {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    /* Creates a radar slice fading into transparent */
+    background: conic-gradient(transparent 75%, rgba(0, 255, 0, 0.8) 100%);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    pointer-events: none;
+}
+/* =========================================
+   RADAR ACTIVE STATE (SCANNING)
+========================================= */
+.radar-btn.active {
+    background: #003300;
+    border-color: #33ff33;
+    box-shadow: 0 0 20px rgba(0, 255, 0, 0.8), inset 0 0 20px rgba(0, 255, 0, 0.6);
+}
+.radar-btn.active .ring {
+    border-color: #33ff33;
+    box-shadow: 0 0 5px rgba(0, 255, 0, 0.5);
+}
+.radar-btn.active .sweep {
+    opacity: 1; /* Reveal sweep */
+    animation: radar-spin 1.5s linear infinite; /* Start spinning */
+}
+@keyframes radar-spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
 }
