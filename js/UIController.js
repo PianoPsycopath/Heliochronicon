@@ -58,7 +58,7 @@ class UIController {
         const btnPause = document.getElementById('btn-time-pause');
         const btn1x = document.getElementById('btn-time-1x');
 
-        this.isLiveTime = false;
+        this.isLiveTime = true;
 
         // --- 2. The Throttle Dictionary ---
         // 21 steps (0 to 20). Index 10 is PAUSED. Index 11 is 1x Speed.
