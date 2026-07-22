@@ -230,6 +230,27 @@ class UIController {
                 }
             });
         }
+        // --- Tab Navigation Logic ---
+        const btnTabSearch = document.getElementById('btn-tab-search');
+        const btnTabVis = document.getElementById('btn-tab-vis');
+        const tabSearch = document.getElementById('tab-search');
+        const tabVisibility = document.getElementById('tab-visibility');
+
+        if (btnTabSearch && btnTabVis) {
+            btnTabSearch.addEventListener('click', () => {
+                btnTabSearch.classList.add('active');
+                btnTabVis.classList.remove('active');
+                tabSearch.classList.add('active');
+                tabVisibility.classList.remove('active');
+            });
+
+            btnTabVis.addEventListener('click', () => {
+                btnTabVis.classList.add('active');
+                btnTabSearch.classList.remove('active');
+                tabVisibility.classList.add('active');
+                tabSearch.classList.remove('active');
+            });
+        }
     }
 
     // --- defaultColor parameter ---

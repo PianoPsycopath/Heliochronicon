@@ -430,3 +430,41 @@ canvas {
         padding-top: 5px;
     }
 }
+/* =========================================
+   TAB NAVIGATION SYSTEM
+========================================= */
+.tab-nav {
+    margin-top: 10px;
+    border-bottom: 2px solid #ffcc00;
+    gap: 0;
+}
+.tab-btn {
+    flex-grow: 1;
+    background: rgba(0, 0, 0, 0.5);
+    border: 1px solid rgba(255, 204, 0, 0.3);
+    border-bottom: none;
+    color: #aa8800;
+    margin-bottom: 0;
+    opacity: 0.7;
+    transition: all 0.2s ease;
+}
+.tab-btn:hover {
+    background: rgba(255, 204, 0, 0.2);
+    color: #ffcc00;
+}
+.tab-btn.active {
+    background: rgba(255, 204, 0, 0.15);
+    border: 1px solid #ffcc00;
+    border-bottom: none;
+    color: #ffcc00;
+    opacity: 1;
+    font-weight: bold;
+    text-shadow: 0 0 5px rgba(255, 204, 0, 0.5);
+}
+.tab-content {
+    display: none; 
+    flex-direction: column;
+}
+.tab-content.active {
+    display: flex; 
+}

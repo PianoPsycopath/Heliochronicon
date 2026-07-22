@@ -17,40 +17,45 @@
     <button id="btn-mobile-toggle">ACCESS TERMINAL</button>
     <div id="panel-left" class="panel">
         <h2>System Status</h2>
-        <p style="color: #ffcc00; font-weight: bold;">TARGET: <span id="current-target">NONE</span></p>
-        <p style="font-size: 0.7rem;">[CLICK: SELECT TARGET]</p>
-        <p style="font-size: 0.7rem;">[DRAG/PAN: MANUAL OVERRIDE]</p>
-        
-        <div class="control-group">
-            <label>TACTICAL DATABASE</label>
-            <input type="text" id="search-input" placeholder="SEARCH ALL (TEXT)...">
-            <button id="sort-toggle" class="full-btn">SORT: DIST</button>
-            <div id="body-list" class="scrollable-list"></div>
+        <p style="color: #ffcc00; font-weight: bold; margin-bottom: 5px;">TARGET: <span id="current-target">NONE</span></p>
+        <div class="tab-nav flex-row">
+            <button id="btn-tab-search" class="tab-btn active">SEARCH</button>
+            <button id="btn-tab-vis" class="tab-btn">VISIBILITY</button>
         </div>
 
-        <div class="control-group">
-            <label>MOON VIS (DIST AU) <span id="dist-val" style="float:right;color:#ffcc00">0.000 - 0.300</span></label>
-            <div class="flex-row">
-                <input type="range" id="moon-dist-min" min="0" max="0.3" step="0.001" value="0">
-                <input type="range" id="moon-dist-max" min="0" max="0.3" step="0.001" value="0.3">
-            </div>
- 
-            <label style="margin-top:10px;">MOON VIS (SIZE KM) <span id="size-val" style="float:right; color:#ffcc00">0 - 5000</span></label>
-            <div class="flex-row">
-                <input type="range" id="moon-size-min" min="0" max="5000" step="1" value="0">
-                <input type="range" id="moon-size-max" min="0" max="5000" step="1" value="5000">
+        <div id="tab-search" class="tab-content active">
+            <div class="control-group" style="margin-top: 10px;">
+                <label>TACTICAL DATABASE</label>
+                <input type="text" id="search-input" placeholder="SEARCH ALL (TEXT)...">
+                <button id="sort-toggle" class="full-btn">SORT: DIST</button>
+                <div id="body-list" class="scrollable-list" style="max-height: 50vh;"></div>
             </div>
         </div>
 
-        <div class="control-group">
-            <label>VISIBILITY SETTINGS</label>
-
-            <div class="list-item flex-row" style="background: rgba(255, 204, 0, 0.1); border-bottom: 1px solid #ffcc00; margin-bottom: 5px;">
-                <input type="checkbox" id="master-asteroid-toggle">
-                <label for="master-asteroid-toggle" style="margin-left: 10px; font-weight: bold; flex-grow: 1; cursor: pointer;">TOGGLE ALL ASTEROIDS</label>
+        <div id="tab-visibility" class="tab-content">
+            <div class="control-group" style="margin-top: 10px;">
+                <label>VISIBILITY SETTINGS</label>
+                <div class="list-item flex-row" style="background: rgba(255, 204, 0, 0.1); border-bottom: 1px solid #ffcc00; margin-bottom: 5px;">
+                    <input type="checkbox" id="master-asteroid-toggle">
+                    <label for="master-asteroid-toggle" style="margin-left: 10px; font-weight: bold; flex-grow: 1; cursor: pointer;">TOGGLE ALL ASTEROIDS</label>
+                </div>
+                <div id="dataset-list" class="scrollable-list" style="margin-bottom: 15px; max-height: 25vh;"></div>
+                <button id="btn-clear-map" class="danger-btn">PURGE SYSTEM MEMORY</button>
             </div>
-            <div id="dataset-list" class="scrollable-list" style="margin-bottom: 15px; max-height: 200px;"></div>
-            <button id="btn-clear-map" class="danger-btn">PURGE SYSTEM MEMORY</button>
+
+            <div class="control-group">
+                <label>MOON VIS (DIST AU) <span id="dist-val" style="float:right;color:#ffcc00">0.000 - 0.300</span></label>
+                <div class="flex-row">
+                    <input type="range" id="moon-dist-min" min="0" max="0.3" step="0.001" value="0">
+                    <input type="range" id="moon-dist-max" min="0" max="0.3" step="0.001" value="0.3">
+                </div>
+     
+                <label style="margin-top:10px;">MOON VIS (SIZE KM) <span id="size-val" style="float:right; color:#ffcc00">0 - 5000</span></label>
+                <div class="flex-row">
+                    <input type="range" id="moon-size-min" min="0" max="5000" step="1" value="0">
+                    <input type="range" id="moon-size-max" min="0" max="5000" step="1" value="5000">
+                </div>
+            </div>
         </div>
     </div>
 
