@@ -162,37 +162,8 @@ class UIController {
             const query = this.searchEl.value.trim();
             if (query && this.onAsteroidLookup) this.onAsteroidLookup(query);
         });
-        // Master Asteroid Toggle Logic
-        const masterAsteroidToggle = document.getElementById('master-asteroid-toggle');
-        if (masterAsteroidToggle) {
-            masterAsteroidToggle.addEventListener('change', (e) => {
-                const isMasterChecked = e.target.checked;
-                const list = document.getElementById('dataset-list');
-                const allRows = list.querySelectorAll('.list-item');
-            
-                allRows.forEach(row => {
-                    const labelEl = row.querySelector('label');
-                    if (labelEl && labelEl.textContent.includes('[ASTEROID]')) {
-                        const toggle = row.querySelector('input[type="checkbox"]');
-                        if (toggle && toggle.checked !== isMasterChecked) {
-                            toggle.checked = isMasterChecked;
-                            toggle.dispatchEvent(new Event('change'));
-                        }
-                    }
-                });
-            });
-        }
         // Disable scan
-        document.getElementById('btn-clear-map').addEventListener('click', () => {
-            if (this.onClearData) {
-                this.onClearData();
-                this.datasets.clear();
-                if (this.datasetListEl) this.datasetListEl.innerHTML = '';
-                // Reset Scan Toggle
-                this.isScanActive = false;
-                this.btnScan.classList.remove('active');
-            }
-        });
+        
         // Scan For Nearby Asteroids
         this.btnScan.addEventListener('click', () => {
             this.isScanActive = !this.isScanActive;
@@ -230,6 +201,45 @@ class UIController {
                 }
             });
         }
+        const rowMaster = document.getElementById('row-master-toggle');
+        const magiTrunk = document.getElementById('magi-trunk');
+        
+        if (rowMaster) {
+            rowMaster.addEventListener('click', () => {
+                const newState = !rowMaster.classList.contains('checked');
+                
+                rowMaster.classList.toggle('checked', newState);
+                if (magiTrunk) magiTrunk.classList.toggle('checked', newState);
+
+                const allAsteroids = document.querySelectorAll('#dataset-list-asteroids .magi-row');
+                allAsteroids.forEach(row => {
+                    if (row.classList.contains('checked') !== newState) {
+                        row.click(); // Programmatically sync children
+                    }
+                });
+            });
+        }
+
+        // --- PURGE SYSTEM MEMORY ---
+        document.getElementById('btn-clear-map').addEventListener('click', () => {
+            if (this.onClearData) {
+                this.onClearData();
+                this.datasets.clear();
+                
+                // Clear both trees
+                const planetList = document.getElementById('dataset-list-planets');
+                const asteroidList = document.getElementById('dataset-list-asteroids');
+                if (planetList) planetList.innerHTML = '';
+                if (asteroidList) asteroidList.innerHTML = '';
+                
+                // Reset Master Toggle & Trunk
+                if (rowMaster) rowMaster.classList.remove('checked');
+                if (magiTrunk) magiTrunk.classList.remove('checked');
+                
+                this.isScanActive = false;
+                this.btnScan.classList.remove('active');
+            }
+        });
         // --- Tab Navigation Logic ---
         const btnTabSearch = document.getElementById('btn-tab-search');
         const btnTabVis = document.getElementById('btn-tab-vis');
@@ -255,51 +265,130 @@ class UIController {
 
     // --- defaultColor parameter ---
     addDatasetToggle(datasetName, category, colorHex, isChecked = false, urls = []) {
-        const list = document.getElementById('dataset-list');
+        const isPlanet = category === 'PLANET';
+        const isMoon = category === 'MOON';
+        const isRightSide = isPlanet || isMoon;
+        const targetListId = isRightSide ? 'dataset-list-planets' : 'dataset-list-asteroids';
+        const list = document.getElementById(targetListId);
+        
+        if (!list) return;
 
-        // Container for the row
-        const div = document.createElement('div');
-        div.className = 'list-item flex-row';
-        div.style.justifyContent = 'flex-start';
-        div.style.gap = '10px';
+        // 1. Build the Base Row
+        const row = document.createElement('div');
+        row.className = `magi-row ${isPlanet ? 'planet-row' : ''} ${isMoon ? 'moon-row' : ''} ${isChecked ? 'checked' : ''}`;
+        row.dataset.category = category; 
 
-        // 1. Checkbox
-        const checkbox = document.createElement('input');
-        checkbox.type = 'checkbox';
-        checkbox.checked = isChecked;
-        checkbox.addEventListener('change', (e) => {
+        // 2. Build the SVG Circuit Wire
+        const SVG_NS = 'http://www.w3.org/2000/svg';
+        let wire = null;
+
+        if (isMoon) {
+            wire = document.createElementNS(SVG_NS, 'svg');
+            wire.setAttribute('class', 'magi-svg-wire-moon');
+            const poly = document.createElementNS(SVG_NS, 'polyline');
+            poly.setAttribute('points', '15,1 0,1 0,-29');
+            wire.appendChild(poly);
+            
+            [[15,1], [0,1], [0,-29]].forEach(coord => {
+                const circle = document.createElementNS(SVG_NS, 'circle');
+                circle.setAttribute('cx', coord[0]); circle.setAttribute('cy', coord[1]); circle.setAttribute('r', '1.5');
+                wire.appendChild(circle);
+            });
+        } else if (!isPlanet) { 
+            wire = document.createElementNS(SVG_NS, 'svg');
+            wire.setAttribute('class', 'magi-svg-wire');
+            const poly = document.createElementNS(SVG_NS, 'polyline');
+            poly.setAttribute('points', '0,1 15,1 15,-29');
+            wire.appendChild(poly);
+            
+            [[0,1], [15,1], [15,-29]].forEach(coord => {
+                const circle = document.createElementNS(SVG_NS, 'circle');
+                circle.setAttribute('cx', coord[0]); circle.setAttribute('cy', coord[1]); circle.setAttribute('r', '1.5');
+                wire.appendChild(circle);
+            });
+        }
+        // 3. Build the Slanted Box
+        const btn = document.createElement('div');
+        btn.className = 'magi-btn';
+        
+        const status = document.createElement('div');
+        status.className = 'magi-status';
+        
+        // 4. Build the Text Label (With precise truncation)
+        const label = document.createElement('span');
+        label.className = 'magi-label';
+        
+        let displayName = datasetName.toUpperCase();
+        const maxChars = isRightSide ? 14 : 10;
+        if (displayName.length > maxChars) {
+            displayName = displayName.substring(0, maxChars) + '.';
+        }
+        label.textContent = displayName;
+
+        let bar = null;
+        let colorPicker = null;
+
+        // 5. Build Asteroid Color Logic and Planet Checkboxes
+        if (!isRightSide) {
+            bar = document.createElement('div');
+            bar.className = 'magi-bar';
+            bar.style.backgroundColor = isChecked ? colorHex : '#330000';
+            bar.appendChild(label); 
+            
+            colorPicker = document.createElement('input');
+            colorPicker.type = 'color';
+            colorPicker.value = colorHex || '#ffffff';
+            colorPicker.className = 'magi-color-picker';
+            bar.appendChild(colorPicker);
+
+            colorPicker.addEventListener('input', (e) => {
+                if (row.classList.contains('checked')) {
+                    bar.style.backgroundColor = e.target.value;
+                }
+                if (this.onDatasetColorChanged) {
+                    this.onDatasetColorChanged(datasetName, e.target.value);
+                }
+            });
+            btn.appendChild(bar);
+            btn.appendChild(status);
+        } else {
+            status.appendChild(label); 
+            btn.appendChild(status);
+        }
+        // 6. TRUNK WIRING LOGIC
+        if (isPlanet) {
+            row.appendChild(btn);
+        } else if (isMoon) {
+            row.appendChild(wire); 
+            row.appendChild(btn);
+        } else {
+            row.appendChild(btn);  
+            row.appendChild(wire);
+        }
+        // 7. Click Handling & Parent/Child Logic
+        row.addEventListener('click', (e) => {
+            if (colorPicker && e.target === colorPicker) return;
+            
+            const newState = !row.classList.contains('checked');
+            row.classList.toggle('checked', newState);
+            
+            if (bar) {
+                bar.style.backgroundColor = newState ? colorPicker.value : '#330000';
+            }
             if (this.onDatasetVisibilityChanged) {
-                this.onDatasetVisibilityChanged(datasetName, e.target.checked, urls);
+                this.onDatasetVisibilityChanged(datasetName, newState, urls);
+            }
+            if (category === 'PLANET') {
+                const moonRows = document.querySelectorAll('#dataset-list-planets .moon-row');
+                moonRows.forEach(mRow => {
+                    if (mRow.classList.contains('checked') !== newState) {
+                        mRow.click(); 
+                    }
+                });
             }
         });
 
-        // 2. Color Picker
-        const colorPicker = document.createElement('input');
-        colorPicker.type = 'color';
-        colorPicker.value = colorHex || '#ffffff';
-        colorPicker.style.width = '20px';
-        colorPicker.style.height = '20px';
-        colorPicker.style.padding = '0';
-        colorPicker.style.border = 'none';
-        colorPicker.style.cursor = 'pointer';
-        colorPicker.style.background = 'transparent';
-        colorPicker.addEventListener('input', (e) => {
-            if (this.onDatasetColorChanged) {
-                this.onDatasetColorChanged(datasetName, e.target.value);
-            }
-        });
-
-        // 3. Labels
-        const label = document.createElement('label');
-        label.style.cursor = 'pointer';
-        label.style.flexGrow = '1';
-        label.style.fontSize = '0.75rem';
-        label.textContent = `[${category}] ${datasetName.toUpperCase()}`;
-
-        div.appendChild(checkbox);
-        div.appendChild(colorPicker);
-        div.appendChild(label);
-        list.appendChild(div);
+        list.appendChild(row);
     }
     getMoonFilters() {
         const dMin = parseFloat(this.distMinEl.value);

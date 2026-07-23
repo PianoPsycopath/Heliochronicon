@@ -32,17 +32,46 @@
             </div>
         </div>
 
-        <div id="tab-visibility" class="tab-content">
-            <div class="control-group" style="margin-top: 10px;">
-                <label>VISIBILITY SETTINGS</label>
-                <div class="list-item flex-row" style="background: rgba(255, 204, 0, 0.1); border-bottom: 1px solid #ffcc00; margin-bottom: 5px;">
-                    <input type="checkbox" id="master-asteroid-toggle">
-                    <label for="master-asteroid-toggle" style="margin-left: 10px; font-weight: bold; flex-grow: 1; cursor: pointer;">TOGGLE ALL ASTEROIDS</label>
+        <!-- TAB 2: VISIBILITY CONTENT -->
+        <div id="tab-visibility" class="tab-content" style="overflow-y: auto; padding-right: 5px;">
+            
+            <!-- MAGI CIRCUIT BOARD -->
+            <div class="control-group magi-board" style="padding: 10px 5px; margin-top: 10px;">
+                <div class="magi-header" style="display:flex; justify-content:space-between; margin-bottom: 15px;">
+                    <span>SYSTEM VISIBILITY</span>
+                    <button id="btn-clear-map" class="danger-btn" style="width: auto; margin:0; font-size: 0.7rem; padding: 2px 5px;">PURGE MEMORY</button>
                 </div>
-                <div id="dataset-list" class="scrollable-list" style="margin-bottom: 15px; max-height: 25vh;"></div>
-                <button id="btn-clear-map" class="danger-btn">PURGE SYSTEM MEMORY</button>
+                
+                <!-- TWO-COLUMN CIRCUIT -->
+                <div class="magi-circuit">
+                    
+                    <!-- ASTEROIDS (LEFT) -->
+                    <div class="magi-column left-col">
+                        <!-- MASTER OVERRIDE (Root of Asteroid Tree) -->
+                        <div class="magi-row master-row" id="row-master-toggle" style="margin-bottom: 8px; justify-content: flex-end;">
+                            <div class="magi-btn">
+                                <div class="magi-status" style="width: 100%; justify-content: center;">
+                                    <span class="magi-label" style="color: #000; font-size: 0.65rem;">ASTEROID TOGGLE</span>
+                                </div>
+                            </div>
+                            <!-- Root SVG Stub -->
+                            <svg class="magi-svg-wire">
+                                <polyline points="0,1 15,1" />
+                                <circle cx="0" cy="1" r="1.5" />
+                                <circle cx="15" cy="1" r="1.5" />
+                            </svg>
+                        </div>
+                        
+                        <!-- Dynamic Asteroid List -->
+                        <div id="dataset-list-asteroids" style="display: flex; flex-direction: column; gap: 8px;"></div>
+                    </div>
+                    
+                    <!-- PLANETS & MOONS (RIGHT) -->
+                    <div id="dataset-list-planets" class="magi-column right-col" style="gap: 8px;"></div>
+                </div>
             </div>
 
+            <!-- MOON FILTERS -->
             <div class="control-group">
                 <label>MOON VIS (DIST AU) <span id="dist-val" style="float:right;color:#ffcc00">0.000 - 0.300</span></label>
                 <div class="flex-row">
