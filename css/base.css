@@ -1,0 +1,51 @@
+/* =========================================
+   BASE STYLES & GLOBALS
+========================================= */
+body { 
+    margin: 0;
+    overflow: hidden;
+    background-color: #050505;
+    font-family: 'Helvetica Compressed', 'Helvetica Inserat', 'Teko', sans-serif;
+    font-size: 1.15rem;
+    letter-spacing: 1px;
+    color: #ffcc00;
+    touch-action: none; /* Disables native pinch-to-zoom and panning */
+    overscroll-behavior: none; /* Disables mobile pull-to-refresh */
+}
+#canvas-container canvas {
+    width: 100vw !important;
+    height: 100vh !important;
+    display: block;
+    outline: none;
+}
+canvas { 
+    cursor: crosshair;
+}
+/* CRT Overlay Effect */
+#crt-overlay { 
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: 100;
+    pointer-events: none;
+    background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+    background-size: 100% 4px, 6px 100%;
+    animation: flicker 0.15s infinite;
+}
+@keyframes flicker { 
+    0% { opacity: 0.95; } 
+    50% { opacity: 0.85; } 
+    100% { opacity: 0.95; } 
+}
+.tactical-label { 
+    position: absolute;
+    color: #ffcc00;
+    font-weight: bold;
+    font-size: 11px;
+    text-shadow: 0 0 5px #ffcc00;
+    z-index: 5;
+    pointer-events: none;
+    transform: translate(-50%, -100%);
+}

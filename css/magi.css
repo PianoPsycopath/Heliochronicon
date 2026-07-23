@@ -1,0 +1,144 @@
+/* =========================================
+   MAGI VISIBILITY TREE (CIRCUIT UI)
+========================================= */
+.magi-board { 
+    display: flex; 
+    flex-direction: column; 
+}
+.magi-circuit { 
+    display: flex; 
+    justify-content: center; 
+    align-items: flex-start; 
+    width: 100%; 
+    margin-top: 5px; 
+    gap: 20px; 
+}
+.magi-column { 
+    flex: 1;
+    display: flex; 
+    flex-direction: column; 
+}
+.magi-row {
+    display: flex; 
+    align-items: center; 
+    width: 100%;
+    --state-color: #ff3333; 
+    transition: all 0.2s ease;
+}
+.magi-row.checked { 
+    --state-color: #33ff33; 
+}
+.left-col .magi-row { justify-content: flex-end; }.right-col .magi-row { justify-content: flex-start; }
+.magi-svg-wire, .magi-svg-wire-moon {
+    width: 15px; 
+    height: 22px;
+    overflow: visible;
+    flex-shrink: 0; 
+    z-index: 1;
+}
+.magi-svg-wire polyline, .magi-svg-wire-moon polyline {
+    fill: none;
+    stroke: var(--state-color);
+    stroke-width: 2.5;
+    stroke-linejoin: miter;
+    transition: stroke 0.3s ease;
+}
+.magi-svg-wire circle, .magi-svg-wire-moon circle {
+    fill: var(--state-color);
+    transition: fill 0.3s ease;
+}
+.magi-btn {
+    display: flex;
+    width: 110px; 
+    height: 22px;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden; 
+    filter: drop-shadow(0 0 5px rgba(0,0,0,0.4));
+    z-index: 2;
+}
+.left-col .magi-btn { 
+    transform: skewY(-12deg); 
+}
+.right-col .magi-btn { 
+    transform: skewY(12deg); 
+}
+.magi-btn::after {
+    content: ''; 
+    position: absolute; 
+    top: 0; left: 0; 
+    width: 100%; 
+    height: 100%;
+    background: linear-gradient(rgba(255,255,255,0.15) 50%, rgba(0,0,0,0.3) 50%);
+    background-size: 100% 4px; 
+    pointer-events: none; 
+    z-index: 5;
+}
+.magi-status {
+    background: var(--state-color);
+    display: flex; 
+    align-items: center;
+    transition: background 0.3s;
+    position: relative;
+}
+.left-col .magi-status {
+    width: 25px; 
+    flex-shrink: 0;
+    border-left: 1px solid rgba(0,0,0,0.5); 
+}
+.right-col .magi-status, .master-row .magi-status {
+    width: 100%; 
+    flex-grow: 1; 
+    padding: 0 10px;
+}
+.right-col .magi-row:not(.checked) .magi-status { 
+    background: #440000; 
+}
+.magi-bar {
+    flex-grow: 1; 
+    display: flex; 
+    align-items: center;
+    padding: 0 8px; 
+    position: relative;
+    background: #330000; 
+    transition: background 0.3s;
+    overflow: hidden;
+}
+.magi-label {
+    position: relative; 
+    z-index: 2;
+    font-size: 0.7rem; 
+    font-weight: bold;
+    letter-spacing: 1px; 
+    white-space: nowrap;
+    transition: color 0.3s;
+    overflow: hidden; 
+}
+.magi-row.checked .magi-label { color: #000; 
+}
+.magi-row:not(.checked) 
+.magi-label { 
+    color: var(--state-color); 
+}
+.master-row 
+.magi-label { 
+    color: #000; 
+} 
+.magi-color-picker {
+    position: absolute; 
+    top: 0; 
+    left: 0; 
+    width: 100%; 
+    height: 100%;
+    opacity: 0; 
+    cursor: crosshair; 
+    z-index: 10;
+}
+/* Async Loading State */
+.magi-row.loading { pointer-events: none; }.magi-row.loading .magi-btn { animation: magi-dark-pulse 0.1s infinite alternate; }
+@keyframes magi-dark-pulse {
+    0% { filter: brightness(1); }    100% { filter: brightness(0.25); }
+}
+.master-row.loading .magi-label {
+    animation: flicker 0.1s infinite alternate;
+}
