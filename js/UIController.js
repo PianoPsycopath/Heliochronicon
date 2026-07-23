@@ -205,18 +205,28 @@ class UIController {
         const magiTrunk = document.getElementById('magi-trunk');
         
         if (rowMaster) {
-            rowMaster.addEventListener('click', () => {
+            rowMaster.addEventListener('click', async () => {
+                if (rowMaster.classList.contains('loading')) return;
+
                 const newState = !rowMaster.classList.contains('checked');
                 
                 rowMaster.classList.toggle('checked', newState);
-                if (magiTrunk) magiTrunk.classList.toggle('checked', newState);
+                rowMaster.classList.add('loading');
 
                 const allAsteroids = document.querySelectorAll('#dataset-list-asteroids .magi-row');
+                const loadingPromises = [];
+
                 allAsteroids.forEach(row => {
                     if (row.classList.contains('checked') !== newState) {
                         row.click(); // Programmatically sync children
+                        if (row.togglePromise) {
+                            loadingPromises.push(row.togglePromise);
+                        }
                     }
                 });
+                await Promise.all(loadingPromises);
+                
+                rowMaster.classList.remove('loading');
             });
         }
 
@@ -345,6 +355,8 @@ class UIController {
                 if (row.classList.contains('checked')) {
                     bar.style.backgroundColor = e.target.value;
                 }
+            });
+            colorPicker.addEventListener('change', (e) => {
                 if (this.onDatasetColorChanged) {
                     this.onDatasetColorChanged(datasetName, e.target.value);
                 }
@@ -366,8 +378,10 @@ class UIController {
             row.appendChild(wire);
         }
         // 7. Click Handling & Parent/Child Logic
-        row.addEventListener('click', (e) => {
+        row.addEventListener('click', async (e) => {
             if (colorPicker && e.target === colorPicker) return;
+            
+            if (row.classList.contains('loading')) return;
             
             const newState = !row.classList.contains('checked');
             row.classList.toggle('checked', newState);
@@ -375,17 +389,33 @@ class UIController {
             if (bar) {
                 bar.style.backgroundColor = newState ? colorPicker.value : '#330000';
             }
-            if (this.onDatasetVisibilityChanged) {
-                this.onDatasetVisibilityChanged(datasetName, newState, urls);
-            }
-            if (category === 'PLANET') {
-                const moonRows = document.querySelectorAll('#dataset-list-planets .moon-row');
-                moonRows.forEach(mRow => {
-                    if (mRow.classList.contains('checked') !== newState) {
-                        mRow.click(); 
+
+            row.classList.add('loading');
+
+            row.togglePromise = (async () => {
+                try {
+                    // Tell the engine to load the 3D data first
+                    if (this.onDatasetVisibilityChanged) {
+                        await this.onDatasetVisibilityChanged(datasetName, newState, urls);
                     }
-                });
-            }
+                    if (newState && colorPicker && this.onDatasetColorChanged) {
+                        this.onDatasetColorChanged(datasetName, colorPicker.value);
+                    }
+
+                    if (category === 'PLANET') {
+                        const moonRows = document.querySelectorAll('#dataset-list-planets .moon-row');
+                        moonRows.forEach(mRow => {
+                            if (mRow.classList.contains('checked') !== newState) {
+                                mRow.click(); 
+                            }
+                        });
+                    }
+                } finally {
+                    row.classList.remove('loading');
+                }
+            })();
+
+            await row.togglePromise;
         });
 
         list.appendChild(row);

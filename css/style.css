@@ -731,3 +731,21 @@ canvas {
     cursor: crosshair; 
     z-index: 10;
 }
+/* =========================================
+   ASYNC LOADING STATE
+========================================= */
+.magi-row.loading {
+    pointer-events: none;
+}
+.magi-row.loading .magi-btn {
+    animation: magi-dark-pulse 0.1s infinite alternate;
+}
+@keyframes magi-dark-pulse {
+    0% { 
+        filter: brightness(1); }
+    100% { 
+        filter: brightness(0.25); }
+}
+.master-row.loading .magi-label {
+    animation: flicker 0.1s infinite alternate;
+}

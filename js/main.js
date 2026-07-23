@@ -273,17 +273,14 @@ UI.onSearch = (query) => {
 async function bootEngine() {
     // 1. Automatically load Core Datasets
     const baseDatasets = [
-        { name: 'Planets', category: 'PLANET', color: '#ffffff', urls: ['data/planets.json'] },
-        { name: 'Moons',   category: 'MOON',   color: '#aaaaaa', urls: ['data/moons.json'] }
+        { name: 'Planets', category: 'PLANET', defaultColor: '#ffffff', urls: ['data/planets.json'] },
+        { name: 'Moons',   category: 'MOON',   defaultColor: '#aaaaaa', urls: ['data/moons.json'] }
     ];
 
-    try {
-        const manifest = await DataLoader.fetchJSONDataset('data/manifest.json');
-    } 
-    catch (err) {
-        console.error("Failed to load manifest.json", err);
-    }
-    
+    baseDatasets.forEach(ds => {
+        if (!savedColors[ds.name]) savedColors[ds.name] = ds.defaultColor;
+    });
+
     for (const ds of baseDatasets) {
         try {
             const rawData = await DataLoader.fetchJSONDataset(ds.urls[0]);
@@ -291,7 +288,8 @@ async function bootEngine() {
                 const processed = DataLoader.processPlanetaryData(rawData, ds.name);
                 systemBuilder.buildSolarSystem(processed);
                 activeDatasets.add(ds.name);
-                UI.addDatasetToggle(ds.name, ds.category, ds.color, true, ds.urls);
+                
+                UI.addDatasetToggle(ds.name, ds.category, savedColors[ds.name], true, ds.urls);
             }
         } catch (err) {
             console.error(`Base JSON missing: ${ds.urls[0]}`, err);
@@ -308,13 +306,15 @@ async function bootEngine() {
             let colorIdx = 0;
 
             for (const [groupName, groupData] of Object.entries(manifest.datasets)) {
-
                 const chunkUrls = groupData.chunks.map(chunkFile => `data/${chunkFile}`);
-                const assignedColor = defaultColors[colorIdx % defaultColors.length];
-
-                UI.addDatasetToggle(groupName, 'ASTEROID', assignedColor, false, chunkUrls);
+                
+                if (!savedColors[groupName]) {
+                    savedColors[groupName] = defaultColors[colorIdx % defaultColors.length];
+                }
+                UI.addDatasetToggle(groupName, 'ASTEROID', savedColors[groupName], false, chunkUrls);
                 colorIdx++;
             }
+            localStorage.setItem('tacticalMapColors', JSON.stringify(savedColors));
         }
     } catch (err) {
         console.error("Failed to load manifest.json from /data/", err);
