@@ -58,7 +58,7 @@ No build step is required. The project runs directly from static files.
 ### Phase 1: Immediate Tasks (UI Polish, Culling, & State Persistence)
 
 - Finalize CSS Flexbox/Grid layout architecture.
-- Relocate scan button into the chronometer panel.
+~~- Relocate scan button into the chronometer panel.~~
 - Fix scanned asteroid culling bug in Frustum culler.
 - Add tactical hover previews with raycast tooltips.
 - Implement dynamic distance markers on ecliptic/equatorial grids.
