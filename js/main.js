@@ -319,6 +319,7 @@ async function bootEngine() {
     } catch (err) {
         console.error("Failed to load manifest.json from /data/", err);
     }
+    const tutorialManager = new TutorialManager();
 }
 
 // ==========================================

@@ -87,6 +87,23 @@
     </div>
     <div id="canvas-container"></div>
 
+    <button id="btn-tutorial" title="Open Tutorial">?</button>
+
+        <div id="tutorial-overlay">
+            <svg id="tutorial-svg">
+                <line id="tutorial-line" x1="0" y1="0" x2="0" y2="0" />
+                <circle id="tutorial-dot" cx="0" cy="0" r="4" fill="#00ffff" />
+            </svg>
+
+            <div id="tutorial-box">
+                <h3 id="tutorial-title">SYSTEM INIT</h3>
+                <p id="tutorial-text">Welcome to the Heliochronicon.</p>
+                <div class="tutorial-controls">
+                    <span class="tutorial-hint">[CLICK/TAP TO CONTINUE]</span>
+                    <button id="btn-skip-tutorial">SKIP</button>
+                </div>
+            </div>
+    </div>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
 
@@ -100,6 +117,7 @@
     <script src="js/SystemBuilder.js"></script>
     <script src="js/InteractionController.js"></script>
     <script src="js/RenderPipeline.js"></script>
+    <script src="js/TutorialManager.js"></script>
     <script src="js/main.js"></script>
 </body>
 </html>
