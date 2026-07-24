@@ -113,7 +113,12 @@
         <div class="throttle-container">
             <button id="btn-time-rev" class="throttle-btn">◀◀</button>
             <button id="btn-time-pause" class="throttle-btn">▐▐</button>
-            <input type="range" id="time-slider" min="0" max="20" step="1" value="11">
+                
+            <div id="chrono-slider-wrapper">
+                <canvas id="chrono-canvas"></canvas>
+                <input type="range" id="time-slider" min="0" max="20" step="1" value="11">
+            </div>
+        
             <button id="btn-time-fwd" class="throttle-btn">▶▶</button>
             <button id="btn-time-1x" class="throttle-btn">1X</button>
         </div>
