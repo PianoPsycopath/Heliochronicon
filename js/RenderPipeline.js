@@ -96,7 +96,9 @@ class RenderPipeline {
             }
 
             if (!isOccluded && !isBehindCamera) {
-                drawnScreenPositions.push({ x: screenX, y: screenY });
+                if (d.datasetCategory !== 'PROMOTED_ASTEROID' && d.datasetCategory !== 'RADAR_CONTACT') {
+                    drawnScreenPositions.push({ x: screenX, y: screenY });
+                }
             }
             
             b.mesh.quaternion.copy(b.poleQuaternion);
