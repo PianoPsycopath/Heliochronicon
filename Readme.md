@@ -1,3 +1,13 @@
+
+
+
+
+
+
+
+
+
+
 # Heliochronicon
 
 **A 3D temporal celestial note-taking platform scaled ad infinitum**
@@ -7,6 +17,7 @@ Heliochronicon is an interactive solar system simulator and world-building tool.
 **Live Demo:** [heliochronicon.vercel.app](https://heliochronicon.vercel.app/)
 
 <img width="1912" height="913" alt="image" src="https://github.com/user-attachments/assets/1c51265a-01d7-4836-96fc-240fee321440" />
+https://github.com/user-attachments/assets/a3a373ca-e2b5-41db-8ee3-b71bceb6517b
 
 ## Purpose
 
