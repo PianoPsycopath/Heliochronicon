@@ -24,7 +24,9 @@ class PhysicsEngine {
             const d = b.data;
             if (b.datasetVisible === false) { b.isCulled = true; return; }
             b.isCulled = false;
-            b.hideLabel = false; 
+            if (d.datasetCategory !== 'RADAR_CONTACT') {
+                b.hideLabel = false;
+            }
             
             const ra_deg = d.pole_ra + d.pole_ra_rate * T;
             const dec_deg = d.pole_dec + d.pole_dec_rate * T;

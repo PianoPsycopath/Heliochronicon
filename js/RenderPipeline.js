@@ -49,7 +49,7 @@ class RenderPipeline {
         }
     }
 
-    processScreenProjectionsAndCulling(celestialBodies, currentTargetData, currentOrigin) {
+    processScreenProjectionsAndCulling(celestialBodies, currentTargetData, currentOrigin, previewTargetData = null) {
         const filters = this.UI.getMoonFilters();
         const activeSystemName = currentTargetData ? (currentTargetData.parent !== "SUN" ? currentTargetData.parent : currentTargetData.name) : "NONE";
         
@@ -65,6 +65,7 @@ class RenderPipeline {
             if (b.isCulled) { this.hideObject(b); return; }
 
             const isTarget = currentTargetData ? (d.name === currentTargetData.name) : false;
+            const isPreview = !isTarget && previewTargetData ? (d === previewTargetData) : false;
             
             if (b.isMoon) {
                 const isTargetSystem = (d.parent === activeSystemName);
@@ -207,26 +208,36 @@ class RenderPipeline {
                     if (b.isMoon) b.orbitCurtain.quaternion.copy(b.parentQuat);
                 }
             } else {
-                if (d.datasetCategory === 'PROMOTED_ASTEROID') {
+                if (isPreview) {
+                    b.orbitLine.material.color.setHex(0xffffff);
+                    b.orbitLine.material.opacity = 0.9;
+                } else if (d.datasetCategory === 'PROMOTED_ASTEROID') {
                     const dColor = this.savedColors[d.datasetName] || '#00ffff';
                     b.orbitLine.material.color.set(dColor);
+                    b.orbitLine.material.opacity = b.isMoon ? 0.3 : 0.6;
+                } else if (d.datasetCategory === 'RADAR_CONTACT') {
+                    const dColor = this.savedColors[d.datasetName] || '#00ff00';
+                    b.orbitLine.material.color.set(dColor);
+                    b.orbitLine.material.opacity = b.isMoon ? 0.3 : 0.6;
                 } else {
                     b.orbitLine.material.color.setHex(0xff1111);
+                    b.orbitLine.material.opacity = b.isMoon ? 0.3 : 0.6;
                 }
-                b.orbitLine.material.opacity = b.isMoon ? 0.3 : 0.6; 
                 if (b.orbitCurtain) b.orbitCurtain.visible = false;
             }
 
             if (b.isMoon) {
                 b.orbitLine.visible = b.mesh.visible || b.sprite.visible;
             } else if (d.datasetCategory === 'PROMOTED_ASTEROID') {
-                b.orbitLine.visible = isTarget || d.isPinned;
+                b.orbitLine.visible = isTarget || d.isPinned || isPreview;
+            } else if (d.datasetCategory === 'RADAR_CONTACT') {
+                b.orbitLine.visible = isPreview;
             } else {
                 b.orbitLine.visible = true;
             }
 
             if (b.label) {
-                if (b.hideLabel || isOccluded || isBehindCamera) {
+                if ((b.hideLabel && !isPreview) || isOccluded || isBehindCamera) {
                     b.label.style.display = 'none';
                 } else {
                     const vec = b.renderPos.clone();

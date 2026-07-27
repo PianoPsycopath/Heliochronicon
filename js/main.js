@@ -14,6 +14,7 @@ const frustumSize = sceneManager.frustumSize;
 let systemDate = new Date();
 let currentTargetData = null;  
 let trackingTargetData = null; 
+let previewTargetData = null;  // Hover-only preview target - never targeted, never sent to telemetry
 
 const celestialBodies = []; 
 const pickableObjects = []; 
@@ -68,7 +69,8 @@ const interactionController = new InteractionController({
     camera, controls, frustumSize, pickableObjects, UI,
     getCurrentTarget: () => currentTargetData,
     onBodyClicked: (data, isHardLock) => { UI.onFocusBody(data, isHardLock); },
-    onTrackingBroken: () => { trackingTargetData = null; }
+    onTrackingBroken: () => { trackingTargetData = null; },
+    onBodyHovered: (data) => { previewTargetData = data; }
 });
 
 const renderPipeline = new RenderPipeline({
@@ -77,6 +79,7 @@ const renderPipeline = new RenderPipeline({
 
 const tacticalScanner = new TacticalScanner({
     scene, camera, UI, celestialBodies, pickableObjects, gpuParticleSystems, currentOrigin, dotTexture, savedColors,
+    systemBuilder,
     getSystemDate: () => systemDate,
     getCurrentTarget: () => currentTargetData,
     getJ2000Days: (date) => PhysicsEngine.getJ2000Days(date),
@@ -362,7 +365,7 @@ function animate() {
     camera.updateMatrixWorld();
     
     // 3. Render Pre-Pass (Projections, Culling, Matrices)
-    const trackTargetPos = renderPipeline.processScreenProjectionsAndCulling(celestialBodies, currentTargetData, currentOrigin);
+    const trackTargetPos = renderPipeline.processScreenProjectionsAndCulling(celestialBodies, currentTargetData, currentOrigin, previewTargetData);
     
     // --- DUAL-GRID ARCHITECTURE LOGIC ---
     

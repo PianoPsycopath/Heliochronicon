@@ -10,15 +10,68 @@ class InteractionController {
         this.getCurrentTarget = ctx.getCurrentTarget;
         this.onBodyClicked = ctx.onBodyClicked;
         this.onTrackingBroken = ctx.onTrackingBroken;
+        this.onBodyHovered = ctx.onBodyHovered || (() => {});
 
-        // Internal Camera State previously cluttering main.js
         this.isCameraTracking = false;
         this.flyPanActive = false;
         this.panFrames = 0;
         this.autoZoomActive = false;
         this.targetZoom = this.camera.zoom;
 
+        this._raycaster = new THREE.Raycaster();
+        this._mouse = new THREE.Vector2();
+
+        this._hoveredData = null;
+        this._hoverRAFPending = false;
+
         this.initHooks();
+    }
+    _pickAtScreenPos(clientX, clientY) {
+        this._mouse.x = (clientX / window.innerWidth) * 2 - 1;
+        this._mouse.y = -(clientY / window.innerHeight) * 2 + 1;
+        this._raycaster.setFromCamera(this._mouse, this.camera);
+
+        let intersects = this._raycaster.intersectObjects(this.pickableObjects).filter(ix => ix.object.visible);
+        let hit = intersects.length > 0 ? intersects[0] : null;
+
+        if (!hit) {
+            const PICK_RADIUS = 30;
+            let closestDist = Infinity;
+
+            this.pickableObjects.filter(obj => obj.visible).forEach(obj => {
+                const vector = new THREE.Vector3().setFromMatrixPosition(obj.matrixWorld);
+                vector.project(this.camera);
+
+                const x = (vector.x + 1) * window.innerWidth / 2;
+                const y = -(vector.y - 1) * window.innerHeight / 2;
+
+                const d = Math.hypot(clientX - x, clientY - y);
+                if (d < PICK_RADIUS && d < closestDist) {
+                    closestDist = d;
+                    hit = { object: obj };
+                }
+            });
+        }
+
+        return hit ? hit.object.userData : null;
+    }
+
+    _updateHover(clientX, clientY) {
+        const newData = this._pickAtScreenPos(clientX, clientY);
+        const newName = newData ? newData.name : null;
+        const oldName = this._hoveredData ? this._hoveredData.name : null;
+
+        if (newName !== oldName) {
+            this._hoveredData = newData;
+            this.onBodyHovered(newData);
+        }
+    }
+
+    clearHover() {
+        if (this._hoveredData) {
+            this._hoveredData = null;
+            this.onBodyHovered(null);
+        }
     }
 
     initHooks() {
@@ -52,9 +105,6 @@ class InteractionController {
         }
     });
 
-    const raycaster = new THREE.Raycaster();
-    const mouse = new THREE.Vector2();
-
     window.addEventListener('pointerup', (event) => {
         if (event.target.closest('.panel') || event.target.closest('button')) return;
         
@@ -62,43 +112,35 @@ class InteractionController {
         const dist = Math.hypot(event.clientX - mouseDownPos.x, event.clientY - mouseDownPos.y);
         if (dist > 15) return; 
 
-        mouse.x = (event.clientX / window.innerWidth) * 2 - 1; 
-        mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
-        raycaster.setFromCamera(mouse, this.camera);
-        
-        // 1. Raycaster Click
-        let intersects = raycaster.intersectObjects(this.pickableObjects).filter(ix => ix.object.visible);
-        let hit = intersects.length > 0 ? intersects[0] : null;
+        const clickedData = this._pickAtScreenPos(event.clientX, event.clientY);
 
-        // 2. FAT FINGER FALLBACK (If Raycaster missed)
-        if (!hit) {
-            const PICK_RADIUS = 30; // 30 pixels tolerance
-            let closestDist = Infinity;
-            
-            this.pickableObjects.filter(obj => obj.visible).forEach(obj => {
-                // Project 3D position to 2D screen space
-                const vector = new THREE.Vector3().setFromMatrixPosition(obj.matrixWorld);
-                vector.project(this.camera);
-
-                // Convert from (-1 to 1) to screen pixel coordinates
-                const x = (vector.x + 1) * window.innerWidth / 2;
-                const y = -(vector.y - 1) * window.innerHeight / 2;
-
-                const d = Math.hypot(event.clientX - x, event.clientY - y);
-                if (d < PICK_RADIUS && d < closestDist) {
-                    closestDist = d;
-                    hit = { object: obj };
-                }
-            });
-        }
-        
-        if (hit) {
-            const clickedData = hit.object.userData;
-            // Left click (0) or Touch event (pointerType === 'touch') = Hard Lock
+        if (clickedData) {
             const isHardLock = (currentMouseAction === 0 || event.pointerType === 'touch');
             this.onBodyClicked(clickedData, isHardLock);
         }
     });
+
+    window.addEventListener('pointermove', (event) => {
+        if (event.pointerType === 'touch') return; 
+
+        if (event.target.closest('.panel') || event.target.closest('button')) {
+            this.clearHover();
+            return;
+        }
+
+        if (event.buttons !== 0) return; 
+
+        if (this._hoverRAFPending) return;
+        this._hoverRAFPending = true;
+        const { clientX, clientY } = event;
+
+        requestAnimationFrame(() => {
+            this._hoverRAFPending = false;
+            this._updateHover(clientX, clientY);
+        });
+    });
+
+    window.addEventListener('pointerleave', () => this.clearHover());
 }
 
     triggerFocus(data, isHardLock, AU_IN_KM) {

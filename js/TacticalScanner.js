@@ -127,6 +127,7 @@ class TacticalScanner {
             });
 
             // 2. Spawn 3D Green Radar Blips
+            const systemBuilder = this.ctx.systemBuilder;
             closestList.forEach((hit) => {
                 const radarData = { ...hit.data, datasetCategory: 'RADAR_CONTACT' };
                 
@@ -152,16 +153,31 @@ class TacticalScanner {
                 pickableObjects.push(sprite);
                 
                 const dummyMesh = new THREE.Object3D(); 
+
+                const orbitLine = systemBuilder.createOrbitPath(
+                    radarData.a, radarData.e, radarData.i, radarData.w, radarData.Node, 'RADAR_CONTACT'
+                );
+                orbitLine.material.color.set(datasetColor);
+                orbitLine.visible = false;
+                orbitLine.matrixAutoUpdate = false;
+                scene.add(orbitLine);
+
                 const dummyLineMat = new THREE.LineBasicMaterial();
-                const dummyLine = new THREE.Line(new THREE.BufferGeometry(), dummyLineMat);
                 const dummyCurtain = new THREE.LineSegments(new THREE.BufferGeometry(), dummyLineMat);
+
+                const label = document.createElement('div');
+                label.className = 'tactical-label';
+                label.innerText = radarData.name;
+                label.style.color = datasetColor;
+                document.body.appendChild(label);
 
                 celestialBodies.push({
                     data: radarData, 
                     mesh: dummyMesh, 
                     sprite: sprite, 
-                    orbitLine: dummyLine,
+                    orbitLine: orbitLine,
                     orbitCurtain: dummyCurtain,
+                    label: label,
                     isMoon: false, datasetVisible: true, isCulled: false, hideLabel: true,
                     globalPos: absolutePos, renderPos: sprite.position,
                     parentPos: new THREE.Vector3(), W_current: 0,
