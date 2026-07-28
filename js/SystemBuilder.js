@@ -6,8 +6,9 @@ class SystemBuilder {
 
     createOrbitPath(scaledA, e, i, w, Node, category) {
         const points = [];
-        for(let j=0; j<=128; j++) {
-            points.push(OrbitalMath.calcPosFromM(scaledA, e, i, w, Node, (j / 128) * Math.PI * 2));
+        const resolution = 4096;
+        for(let j = 0; j <= resolution; j++) {
+            points.push(OrbitalMath.calcPosFromM(scaledA, e, i, w, Node, (j / resolution) * Math.PI * 2));
         }
         
         let lw = 1;
