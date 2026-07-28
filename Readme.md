@@ -65,7 +65,7 @@ No build step is required. The project runs directly from static files.
 
 - Finalize CSS Flexbox/Grid layout architecture.
 ~~- Relocate scan button into the chronometer panel.~~
-- Fix scanned asteroid culling bug in Frustum culler.
+~~- Fix scanned asteroid culling bug in Frustum culler.~~
 - Add tactical hover previews with raycast tooltips.
 - Implement dynamic distance markers on ecliptic/equatorial grids.
 - Add 3D group labels for asteroid populations.
