@@ -1,5 +1,5 @@
 // js/UIController.js
-class UIController {
+export class UIController {
     constructor() {
         this.timeMultiplier = 1;
         this.currentSortMode = 'distance';

@@ -1,5 +1,6 @@
 // js/InteractionController.js
-class InteractionController {
+import * as THREE from 'three'
+export class InteractionController {
     constructor(ctx) {
         this.camera = ctx.camera;
         this.controls = ctx.controls;

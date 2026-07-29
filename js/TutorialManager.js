@@ -1,5 +1,5 @@
 // js/TutorialManager.js
-class TutorialManager {
+export class TutorialManager {
     constructor() {
         this.overlay = document.getElementById('tutorial-overlay');
         this.box = document.getElementById('tutorial-box');

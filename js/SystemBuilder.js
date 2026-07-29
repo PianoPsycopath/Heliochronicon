@@ -1,5 +1,9 @@
 // js/SystemBuilder.js
-class SystemBuilder {
+import { OrbitalMath } from './OrbitalMath.js';
+import { Shaders} from './Shaders.js';
+import * as THREE from 'three'
+
+export class SystemBuilder {
     constructor(engineContext) {
         this.ctx = engineContext;
     }

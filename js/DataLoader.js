@@ -1,5 +1,5 @@
 // js/DataLoader.js
-class DataLoader {
+export class DataLoader {
     
     static async fetchJSONDataset(url) {
         try {

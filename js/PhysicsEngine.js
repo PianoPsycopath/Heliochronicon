@@ -1,5 +1,8 @@
 // js/PhysicsEngine.js
-class PhysicsEngine {
+import { OrbitalMath } from './OrbitalMath.js';
+import * as THREE from 'three'
+
+export class PhysicsEngine {
     static getJ2000Days(date) { 
         return (date.getTime() - Date.UTC(2000, 0, 1, 12, 0, 0)) / 86400000; 
     }

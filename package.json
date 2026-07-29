@@ -1,0 +1,29 @@
+{
+  "name": "heliochronicon",
+  "version": "1.0.0",
+  "description": "**A 3D temporal celestial note-taking platform scaled ad infinitum**",
+  "type":"module",
+  "directories": {
+    "example": "examples"
+  },
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "lint": "eslint js/",
+    "format": "prettier --write \"js/**/*.js\" \"index.html\" \"*.config.js\""
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "eslint": "^10.8.0",
+    "eslint-config-prettier": "^10.1.8",
+    "prettier": "^3.9.6",
+    "vite": "^8.1.5"
+  },
+  "dependencies": {
+    "three": "^0.185.1"
+  }
+}

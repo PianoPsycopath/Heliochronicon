@@ -1,5 +1,7 @@
 // js/SceneManager.js
-class SceneManager {
+import * as THREE from 'three'
+
+export class SceneManager {
     constructor(containerId) {
         this.container = document.getElementById(containerId);
         this.scene = new THREE.Scene();

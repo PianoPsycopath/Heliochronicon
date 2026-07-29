@@ -1,5 +1,6 @@
 // js/OrbitalMath.js
-class OrbitalMath {
+import * as THREE from 'three'
+export class OrbitalMath {
     static solveKepler(M, e) {
         const M_norm = M % (2 * Math.PI);
         const e_capped = Math.min(e, 0.9999);

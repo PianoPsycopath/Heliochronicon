@@ -1,4 +1,15 @@
 // js/main.js
+import { DataLoader} from './DataLoader.js';
+import { SceneManager} from './SceneManager.js';
+import { Shaders} from './Shaders.js';
+import { UIController} from './UIController.js';
+import { SystemBuilder} from './SystemBuilder.js';
+import { InteractionController} from './InteractionController.js';
+import { RenderPipeline} from './RenderPipeline.js';
+import { TacticalScanner} from './TacticalScanner.js';
+import { PhysicsEngine} from './PhysicsEngine.js';
+import { TutorialManager} from './TutorialManager.js';
+import * as THREE from 'three'
 const AU_IN_KM = 149597870.7; 
 const MAX_WELLS = 35; 
 

@@ -1,5 +1,8 @@
 // js/TacticalScanner.js
-class TacticalScanner {
+import { OrbitalMath } from './OrbitalMath.js';
+import * as THREE from 'three'
+
+export class TacticalScanner {
     constructor(engineContext) {
         // The context provides references to the main engine state and arrays
         this.ctx = engineContext;

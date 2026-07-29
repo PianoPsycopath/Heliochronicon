@@ -1,5 +1,7 @@
 // js/Shaders.js
-class Shaders {
+import * as THREE from 'three'
+
+export class Shaders {
     
     static getGridMaterial(maxWells) {
         const wellPositions = new Array(maxWells).fill(null).map(() => new THREE.Vector2());

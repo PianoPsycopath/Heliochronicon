@@ -1,5 +1,8 @@
 // js/RenderPipeline.js
-class RenderPipeline {
+import { OrbitalMath } from './OrbitalMath.js';
+import * as THREE from 'three'
+
+export class RenderPipeline {
     constructor(ctx) {
         this.camera = ctx.camera;
         this.controls = ctx.controls;
