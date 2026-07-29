@@ -1,44 +1,6 @@
 // js/DataLoader.js
 class DataLoader {
-    static parseCSV(text) {
-        const lines = text.split('\n').filter(l => l.trim() !== '');
-        if (lines.length === 0) return [];
-
-        const headers = lines[0].split(',').map(h => h.trim().replace(/^"|"$/g, ''));
-        const data = [];
-        
-        for (let i = 1; i < lines.length; i++) {
-            const line = lines[i].trim();
-            if (!line) continue;
-            
-            const cols = [];
-            let curr = '';
-            let inQuotes = false;
-            for (let j = 0; j < line.length; j++) {
-                const char = line[j];
-                if (char === '"') {
-                    inQuotes = !inQuotes;
-                } else if (char === ',' && !inQuotes) {
-                    cols.push(curr.trim());
-                    curr = '';
-                } else {
-                    curr += char;
-                }
-            }
-            cols.push(curr.trim()); 
-
-            if (cols.length < headers.length * 0.5) continue; 
-            
-            const row = {};
-            for (let j = 0; j < headers.length; j++) {
-                const val = cols[j] ? cols[j].replace(/^"|"$/g, '') : '';
-                const num = parseFloat(val);
-                row[headers[j]] = (val !== '' && !isNaN(num)) ? num : val;
-            }
-            data.push(row);
-        }
-        return data;
-    }
+    
     static async fetchJSONDataset(url) {
         try {
             const response = await fetch(url);
