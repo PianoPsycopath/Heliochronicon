@@ -1,11 +1,5 @@
 // js/OrbitalMath.js
 class OrbitalMath {
-    static getTacticalA(d, isMoon) {
-        if (d.name === "SUN") return 0;
-        if (isMoon && d.a > 1000) return d.a / 149597870.7; 
-        return d.a;
-    }
-
     static solveKepler(M, e) {
         const M_norm = M % (2 * Math.PI);
         const e_capped = Math.min(e, 0.9999);

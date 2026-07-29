@@ -3,6 +3,9 @@ class SystemBuilder {
     constructor(engineContext) {
         this.ctx = engineContext;
     }
+    getTacticalA(data, isMoon = false) {
+        return (isMoon && data.a > 1000) ? data.a / this.ctx.AU_IN_KM : data.a;
+    }
 
     createOrbitPath(scaledA, e, i, w, Node, category) {
         const points = [];
@@ -153,8 +156,8 @@ class SystemBuilder {
 
                 const isSun = d.name === "SUN";
                 const isMoon = d.parent !== "SUN";
-                
-                const scaledA = isMoon && d.a > 1000 ? d.a / AU_IN_KM : d.a;
+
+                const scaledA = this.getTacticalA(d, isMoon);
 
                 let physicalRadius = 0;
                 if (isSun) {
@@ -277,7 +280,9 @@ class SystemBuilder {
         }
 
         const promotedData = { ...d, datasetCategory: 'PROMOTED_ASTEROID' };
-        const scaledA = promotedData.a; 
+
+        const scaledA = this.getTacticalA(promotedData, false); 
+        
         const physicalRadius = (promotedData.radius_km > 0) ? (promotedData.radius_km / AU_IN_KM) : (1.0 / AU_IN_KM);
 
         const mesh = new THREE.Mesh(new THREE.SphereGeometry(physicalRadius, 32, 32), tacticalMaterial);
