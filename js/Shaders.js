@@ -308,4 +308,60 @@ class Shaders {
             blendEquation: THREE.MaxEquation 
         });
     }
+    static createGroupLabelMat(text, colorHex = '#ffffff', meanA = 2.5) {
+        const displayText = text.toUpperCase().replace(/[-_]/g, ' ');
+        const size = 512;
+        const canvas = document.createElement('canvas');
+        canvas.width = size; canvas.height = size;
+        const ctx = canvas.getContext('2d');
+
+        ctx.font = "bold 46px 'Helvetica Compressed', 'Helvetica Inserat', 'Teko', sans-serif";
+        ctx.fillStyle = colorHex;
+        ctx.shadowColor = 'rgba(0,0,0,0.85)';
+        ctx.shadowBlur = 8;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+
+        const chars = [...displayText];
+        const widths = chars.map(ch => ctx.measureText(ch).width);
+        const totalWidth = widths.reduce((a, b) => a + b, 0);
+        
+        const PX_PER_AU = 90;
+        const MAX_TOTAL_ANGLE = 2.2; // ~125° ceiling on how far the arc may wrap
+        const distanceRadius = meanA * PX_PER_AU;
+        const minFitRadius = totalWidth / MAX_TOTAL_ANGLE;
+        const curveRadius = Math.max(distanceRadius, minFitRadius, 70);
+
+        const angleSteps = widths.map(w => w / curveRadius);
+        const totalAngle = angleSteps.reduce((a, b) => a + b, 0);
+
+        const cx = size / 2;
+        const circleCenterY = size / 2 + curveRadius;
+
+        let angle = -Math.PI / 2 - totalAngle / 2;
+        for (let idx = 0; idx < chars.length; idx++) {
+            angle += angleSteps[idx] / 2;
+            const x = cx + curveRadius * Math.cos(angle);
+            const y = circleCenterY + curveRadius * Math.sin(angle);
+
+            ctx.save();
+            ctx.translate(x, y);
+            ctx.rotate(angle + Math.PI / 2);
+            ctx.fillText(chars[idx], 0, 0);
+            ctx.restore();
+
+            angle += angleSteps[idx] / 2;
+        }
+
+        const texture = new THREE.CanvasTexture(canvas);
+        texture.minFilter = THREE.LinearFilter;
+
+        return new THREE.MeshBasicMaterial({
+            map: texture,
+            transparent: true,
+            depthTest: false,
+            depthWrite: false,
+            side: THREE.DoubleSide
+        });
+    }
 }

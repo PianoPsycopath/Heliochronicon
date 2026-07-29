@@ -144,15 +144,20 @@ UI.onDatasetVisibilityChanged = async (datasetName, isVisible, urls) => {
                 celestialBodies.splice(i, 1);
             }
         }
-        
-        // 2. BUG FIX: Purge GPU Particle Systems
         for (let i = gpuParticleSystems.length - 1; i >= 0; i--) {
             const sys = gpuParticleSystems[i];
             if (sys.userData && sys.userData.datasetName === datasetName) {
                 scene.remove(sys); 
-                // Best practice: dispose of GPU memory directly
                 if (sys.geometry) sys.geometry.dispose();
                 if (sys.material) sys.material.dispose();
+            
+                if (sys.userData.groupLabel) {
+                    scene.remove(sys.userData.groupLabel);
+                    if (sys.userData.groupLabel.material.map) sys.userData.groupLabel.material.map.dispose();
+                    sys.userData.groupLabel.material.dispose();
+                    sys.userData.groupLabel.geometry.dispose();
+                }
+            
                 gpuParticleSystems.splice(i, 1);
             }
         }

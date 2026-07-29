@@ -15,6 +15,16 @@ class RenderPipeline {
         this.ASTEROID_SPRITE_SIZE = 1.2;
         this.STAR_SPRITE_SIZE = 8;
         this.OCCLUSION_DIST_SQ = 35 * 35;
+
+        this.LABEL_SAMPLE_COUNT = 64;
+        this.LABEL_ZOOM_FADE_START = 8;
+        this.LABEL_ZOOM_FADE_END = 30;
+        this.LABEL_SMOOTHING = 0.05;
+
+        this._xAxis = new THREE.Vector3(1, 0, 0);
+        this._yAxis = new THREE.Vector3(0, 1, 0);
+        this._flatQuat = new THREE.Quaternion().setFromAxisAngle(this._xAxis, -Math.PI / 2);
+        this._yawQuat = new THREE.Quaternion();
         
         this._projVec = new THREE.Vector3();
     }
@@ -265,17 +275,99 @@ class RenderPipeline {
         return trackTargetPos;
     }
 
+    _smoothstep(edge0, edge1, x) {
+        const t = Math.min(1, Math.max(0, (x - edge0) / (edge1 - edge0)));
+        return t * t * (3 - 2 * t);
+    }
+
+    computeGroupAnchor(sourceData, daysSinceJ2000) {
+        const n = sourceData.length;
+        const step = Math.max(1, Math.floor(n / this.LABEL_SAMPLE_COUNT));
+        let sumR = 0, sumSin = 0, sumCos = 0, sumY = 0, count = 0;
+
+        for (let idx = 0; idx < n; idx += step) {
+            const d = sourceData[idx];
+            const M_current = d.M0 + d.n * daysSinceJ2000;
+            const pos = OrbitalMath.calcPosFromM(d.a, d.e, d.i, d.w, d.Node, M_current);
+            const r = Math.hypot(pos.x, pos.z);
+            const theta = Math.atan2(pos.z, pos.x);
+            sumR += r;
+            sumSin += Math.sin(theta);
+            sumCos += Math.cos(theta);
+            sumY += pos.y;
+            count++;
+        }
+        if (count === 0) return new THREE.Vector3();
+
+        const meanR = sumR / count;
+        const meanTheta = Math.atan2(sumSin, sumCos);
+        const meanY = sumY / count;
+
+        return new THREE.Vector3(meanR * Math.cos(meanTheta), meanY, meanR * Math.sin(meanTheta));
+    }
+
     updateGPU(daysSinceJ2000, currentOrigin) {
         this.gridMaterial.uniforms.zoomScale.value = this.camera.zoom;
         this.gridMaterial.uniforms.cameraPos.value.copy(this.camera.position);
-        
+
+        const zoom = this.camera.zoom;
+        const fade = 1.0 - this._smoothstep(this.LABEL_ZOOM_FADE_START, this.LABEL_ZOOM_FADE_END, zoom);
+
         this.gpuParticleSystems.forEach(system => {
             system.visible = system.userData.datasetVisible !== false;
             if (system.visible) {
                 system.material.uniforms.uTime.value = daysSinceJ2000;
                 system.material.uniforms.uOrigin.value.copy(currentOrigin);
-                system.material.uniforms.uZoom.value = this.camera.zoom;
+                system.material.uniforms.uZoom.value = zoom;
             }
+
+            const label = system.userData.groupLabel;
+            if (!label) return;
+
+            if (!system.visible || fade <= 0.01) {
+                label.visible = false;
+                system.userData._labelWasVisible = false;
+                return;
+            }
+            label.visible = true;
+
+            const rawAnchor = this.computeGroupAnchor(system.userData.sourceData, daysSinceJ2000);
+
+            if (!system.userData._labelWasVisible) {
+                if (!system.userData._smoothAnchor) system.userData._smoothAnchor = new THREE.Vector3();
+                system.userData._smoothAnchor.copy(rawAnchor);
+            } else {
+                system.userData._smoothAnchor.lerp(rawAnchor, this.LABEL_SMOOTHING);
+            }
+            system.userData._labelWasVisible = true;
+
+            const anchor = system.userData._smoothAnchor;
+            label.position.copy(anchor).sub(currentOrigin);
+
+            const angleFromSun = Math.atan2(anchor.z, anchor.x);
+            const phi = -angleFromSun - Math.PI / 2;
+            this._yawQuat.setFromAxisAngle(this._yAxis, phi);
+            label.quaternion.copy(this._yawQuat).multiply(this._flatQuat);
+
+            label.material.opacity = fade;
+
+            label.updateMatrix();
+            label.updateMatrixWorld();
         });
+    }
+
+    computeGroupCentroid(sourceData, daysSinceJ2000) {
+        const n = sourceData.length;
+        const step = Math.max(1, Math.floor(n / this.LABEL_SAMPLE_COUNT));
+        const sum = new THREE.Vector3();
+        let count = 0;
+    
+        for (let idx = 0; idx < n; idx += step) {
+            const d = sourceData[idx];
+            const M_current = d.M0 + d.n * daysSinceJ2000;
+            sum.add(OrbitalMath.calcPosFromM(d.a, d.e, d.i, d.w, d.Node, M_current));
+            count++;
+        }
+        return count > 0 ? sum.divideScalar(count) : sum;
     }
 }

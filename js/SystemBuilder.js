@@ -46,6 +46,12 @@ class SystemBuilder {
             scene.remove(s);
             if (s.geometry) s.geometry.dispose();
             if (s.material) s.material.dispose();
+            if (s.userData.groupLabel) {
+                scene.remove(s.userData.groupLabel);
+                s.userData.groupLabel.material.map.dispose();
+                s.userData.groupLabel.material.dispose();
+                s.userData.groupLabel.geometry.dispose();
+            }
         });
         gpuParticleSystems.length = 0;
 
@@ -88,6 +94,14 @@ class SystemBuilder {
                 M0_arr[idx] = d.M0;
                 n_arr[idx] = d.n;
             }
+            let minA = Infinity, maxA = -Infinity, sumA = 0;
+            for (let idx = 0; idx < count; idx++) {
+                if (a_arr[idx] < minA) minA = a_arr[idx];
+                if (a_arr[idx] > maxA) maxA = a_arr[idx];
+                sumA += a_arr[idx];
+            }
+            const aSpread = maxA - minA;
+            const meanA = sumA / count;
 
             geometry.setAttribute('position', new THREE.BufferAttribute(pos_arr, 3)); 
             geometry.setAttribute('a', new THREE.BufferAttribute(a_arr, 1));
@@ -107,7 +121,8 @@ class SystemBuilder {
             particleSystem.userData = { 
                 datasetName: datasetName, 
                 datasetVisible: true, 
-                sourceData: planetaryData 
+                sourceData: planetaryData,
+                aSpread: aSpread
             };
             particleSystem.renderOrder = 200; 
             particleSystem.matrixAutoUpdate = false;
@@ -115,6 +130,11 @@ class SystemBuilder {
             
             scene.add(particleSystem);
             gpuParticleSystems.push(particleSystem);
+
+            const groupLabel = this.createGroupLabel(datasetName, savedInitialColor, meanA, aSpread);
+            scene.add(groupLabel);
+            particleSystem.userData.groupLabel = groupLabel;
+            particleSystem.userData.aSpread = aSpread;
             
             UI.renderBodyList(celestialBodies, currentTargetData);
             return; 
@@ -224,6 +244,22 @@ class SystemBuilder {
         };
         
         buildChunk();
+    }
+    createGroupLabel(text, colorHex, meanA, aSpread) {
+        const mat = Shaders.createGroupLabelMat(text, colorHex, meanA);
+        
+        const SPREAD_MIN = 0.05, SPREAD_MAX = 1.5;
+        const SIZE_MULT_MIN = 0.8, SIZE_MULT_MAX = 2.0;
+        const t = Math.min(1, Math.max(0, (aSpread - SPREAD_MIN) / (SPREAD_MAX - SPREAD_MIN)));
+        const multiplier = SIZE_MULT_MIN + t * (SIZE_MULT_MAX - SIZE_MULT_MIN);
+        
+        const BASE_WORLD_SIZE = 3.0;
+        const worldSize = BASE_WORLD_SIZE * multiplier;
+        
+        const mesh = new THREE.Mesh(new THREE.PlaneGeometry(worldSize, worldSize), mat);
+        mesh.renderOrder = 250;
+        mesh.matrixAutoUpdate = false;
+        return mesh;
     }
 
     promoteAsteroidToCPU(d) {
