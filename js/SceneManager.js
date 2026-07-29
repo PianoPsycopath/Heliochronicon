@@ -1,5 +1,6 @@
 // js/SceneManager.js
 import * as THREE from 'three'
+import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 
 export class SceneManager {
     constructor(containerId) {
@@ -26,7 +27,7 @@ export class SceneManager {
         this.renderer.setPixelRatio(window.devicePixelRatio);
         this.container.appendChild(this.renderer.domElement);
 
-        this.controls = new THREE.OrbitControls(this.camera, this.renderer.domElement);
+        this.controls = new OrbitControls(this.camera, this.renderer.domElement);
         this.controls.enableDamping = true;
         this.controls.dampingFactor = 0.05;
         this.controls.minZoom = 0.00001;     // Unlocked for deep space
