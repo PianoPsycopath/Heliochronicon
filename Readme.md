@@ -68,10 +68,10 @@ No build step is required. The project runs directly from static files.
 ~~- Fix scanned asteroid culling bug in Frustum culler.~~
 - Add tactical hover previews with raycast tooltips.
 - Implement dynamic distance markers on ecliptic/equatorial grids.
-- Add 3D group labels for asteroid populations.
+~~- Add 3D group labels for asteroid populations.~~
 - Implement full localStorage session persistence for pinned asteroids and toggles.
-- Fix asteroid group color initialization bug.
-- Fix orbit line desync on target selection.
+~~- Fix asteroid group color initialization bug.~~
+~~- Fix orbit line desync on target selection.~~
 - Add NASA credits and performance monitor (GPU/CPU/FPS) to telemetry.
 - Decouple Sun data into separate `stars.json` pipeline.
 
