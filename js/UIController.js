@@ -457,6 +457,7 @@ export class UIController {
     }
 
     setManualOverride(name) {
+        if (!name) return; 
         this.currentTargetEl.innerHTML = `${name.toUpperCase()} <span style="color: #ff5555;">[MANUAL OVERRIDE]</span>`;
     }
 
@@ -466,7 +467,7 @@ export class UIController {
     }
 
     updateTargetPanel(data) {
-        if (!data) {
+        if (!data || !data.name) {
             this.currentTargetEl.innerText = "NONE";
             this.telemetryDataEl.innerHTML = `<p>AWAITING DATA INPUT...</p>`;
             return;

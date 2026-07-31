@@ -32,7 +32,7 @@ export class InteractionController {
         this._mouse.y = -(clientY / window.innerHeight) * 2 + 1;
         this._raycaster.setFromCamera(this._mouse, this.camera);
 
-        let intersects = this._raycaster.intersectObjects(this.pickableObjects).filter(ix => ix.object.visible);
+        let intersects = this._raycaster.intersectObjects(this.pickableObjects, false).filter(ix => ix.object.visible);
         let hit = intersects.length > 0 ? intersects[0] : null;
 
         if (!hit) {
@@ -42,6 +42,9 @@ export class InteractionController {
             this.pickableObjects.filter(obj => obj.visible).forEach(obj => {
                 const vector = new THREE.Vector3().setFromMatrixPosition(obj.matrixWorld);
                 vector.project(this.camera);
+
+                // Depth check: Ignore objects floating behind the camera
+                if (vector.z > 1) return;
 
                 const x = (vector.x + 1) * window.innerWidth / 2;
                 const y = -(vector.y - 1) * window.innerHeight / 2;
@@ -53,8 +56,9 @@ export class InteractionController {
                 }
             });
         }
-
-        return hit ? hit.object.userData : null;
+        
+        const data = hit ? hit.object.userData : null;
+        return (data && data.name) ? data : null;
     }
 
     _updateHover(clientX, clientY) {

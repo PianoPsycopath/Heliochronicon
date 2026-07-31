@@ -392,31 +392,36 @@ function animate() {
     // 5. Manage the Targeted Equatorial Grid
     if (currentTargetData) {
         const tBody = celestialBodies.find(x => x.data.name === currentTargetData.name);
-        const isPlanet = !tBody.isMoon && tBody.data.parent === "SUN";
-        if (tBody && tBody.data.name !== "SUN" && (isPlanet || tBody.isMoon)) {
-            equatorialGridPlane.visible = true;
-            let anchorPos = tBody.renderPos;
-            let anchorQuat = tBody.poleQuaternion;
-            
-            let targetMass = tBody.data.mass;
+        
+        if (tBody) { 
+            const isPlanet = !tBody.isMoon && tBody.data.parent === "SUN";
+            if (tBody.data.name !== "SUN" && (isPlanet || tBody.isMoon)) {
+                equatorialGridPlane.visible = true;
+                let anchorPos = tBody.renderPos;
+                let anchorQuat = tBody.poleQuaternion;
+                
+                let targetMass = tBody.data.mass;
 
-            if (tBody.isMoon) {
-                const parentPlanet = celestialBodies.find(x => x.data.name === tBody.data.parent);
-                if (parentPlanet) {
-                    anchorPos = parentPlanet.renderPos;
-                    anchorQuat = parentPlanet.poleQuaternion;
-                    targetMass = parentPlanet.data.mass; // Inherit parent planet's mass size
+                if (tBody.isMoon) {
+                    const parentPlanet = celestialBodies.find(x => x.data.name === tBody.data.parent);
+                    if (parentPlanet) {
+                        anchorPos = parentPlanet.renderPos;
+                        anchorQuat = parentPlanet.poleQuaternion;
+                        targetMass = parentPlanet.data.mass; // Inherit parent planet's mass size
+                    }
                 }
-            }
-            const massRatio = targetMass / 5.97;
-            const dynamicRadius = 0.5 * Math.pow(massRatio, 0.3333);
-            equatorialMaterial.uniforms.uGridRadius.value = dynamicRadius;
+                const massRatio = targetMass / 5.97;
+                const dynamicRadius = 0.5 * Math.pow(massRatio, 0.3333);
+                equatorialMaterial.uniforms.uGridRadius.value = dynamicRadius;
 
-            equatorialGridPlane.position.lerp(anchorPos, 0.1);
-            const eclipticQuat = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), -Math.PI / 2);
-            const finalQuat = anchorQuat.clone().multiply(eclipticQuat);
-            equatorialGridPlane.quaternion.slerp(finalQuat, 0.1);
-            equatorialMaterial.uniforms.cameraPos.value.copy(camera.position);
+                equatorialGridPlane.position.lerp(anchorPos, 0.1);
+                const eclipticQuat = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), -Math.PI / 2);
+                const finalQuat = anchorQuat.clone().multiply(eclipticQuat);
+                equatorialGridPlane.quaternion.slerp(finalQuat, 0.1);
+                equatorialMaterial.uniforms.cameraPos.value.copy(camera.position);
+            } else {
+                equatorialGridPlane.visible = false;
+            }
         } else {
             equatorialGridPlane.visible = false;
         }
