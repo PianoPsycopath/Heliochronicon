@@ -15,7 +15,8 @@ export class SystemBuilder {
         const points = [];
         const resolution = 4096;
         for(let j = 0; j <= resolution; j++) {
-            points.push(OrbitalMath.calcPosFromM(scaledA, e, i, w, Node, (j / resolution) * Math.PI * 2));
+            const pos = OrbitalMath.calcPosFromM(scaledA, e, i, w, Node, (j / resolution) * Math.PI * 2);
+            points.push(new THREE.Vector3(pos.x, pos.y, pos.z));
         }
         
         let lw = 1;

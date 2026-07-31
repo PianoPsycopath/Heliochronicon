@@ -54,7 +54,8 @@ export class PhysicsEngine {
                 b.globalPos = new THREE.Vector3(0,0,0);
             } else {
                 const M_current = d.M0 + d.n * daysSinceJ2000;
-                b.localPos = OrbitalMath.calcPosFromM(b.scaledA, d.e, d.i, d.w, d.Node, M_current);
+                const pos = OrbitalMath.calcPosFromM(b.scaledA, d.e, d.i, d.w, d.Node, M_current);
+                b.localPos = new THREE.Vector3(pos.x, pos.y, pos.z);
             }
         });
     }

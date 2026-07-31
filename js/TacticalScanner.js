@@ -114,8 +114,8 @@ export class TacticalScanner {
 
                 for (let idx = 0; idx < sourceData.length; idx++) {
                     const M_current = M0_arr[idx] + (n_arr[idx] * currentJ2000Days);
-                    const pos = OrbitalMath.calcPosFromM(a_arr[idx], e_arr[idx], i_arr[idx], w_arr[idx], Node_arr[idx], M_current);
-                    
+                    const rawPos = OrbitalMath.calcPosFromM(a_arr[idx], e_arr[idx], i_arr[idx], w_arr[idx], Node_arr[idx], M_current);
+                    let pos = new THREE.Vector3(rawPos.x, rawPos.y, rawPos.z);
                     const dx = pos.x - scanOrigin.x;
                     const dy = pos.y - scanOrigin.y;
                     const dz = pos.z - scanOrigin.z;
@@ -142,7 +142,10 @@ export class TacticalScanner {
                 sprite.renderOrder = 1400; 
                 
                 const M_current = radarData.M0 + (radarData.n * currentJ2000Days);
-                const absolutePos = OrbitalMath.calcPosFromM(radarData.a, radarData.e, radarData.i, radarData.w, radarData.Node, M_current);
+
+                const rawPos = OrbitalMath.calcPosFromM(radarData.a, radarData.e, radarData.i, radarData.w, radarData.Node, M_current);
+                const absolutePos = new THREE.Vector3(rawPos.x, rawPos.y, rawPos.z);
+                const renderPos = absolutePos.clone().sub(this.ctx.currentOrigin);
                 
                 sprite.position.copy(absolutePos.clone().sub(currentOrigin));
                 const scale = 35 / camera.zoom;

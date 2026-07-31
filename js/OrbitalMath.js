@@ -1,5 +1,4 @@
 // js/OrbitalMath.js
-import * as THREE from 'three'
 export class OrbitalMath {
     static solveKepler(M, e) {
         const M_norm = M % (2 * Math.PI);
@@ -33,6 +32,6 @@ export class OrbitalMath {
         const ast_z = (Math.sin(w_deg)*Math.sin(i_deg)) * xv + (Math.cos(w_deg)*Math.sin(i_deg)) * yv;
         
         //Right-Handed System
-        return new THREE.Vector3(ast_x, ast_z, -ast_y);
+        return { x: ast_x, y: ast_z, z: -ast_y };
     }
 }

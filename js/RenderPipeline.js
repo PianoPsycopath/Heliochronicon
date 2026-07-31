@@ -212,7 +212,8 @@ export class RenderPipeline {
                     b.orbitCurtain.visible = true;
                     const points = [];
                     for(let j=0; j<=128; j++) {
-                        const lPos = OrbitalMath.calcPosFromM(b.scaledA, d.e, d.i, d.w, d.Node, (j / 128) * Math.PI * 2);
+                        const rawPos = OrbitalMath.calcPosFromM(b.scaledA, d.e, d.i, d.w, d.Node, (j / 128) * Math.PI * 2);
+                        let lPos = new THREE.Vector3(rawPos.x, rawPos.y, rawPos.z);
                         points.push(lPos.clone());
                         points.push(new THREE.Vector3(lPos.x, 0, lPos.z)); 
                     }
@@ -291,7 +292,8 @@ export class RenderPipeline {
         for (let idx = 0; idx < n; idx += step) {
             const d = sourceData[idx];
             const M_current = d.M0 + d.n * daysSinceJ2000;
-            const pos = OrbitalMath.calcPosFromM(d.a, d.e, d.i, d.w, d.Node, M_current);
+            const rawPos = OrbitalMath.calcPosFromM(d.a, d.e, d.i, d.w, d.Node, M_current);
+            let pos = new THREE.Vector3(rawPos.x, rawPos.y, rawPos.z);
             const r = Math.hypot(pos.x, pos.z);
             const theta = Math.atan2(pos.z, pos.x);
             sumR += r;
