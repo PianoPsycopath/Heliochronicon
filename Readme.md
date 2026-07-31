@@ -7,7 +7,8 @@ Heliochronicon is an interactive solar system simulator and world-building tool.
 
 **Live Demo:** [heliochronicon.vercel.app](https://heliochronicon.vercel.app/)
 
-<img width="1912" height="913" alt="image" src="https://github.com/user-attachments/assets/1c51265a-01d7-4836-96fc-240fee321440" />
+<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/52db9637-814d-4f48-87cc-2405fcd34db9" />
+
 
 
 https://github.com/user-attachments/assets/f6e6d0fc-b183-43d4-a857-f2065daeb7be
@@ -35,9 +36,9 @@ Saves pinned asteroids and view settings in the browser.
 - **Telemetry Panel** 
 Shows real-time information about selected targets.
 
-<img width="1907" height="902" alt="image" src="https://github.com/user-attachments/assets/722d4e2c-1c0b-41d5-9519-40c4aed9aab2" />
+<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/9cce7f58-646f-48c8-8848-3f7d798627e3" />
 
-<img width="1910" height="907" alt="image" src="https://github.com/user-attachments/assets/552c562c-7884-4a57-b910-bc420f9c50c4" />
+<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/26ff545f-14af-4566-8781-cf4f2094e715" />
 
 ## Technical Highlights
 
