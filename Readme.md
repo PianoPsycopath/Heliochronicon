@@ -21,8 +21,10 @@ This project started as a world builder tool. It creates realistic simulations o
 
 ## Features
 
-- **Realistic Orbital Mechanics** 
-Uses high-precision data and N-body influences where possible.
+- **Orbital Data**: Elements sourced from NASA JPL Horizons, which itself
+  uses N-body integration to produce ephemerides. This app propagates
+  those elements at runtime with two-body Keplerian mechanics — not
+  live N-body — see Known Limitations
 - **Asteroid Visualization** 
 Renders millions of asteroids with instanced WebGL rendering for performance.
 - **Interactive Scanning** 
@@ -48,17 +50,31 @@ This project pushes browser-based 3D graphics limits:
 - **Performance Optimizations**: Binary array handling for millions of interpolated asteroid positions. GPU instancing bypasses traditional WebGL object count limits.
 - **Architecture**: Modular JavaScript with Three.js for rendering, custom shaders for surfaces and orbits, and Web Workers for heavy orbital calculations.
 
-## Installation and Local Setup For Custom Star System
+## Installation
 
-1. Clone the repository:
+1. Clone the repository from releases or open terminal in your chosen folder then:
+`git clone https://github.com/PianoPsycopath/Heliochronicon.git`
+2. Once you have cloned or downloaded the repo:
+```bash
+git clone https://github.com/PianoPsycopath/Heliochronicon.git
+cd Heliochronicon
+npm install
+npm run dev
+```
+3. Opens at `http://localhost:5173` by default.
 
-2. Open terminal, run 
+For 
+## Testing
 
-```npm run build```
+Core orbital mechanics (`solveKepler`, `calcPosFromM`) and the data
+parsing layer are covered by a Vitest suite: `npm test`.
 
-```npm run dev```
+## Known Limitations
 
-3. A browser window or tab will open with the app running
+Orbital positions are propagated using two-body Keplerian mechanics from a
+single fixed-epoch element set per body (no continuous N-body integration
+at runtime). This is accurate to within roughly ±40 years around the 
+element epoch, and degrades noticeably outside that window.
 
 ## Roadmap
 
