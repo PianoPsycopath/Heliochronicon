@@ -49,7 +49,7 @@ export class DataLoader {
             if (isMoon && row.a_km) {
                 a = kmToAU(parseF(row.a_km));
             } else {
-                a = parseF(row.a);
+                a = parseF(row.a_au);
             }
 
             const e = parseF(row.e);
@@ -86,7 +86,7 @@ export class DataLoader {
             const pm_w_rate = parseF(row.pm_w_rate_deg_per_day);
 
             return { 
-                name, parent, category, parent, a, e, i, w, Node, M0, period, n, mass, radius_km, symbol, 
+                name, category, parent, a, e, i, w, Node, M0, period, n, mass, radius_km, symbol, 
                 pole_ra, pole_dec, pole_ra_rate, pole_dec_rate, pm_w, pm_w_rate, isTargetable: true,
                 datasetName, datasetCategory: category
             };

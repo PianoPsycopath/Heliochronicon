@@ -2,6 +2,7 @@
 import { OrbitalMath } from './OrbitalMath.js';
 import { Shaders} from './Shaders.js';
 import { CelestialBody } from './CelestialBody.js';
+import { kmToAU } from './OrbitalMath.js';
 import * as THREE from 'three'
 
 export class SystemBuilder {
