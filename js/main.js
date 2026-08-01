@@ -342,68 +342,67 @@ async function bootEngine() {
 }
 
 // ==========================================
-// THE MAIN LOOP
+// SYSTEM BOOTLOADER
 // ==========================================
 bootEngine();
 let lastFrameTime = performance.now();
 
-function animate() {
-    requestAnimationFrame(animate);
-    const deltaSec = (performance.now() - lastFrameTime) / 1000;
-    lastFrameTime = performance.now();
-    
-    // 1. Time Update
-    if (UI.isLiveTime) {
-        systemDate = new Date(); // Lock strictly to system clock
+// ==========================================
+// FRAME PIPELINE STAGES
+// ==========================================
+
+function updateSystemTimeStage(ui, currentSysDate, deltaSec) {
+    let dateToUse = currentSysDate;
+    if (ui.isLiveTime) {
+        dateToUse = new Date(); // Lock strictly to system clock
     }
-    const timeData = PhysicsEngine.updateSystemTime(UI, systemDate, deltaSec);
-    systemDate = timeData.newDate;
-    const daysSinceJ2000 = timeData.daysSinceJ2000;
-    
-    // 2. Physics & Logic Pipelines
-    PhysicsEngine.calculateKeplerianKinematics(celestialBodies, daysSinceJ2000);
-    PhysicsEngine.applyMoonParentOffsets(celestialBodies);
-    renderPipeline.processFloatingOrigin(celestialBodies, trackingTargetData, currentOrigin, daysSinceJ2000);
-    PhysicsEngine.zSortCelestialBodies(celestialBodies, camera.position, currentOrigin);
-    
-    // 3. Hardware Updates (Camera, Telemetry, Shaders)
-    if (currentTargetData) {
-        const tBody = celestialBodies.find(x => x.data.name === currentTargetData.name);
+    return PhysicsEngine.updateSystemTime(ui, dateToUse, deltaSec);
+}
+
+function runPhysicsStage(bodies, trackingTarget, origin, cam, daysSinceJ2000, pipeline) {
+    PhysicsEngine.calculateKeplerianKinematics(bodies, daysSinceJ2000);
+    PhysicsEngine.applyMoonParentOffsets(bodies);
+    pipeline.processFloatingOrigin(bodies, trackingTarget, origin, daysSinceJ2000);
+    PhysicsEngine.zSortCelestialBodies(bodies, cam.position, origin);
+}
+
+function updateHardwareStage(bodies, currentTarget, ui, interactionCtrl, ctrls, cam) {
+    if (currentTarget) {
+        const tBody = bodies.find(x => x.data.name === currentTarget.name);
         if (tBody) {
             let wDeg = (tBody.W_current * 180 / Math.PI) % 360;
             if (wDeg < 0) wDeg += 360;
-            UI.updateLiveTelemetry(wDeg, tBody.RA_current_deg, tBody.DEC_current_deg);
-            interactionController.updateCamera(tBody.mesh.position);
+            ui.updateLiveTelemetry(wDeg, tBody.RA_current_deg, tBody.DEC_current_deg);
+            interactionCtrl.updateCamera(tBody.mesh.position);
         }
     }
-    
-    controls.update(); 
-    camera.updateMatrixWorld();
-    
-    // 3. Render Pre-Pass (Projections, Culling, Matrices)
-    const trackTargetPos = renderPipeline.processScreenProjectionsAndCulling(celestialBodies, currentTargetData, currentOrigin, previewTargetData);
-    
-    // --- DUAL-GRID ARCHITECTURE LOGIC ---
-    
-    // 4. Force the massive Ecliptic Grid to remain perfectly flat at the solar Y=0 baseline
-    gridPlane.position.set(0, 0, 0);
-    gridPlane.quaternion.setFromAxisAngle(new THREE.Vector3(1, 0, 0), -Math.PI / 2);
-    
-    // 5. Manage the Targeted Equatorial Grid
-    if (currentTargetData) {
-        const tBody = celestialBodies.find(x => x.data.name === currentTargetData.name);
-        
+    ctrls.update();
+    cam.updateMatrixWorld();
+}
+
+function runRenderPrePassStage(pipeline, bodies, currentTarget, origin, previewTarget) {
+    return pipeline.processScreenProjectionsAndCulling(bodies, currentTarget, origin, previewTarget);
+}
+
+function updateDualGridsStage(bodies, currentTarget, eclipticGrid, eqGrid, eqMat, cam) {
+    // Force the massive Ecliptic Grid to remain perfectly flat at the solar Y=0 baseline
+    eclipticGrid.position.set(0, 0, 0);
+    eclipticGrid.quaternion.setFromAxisAngle(new THREE.Vector3(1, 0, 0), -Math.PI / 2);
+
+    // Manage the Targeted Equatorial Grid
+    if (currentTarget) {
+        const tBody = bodies.find(x => x.data.name === currentTarget.name);
+
         if (tBody) { 
             const isPlanet = !tBody.isMoon && tBody.data.parent === "SUN";
             if (tBody.data.name !== "SUN" && (isPlanet || tBody.isMoon)) {
-                equatorialGridPlane.visible = true;
+                eqGrid.visible = true;
                 let anchorPos = tBody.renderPos;
                 let anchorQuat = tBody.poleQuaternion;
-                
                 let targetMass = tBody.data.mass;
 
                 if (tBody.isMoon) {
-                    const parentPlanet = celestialBodies.find(x => x.data.name === tBody.data.parent);
+                    const parentPlanet = bodies.find(x => x.data.name === tBody.data.parent);
                     if (parentPlanet) {
                         anchorPos = parentPlanet.renderPos;
                         anchorQuat = parentPlanet.poleQuaternion;
@@ -412,25 +411,57 @@ function animate() {
                 }
                 const massRatio = targetMass / 5.97;
                 const dynamicRadius = 0.5 * Math.pow(massRatio, 0.3333);
-                equatorialMaterial.uniforms.uGridRadius.value = dynamicRadius;
+                eqMat.uniforms.uGridRadius.value = dynamicRadius;
 
-                equatorialGridPlane.position.lerp(anchorPos, 0.1);
+                eqGrid.position.lerp(anchorPos, 0.1);
                 const eclipticQuat = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), -Math.PI / 2);
                 const finalQuat = anchorQuat.clone().multiply(eclipticQuat);
-                equatorialGridPlane.quaternion.slerp(finalQuat, 0.1);
-                equatorialMaterial.uniforms.cameraPos.value.copy(camera.position);
+                eqGrid.quaternion.slerp(finalQuat, 0.1);
+                eqMat.uniforms.cameraPos.value.copy(cam.position);
             } else {
-                equatorialGridPlane.visible = false;
+                eqGrid.visible = false;
             }
         } else {
-            equatorialGridPlane.visible = false;
+            eqGrid.visible = false;
         }
     } else {
-        equatorialGridPlane.visible = false;
+        eqGrid.visible = false;
     }
-    //6. Final GPU Updates
-    renderPipeline.updateGPU(daysSinceJ2000, currentOrigin, gridPlane);
-    renderer.render(scene, camera);
+}
+
+function executeFinalRenderStage(pipeline, webglRenderer, scn, cam, daysSinceJ2000, origin, eclipticGrid) {
+    pipeline.updateGPU(daysSinceJ2000, origin, eclipticGrid);
+    webglRenderer.render(scn, cam);
+}
+
+// ==========================================
+// THE MAIN LOOP
+// ==========================================
+
+function animate() {
+    requestAnimationFrame(animate);
+    const deltaSec = (performance.now() - lastFrameTime) / 1000;
+    lastFrameTime = performance.now();
+    
+    // 1. Time Update
+    const timeData = updateSystemTimeStage(UI, systemDate, deltaSec);
+    systemDate = timeData.newDate;
+    const daysSinceJ2000 = timeData.daysSinceJ2000;
+    
+    // 2. Physics & Logic Pipelines
+    runPhysicsStage(celestialBodies, trackingTargetData, currentOrigin, camera, daysSinceJ2000, renderPipeline);
+    
+    // 3. Hardware Updates (Camera, Telemetry, Shaders)
+    updateHardwareStage(celestialBodies, currentTargetData, UI, interactionController, controls, camera);
+    
+    // 4. Render Pre-Pass (Projections, Culling, Matrices)
+    const trackTargetPos = runRenderPrePassStage(renderPipeline, celestialBodies, currentTargetData, currentOrigin, previewTargetData);
+    
+    // 5. Dual-Grid Architecture Logic
+    updateDualGridsStage(celestialBodies, currentTargetData, gridPlane, equatorialGridPlane, equatorialMaterial, camera);
+    
+    // 6. Final GPU Updates
+    executeFinalRenderStage(renderPipeline, renderer, scene, camera, daysSinceJ2000, currentOrigin, gridPlane);
 }
 
 animate();
