@@ -1,4 +1,9 @@
 // js/OrbitalMath.js
+export const AU_IN_KM = 149597870.7;
+
+export function kmToAU(km) {
+    return km / AU_IN_KM;
+}
 export class OrbitalMath {
     static solveKepler(M, e) {
         const M_norm = M % (2 * Math.PI);

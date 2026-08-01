@@ -1,4 +1,20 @@
 // js/DataLoader.js
+/**
+ * @typedef {Object} PlanetaryElement
+ * @property {string} name - Name of the celestial body
+ * @property {string} category - e.g., 'PLANET', 'MOON', 'ASTEROID'
+ * @property {string} parent - The parent body it orbits (e.g., 'SUN', 'EARTH')
+ * @property {number} a - Semi-major axis (in AU)
+ * @property {number} e - Eccentricity
+ * @property {number} i - Inclination (degrees)
+ * @property {number} w - Argument of periapsis (degrees)
+ * @property {number} Node - Longitude of ascending node (degrees)
+ * @property {number} M - Mean anomaly (degrees)
+ * @property {number} [period_days] - Orbital period in days
+ * @property {number} [n] - Mean motion (degrees per day)
+ */
+import { kmToAU } from './OrbitalMath.js';
+
 export class DataLoader {
     
     static async fetchJSONDataset(url) {
@@ -30,11 +46,10 @@ export class DataLoader {
 
             // --- Orbital Elements ---
             let a = 0;
-            // The parser will automatically divide Moon a_km values by 149597870.7 [cite: 15]
-            if (isMoon && row.a_km !== undefined && row.a_km !== "") {
-                a = parseF(row.a_km) / 149597870.7; 
+            if (isMoon && row.a_km) {
+                a = kmToAU(parseF(row.a_km));
             } else {
-                a = parseF(row.a_au);
+                a = parseF(row.a);
             }
 
             const e = parseF(row.e);
@@ -71,7 +86,7 @@ export class DataLoader {
             const pm_w_rate = parseF(row.pm_w_rate_deg_per_day);
 
             return { 
-                name, parent, a, e, i, w, Node, M0, period, n, mass, radius_km, symbol, 
+                name, parent, category, parent, a, e, i, w, Node, M0, period, n, mass, radius_km, symbol, 
                 pole_ra, pole_dec, pole_ra_rate, pole_dec_rate, pm_w, pm_w_rate, isTargetable: true,
                 datasetName, datasetCategory: category
             };

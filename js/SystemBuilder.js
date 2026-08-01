@@ -9,7 +9,7 @@ export class SystemBuilder {
         this.ctx = engineContext;
     }
     getTacticalA(data, isMoon = false) {
-        return (isMoon && data.a > 1000) ? data.a / this.ctx.AU_IN_KM : data.a;
+        return (isMoon && data.a > 1000) ? kmToAU(data.a) : data.a;
     }
 
     createOrbitPath(scaledA, e, i, w, Node, category) {
