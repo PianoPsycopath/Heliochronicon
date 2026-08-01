@@ -52,13 +52,13 @@ This project pushes browser-based 3D graphics limits:
 
 1. Clone the repository:
 
-2. Acquire CSV of planetary bodies, moons and asteroids. Match headers from my examples in /examples
+2. Open terminal, run 
 
-3. Run in terminal ```python N-Raw.py```
+```npm run build```
 
-4. Run ```npx serve .```
+```npm run dev```
 
-No build step is required. The project runs directly from static files.
+3. A browser window or tab will open with the app running
 
 ## Roadmap
 
