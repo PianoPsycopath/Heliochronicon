@@ -1,5 +1,6 @@
 // js/TacticalScanner.js
 import { OrbitalMath } from './OrbitalMath.js';
+import { CelestialBody } from './CelestialBody.js';
 import * as THREE from 'three'
 
 export class TacticalScanner {
@@ -177,19 +178,21 @@ export class TacticalScanner {
                 label.style.color = datasetColor;
                 document.body.appendChild(label);
 
-                celestialBodies.push({
+                celestialBodies.push(new CelestialBody({
                     data: radarData, 
                     mesh: dummyMesh, 
                     sprite: sprite, 
                     orbitLine: orbitLine,
                     orbitCurtain: dummyCurtain,
                     label: label,
-                    isMoon: false, datasetVisible: true, isCulled: false, hideLabel: true,
-                    globalPos: absolutePos, renderPos: sprite.position,
-                    parentPos: new THREE.Vector3(), W_current: 0,
-                    poleQuaternion: new THREE.Quaternion(),
-                    scaledA: radarData.a, physicalRadius: 0
-                });
+                    isMoon: false,
+                    datasetVisible: true, 
+                    isCulled: false, 
+                    hideLabel: true,
+                    globalPos: absolutePos, 
+                    scaledA: radarData.a, 
+                    physicalRadius: 0
+                }));
             });
 
             UI.renderScanResults(closestList, referenceName);

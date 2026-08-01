@@ -1,6 +1,7 @@
 // js/SystemBuilder.js
 import { OrbitalMath } from './OrbitalMath.js';
 import { Shaders} from './Shaders.js';
+import { CelestialBody } from './CelestialBody.js';
 import * as THREE from 'three'
 
 export class SystemBuilder {
@@ -333,11 +334,19 @@ export class SystemBuilder {
         orbitLine.matrixAutoUpdate = false;
         orbitCurtain.matrixAutoUpdate = false;
 
-        celestialBodies.push({ 
-            data: promotedData, mesh, label, isMoon: false, scaledA, physicalRadius, 
-            datasetVisible: true, isCulled: false, hideLabel: false, 
-            baseRenderOrder: 1500, distToCamSq: 0,
-            sprite, orbitLine, orbitCurtain, parentPos: new THREE.Vector3()
-        });
+        celestialBodies.push(new CelestialBody({ 
+            data: promotedData, 
+            mesh: mesh, 
+            label: label, 
+            sprite: sprite,
+            orbitLine: orbitLine,
+            orbitCurtain: orbitCurtain,
+            isMoon: false, 
+            scaledA: scaledA, 
+            physicalRadius: physicalRadius, 
+            datasetVisible: true, 
+            isCulled: false, 
+            hideLabel: false 
+        }));
     }
 }
