@@ -44,7 +44,7 @@ Shows real-time information about selected targets.
 
 This project pushes browser-based 3D graphics limits:
 
-- **Data Pipeline**: NASA Horizons → Python/REBOUND N-Body integration → Binary .bin buffers → WebGL InstancedMesh streaming.
+- **Data Pipeline**: NASA Horizons → CSV parsing → CSV to JSON DB → Chunking → WebGL InstancedMesh streaming.
 - **Performance Optimizations**: Binary array handling for millions of interpolated asteroid positions. GPU instancing bypasses traditional WebGL object count limits.
 - **Architecture**: Modular JavaScript with Three.js for rendering, custom shaders for surfaces and orbits, and Web Workers for heavy orbital calculations.
 
