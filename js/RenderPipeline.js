@@ -251,7 +251,8 @@ export class RenderPipeline {
             }
 
             if (b.label) {
-                if ((b.hideLabel && !isPreview) || isOccluded || isBehindCamera) {
+                const isInactivePromoted = d.datasetCategory === 'PROMOTED_ASTEROID' && !isTarget && !d.isPinned && !isPreview;
+                if ((b.hideLabel && !isPreview) || isInactivePromoted || isOccluded || isBehindCamera) {
                     b.label.style.display = 'none';
                 } else {
                     const vec = b.renderPos.clone();

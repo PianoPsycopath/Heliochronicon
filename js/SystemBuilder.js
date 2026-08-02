@@ -283,6 +283,9 @@ export class SystemBuilder {
             scene.remove(old.sprite);
             const pIdx = pickableObjects.indexOf(old.sprite);
             if (pIdx > -1) pickableObjects.splice(pIdx, 1);
+            if (old.orbitLine) scene.remove(old.orbitLine);
+            if (old.orbitCurtain) scene.remove(old.orbitCurtain);
+            if (old.label && old.label.parentNode) old.label.parentNode.removeChild(old.label);
             celestialBodies.splice(radarIdx, 1);
         }
 
