@@ -38,7 +38,7 @@ Saves pinned asteroids and view settings in the browser.
 - **Telemetry Panel** 
 Shows real-time information about selected targets.
 
-<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/9cce7f58-646f-48c8-8848-3f7d798627e3" />
+<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/6dac736d-15cf-4d30-ae1e-957eb1a621bc" />
 
 <img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/26ff545f-14af-4566-8781-cf4f2094e715" />
 
