@@ -40,7 +40,8 @@ Shows real-time information about selected targets.
 
 <img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/6dac736d-15cf-4d30-ae1e-957eb1a621bc" />
 
-<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/26ff545f-14af-4566-8781-cf4f2094e715" />
+<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/c02dfabb-d88f-4b09-b9a0-44a221133f3a" />
+
 
 ## Technical Highlights
 
