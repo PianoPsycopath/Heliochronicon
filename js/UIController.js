@@ -1,11 +1,12 @@
 // js/UIController.js
 import { ChronometerDisplay } from './ChronometerDisplay.js';
+import { TimeThrottle } from './TimeThrottle.js';
 
 export class UIController {
     constructor() {
-        this.timeMultiplier = 1;
         this.currentSortMode = 'distance';
         this.datasets = new Set();
+        this.timeThrottle = new TimeThrottle();
 
         this.btnMobileToggle = document.getElementById('btn-mobile-toggle');
         this.panelLeft = document.getElementById('panel-left');
@@ -48,102 +49,31 @@ export class UIController {
         
         this.initBindings();
     }
-
+    get timeMultiplier() {
+            return this.timeThrottle.timeMultiplier;
+        }
+    get isLiveTime() {
+        return this.timeThrottle.isLiveTime;
+    }
     initBindings() {
-        // --- 1. DOM Element Grabs ---
+        
+        // --- Manual Time Input ---
         this.timeInput = document.getElementById('time-input-bottom');
-        const btnLive = document.getElementById('btn-live');
-        const timeSlider = document.getElementById('time-slider');
-        const throttleLabel = document.getElementById('throttle-label');
-        const chronoWrapper = document.getElementById('chrono-slider-wrapper'); 
         this.chronoCanvas = document.getElementById('chrono-canvas');
-        const btnRev = document.getElementById('btn-time-rev');
-        const btnFwd = document.getElementById('btn-time-fwd');
-        const btnPause = document.getElementById('btn-time-pause');
-        const btn1x = document.getElementById('btn-time-1x');
-
         this.chronometerDisplay = new ChronometerDisplay(this.chronoCanvas);
 
-        this.isLiveTime = true;
-
-        // --- 2. The Throttle Dictionary ---
-        // 21 steps (0 to 20). Index 10 is PAUSED. Index 11 is 1x Speed.
-        const timeScaleMap = [
-            { label: "-100 YEARS / SEC", mult: -3153600000 },
-            { label: "-10 YEARS / SEC", mult: -315360000 },
-            { label: "-1 YEAR / SEC", mult: -31536000 },
-            { label: "-6 MONTHS / SEC", mult: -15552000 },
-            { label: "-1 MONTH / SEC", mult: -2592000 },
-            { label: "-1 WEEK / SEC", mult: -604800 },
-            { label: "-1 DAY / SEC", mult: -86400 },
-            { label: "-1 HOUR / SEC", mult: -3600 },
-            { label: "-1 MIN / SEC", mult: -60 },
-            { label: "-1 SEC / SEC", mult: -1 },
-            { label: "PAUSED", mult: 0 },             // Index 10
-            { label: "1 SEC / SEC", mult: 1 },        // Index 11
-            { label: "1 MIN / SEC", mult: 60 },
-            { label: "1 HOUR / SEC", mult: 3600 },
-            { label: "1 DAY / SEC", mult: 86400 },
-            { label: "1 WEEK / SEC", mult: 604800 },
-            { label: "1 MONTH / SEC", mult: 2592000 },
-            { label: "6 MONTHS / SEC", mult: 15552000 },
-            { label: "1 YEAR / SEC", mult: 31536000 },
-            { label: "10 YEARS / SEC", mult: 315360000 },
-            { label: "100 YEARS / SEC", mult: 3153600000 }
-        ];
-
-        // --- 3. Slider Application Logic ---
-        const applyThrottle = (index) => {
-            this.isLiveTime = false;
-            btnLive.classList.remove('active');
-            // Clamp bounds
-            index = Math.max(0, Math.min(20, index));
-            timeSlider.value = index;
-
-            if (index < 10) {
-                timeSlider.classList.add('reversed');
-                chronoWrapper.classList.add('reversed');
-            } else {
-                timeSlider.classList.remove('reversed');
-                chronoWrapper.classList.remove('reversed');
-            }
-            
-            const mapping = timeScaleMap[index];
-            this.timeMultiplier = mapping.mult;
-            throttleLabel.innerText = mapping.label;
-            
-            if (index === 10) throttleLabel.style.color = "#ff3333"; 
-            else if (index < 10) throttleLabel.style.color = "#ff3333"; 
-            else throttleLabel.style.color = "#ffcc00"; 
-        };
-
-        // --- 4. Wire Controls ---
-        timeSlider.addEventListener('input', (e) => applyThrottle(parseInt(e.target.value)));
-        btnRev.addEventListener('click', () => applyThrottle(parseInt(timeSlider.value) - 1));
-        btnFwd.addEventListener('click', () => applyThrottle(parseInt(timeSlider.value) + 1));
-        btnPause.addEventListener('click', () => applyThrottle(10)); // Index 10 is 0x
-        btn1x.addEventListener('click', () => applyThrottle(11));    // Index 11 is 1x
-
-        // --- 5. LIVE Button Logic ---
-        btnLive.addEventListener('click', () => {
-            this.isLiveTime = true;
-            btnLive.classList.add('active');
-            applyThrottle(11); 
-            this.isLiveTime = true; 
-            btnLive.classList.add('active'); 
-        });
-
-        // --- 6. Manual Time Input ---
         const applyManualTime = () => {
-            this.isLiveTime = false;
-            btnLive.classList.remove('active');
-            
             const parsed = new Date(this.timeInput.value + "Z");
             if (!isNaN(parsed) && this.onTimeChanged) {
                 this.onTimeChanged(parsed);
-                applyThrottle(10); 
+                this.timeThrottle.pauseForManualInput();
             }
         };
+
+        this.timeInput.addEventListener('blur', applyManualTime);
+        this.timeInput.addEventListener('keypress', (e) => { 
+            if (e.key === 'Enter') { applyManualTime(); this.timeInput.blur(); } 
+        });
 
         this.timeInput.addEventListener('blur', applyManualTime);
         this.timeInput.addEventListener('keypress', (e) => { 
