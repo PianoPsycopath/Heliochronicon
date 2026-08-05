@@ -1,75 +1,79 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { TimeThrottle } from '../js/TimeThrottle.js';
+// js/TimeThrottle.test.js
 
-describe('TimeThrottle Logic', () => {
-    let mockLabel;
+import { describe, it, expect, vi } from 'vitest';
+import { TimeThrottle, calculateThrottleState } from '../js/TimeThrottle.js';
 
-    beforeEach(() => {
-        mockLabel = { innerText: '', style: {} };
-        const mockElement = () => ({
-            addEventListener: vi.fn(),
-            classList: { add: vi.fn(), remove: vi.fn() },
-            style: {},
-            value: 0
-        });
-
-        vi.stubGlobal('document', {
-            getElementById: (id) => {
-                if (id === 'throttle-label') return mockLabel;
-                return mockElement();
-            }
-        });
-    });
-
+describe('TimeThrottle Pure Logic (calculateThrottleState)', () => {
+    
     it('maps slider indices to the correct multiplier and label', () => {
-        const throttle = new TimeThrottle();
-        
         // Test Paused (Index 10)
-        throttle.applyThrottle(10);
-        expect(throttle.timeMultiplier).toBe(0);
-        expect(mockLabel.innerText).toBe("PAUSED");
-        expect(throttle.isLiveTime).toBe(false);
+        const pausedState = calculateThrottleState(10);
+        expect(pausedState.multiplier).toBe(0);
+        expect(pausedState.label).toBe("PAUSED");
+        expect(pausedState.isPaused).toBe(true);
 
         // Test 1x Speed (Index 11)
-        throttle.applyThrottle(11);
-        expect(throttle.timeMultiplier).toBe(1);
-        expect(mockLabel.innerText).toBe("1 SEC / SEC");
+        const normalState = calculateThrottleState(11);
+        expect(normalState.multiplier).toBe(1);
+        expect(normalState.label).toBe("1 SEC / SEC");
+        expect(normalState.isPaused).toBe(false);
 
         // Test max reverse (Index 0)
-        throttle.applyThrottle(0);
-        expect(throttle.timeMultiplier).toBe(-3153600000);
-        expect(mockLabel.innerText).toBe("-100 YEARS / SEC");
+        const reverseState = calculateThrottleState(0);
+        expect(reverseState.multiplier).toBe(-3153600000);
+        expect(reverseState.label).toBe("-100 YEARS / SEC");
+        expect(reverseState.isReversed).toBe(true);
         
         // Test max forward (Index 20)
-        throttle.applyThrottle(20);
-        expect(throttle.timeMultiplier).toBe(3153600000);
-        expect(mockLabel.innerText).toBe("100 YEARS / SEC");
+        const forwardState = calculateThrottleState(20);
+        expect(forwardState.multiplier).toBe(3153600000);
+        expect(forwardState.label).toBe("100 YEARS / SEC");
     });
 
     it('clamps out-of-bounds slider indices safely', () => {
-        const throttle = new TimeThrottle();
-        
         // Test undershoot
-        throttle.applyThrottle(-5);
-        expect(throttle.timeMultiplier).toBe(-3153600000); // Clamped to 0
+        expect(calculateThrottleState(-5).index).toBe(0);
         
         // Test overshoot
-        throttle.applyThrottle(50);
-        expect(throttle.timeMultiplier).toBe(3153600000); // Clamped to 20
+        expect(calculateThrottleState(50).index).toBe(20);
+    });
+});
+
+describe('TimeThrottle Class State & DOM Mutations', () => {
+    
+    // A helper to generate isolated mock elements for each test
+    const createMockElements = () => ({
+        timeSlider: { value: 0, addEventListener: vi.fn(), classList: { add: vi.fn(), remove: vi.fn() } },
+        throttleLabel: { innerText: '', style: {} },
+        chronoWrapper: { classList: { add: vi.fn(), remove: vi.fn() } },
+        btnRev: { addEventListener: vi.fn() },
+        btnFwd: { addEventListener: vi.fn() },
+        btnPause: { addEventListener: vi.fn() },
+        btn1x: { addEventListener: vi.fn() },
+        btnLive: { addEventListener: vi.fn(), classList: { add: vi.fn(), remove: vi.fn() } }
     });
 
-    it('toggles live time state when requested', () => {
-        const throttle = new TimeThrottle();
+    it('toggles live time state and correctly triggers DOM mutations', () => {
+        const mocks = createMockElements();
         
-        // Simulating the Live button click callback logic manually
+        // Dependency Injection in action: pass the mocks in
+        const throttle = new TimeThrottle(mocks);
+        
+        // Simulating the Live button behavior manually
         throttle.applyThrottle(11);
-        throttle.isLiveTime = true;
+        throttle.isLiveTime = true; 
         
         expect(throttle.isLiveTime).toBe(true);
         expect(throttle.timeMultiplier).toBe(1);
 
         // Applying throttle manually should immediately kill live time
         throttle.applyThrottle(12);
+        
         expect(throttle.isLiveTime).toBe(false);
+        expect(throttle.timeMultiplier).toBe(60);
+        
+        // Verify the class updated the injected mock elements
+        expect(mocks.throttleLabel.innerText).toBe("1 MIN / SEC");
+        expect(mocks.btnLive.classList.remove).toHaveBeenCalledWith('active');
     });
 });

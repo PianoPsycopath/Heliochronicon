@@ -8,7 +8,16 @@ import { VisibilityTreeManager } from './VisibilityTreeManager.js';
 export class UIController {
     constructor() {
         this.datasets = new Set();
-        this.timeThrottle = new TimeThrottle();
+        this.timeThrottle = new TimeThrottle({
+            timeSlider: document.getElementById('time-slider'),
+            throttleLabel: document.getElementById('throttle-label'),
+            chronoWrapper: document.getElementById('chrono-slider-wrapper'),
+            btnRev: document.getElementById('btn-time-rev'),
+            btnFwd: document.getElementById('btn-time-fwd'),
+            btnPause: document.getElementById('btn-time-pause'),
+            btn1x: document.getElementById('btn-time-1x'),
+            btnLive: document.getElementById('btn-live')
+        });
         this.bodyListManager = new BodyListManager();
         this.telemetryManager = new TelemetryManager();
         this.visibilityTreeManager = new VisibilityTreeManager();
@@ -56,6 +65,7 @@ export class UIController {
         this.visibilityTreeManager.onDatasetColorChanged = (name, color) => {
             if (this.onDatasetColorChanged) this.onDatasetColorChanged(name, color);
         };
+        
         
         this.initBindings();
     }

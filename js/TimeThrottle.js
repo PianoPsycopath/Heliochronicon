@@ -1,44 +1,56 @@
 // js/TimeThrottle.js
 
+export const timeScaleMap = [
+    { label: "-100 YEARS / SEC", mult: -3153600000 },
+    { label: "-10 YEARS / SEC", mult: -315360000 },
+    { label: "-1 YEAR / SEC", mult: -31536000 },
+    { label: "-6 MONTHS / SEC", mult: -15552000 },
+    { label: "-1 MONTH / SEC", mult: -2592000 },
+    { label: "-1 WEEK / SEC", mult: -604800 },
+    { label: "-1 DAY / SEC", mult: -86400 },
+    { label: "-1 HOUR / SEC", mult: -3600 },
+    { label: "-1 MIN / SEC", mult: -60 },
+    { label: "-1 SEC / SEC", mult: -1 },
+    { label: "PAUSED", mult: 0 },             // Index 10
+    { label: "1 SEC / SEC", mult: 1 },        // Index 11
+    { label: "1 MIN / SEC", mult: 60 },
+    { label: "1 HOUR / SEC", mult: 3600 },
+    { label: "1 DAY / SEC", mult: 86400 },
+    { label: "1 WEEK / SEC", mult: 604800 },
+    { label: "1 MONTH / SEC", mult: 2592000 },
+    { label: "6 MONTHS / SEC", mult: 15552000 },
+    { label: "1 YEAR / SEC", mult: 31536000 },
+    { label: "10 YEARS / SEC", mult: 315360000 },
+    { label: "100 YEARS / SEC", mult: 3153600000 }
+];
+
+export function calculateThrottleState(index) {
+    const clampedIndex = Math.max(0, Math.min(20, index));
+    const mapping = timeScaleMap[clampedIndex];
+    
+    return {
+        index: clampedIndex,
+        multiplier: mapping.mult,
+        label: mapping.label,
+        isReversed: clampedIndex < 10,
+        isPaused: clampedIndex === 10,
+        color: clampedIndex <= 10 ? "#ff3333" : "#ffcc00"
+    };
+}
+
 export class TimeThrottle {
-    constructor() {
+    constructor(domElements) {
         this.timeMultiplier = 1;
         this.isLiveTime = true;
 
-        // DOM Elements
-        this.timeSlider = document.getElementById('time-slider');
-        this.throttleLabel = document.getElementById('throttle-label');
-        this.chronoWrapper = document.getElementById('chrono-slider-wrapper');
-        this.btnRev = document.getElementById('btn-time-rev');
-        this.btnFwd = document.getElementById('btn-time-fwd');
-        this.btnPause = document.getElementById('btn-time-pause');
-        this.btn1x = document.getElementById('btn-time-1x');
-        this.btnLive = document.getElementById('btn-live');
-
-        // 21 steps (0 to 20). Index 10 is PAUSED. Index 11 is 1x Speed.
-        this.timeScaleMap = [
-            { label: "-100 YEARS / SEC", mult: -3153600000 },
-            { label: "-10 YEARS / SEC", mult: -315360000 },
-            { label: "-1 YEAR / SEC", mult: -31536000 },
-            { label: "-6 MONTHS / SEC", mult: -15552000 },
-            { label: "-1 MONTH / SEC", mult: -2592000 },
-            { label: "-1 WEEK / SEC", mult: -604800 },
-            { label: "-1 DAY / SEC", mult: -86400 },
-            { label: "-1 HOUR / SEC", mult: -3600 },
-            { label: "-1 MIN / SEC", mult: -60 },
-            { label: "-1 SEC / SEC", mult: -1 },
-            { label: "PAUSED", mult: 0 },             // Index 10
-            { label: "1 SEC / SEC", mult: 1 },        // Index 11
-            { label: "1 MIN / SEC", mult: 60 },
-            { label: "1 HOUR / SEC", mult: 3600 },
-            { label: "1 DAY / SEC", mult: 86400 },
-            { label: "1 WEEK / SEC", mult: 604800 },
-            { label: "1 MONTH / SEC", mult: 2592000 },
-            { label: "6 MONTHS / SEC", mult: 15552000 },
-            { label: "1 YEAR / SEC", mult: 31536000 },
-            { label: "10 YEARS / SEC", mult: 315360000 },
-            { label: "100 YEARS / SEC", mult: 3153600000 }
-        ];
+        this.timeSlider = domElements.timeSlider;
+        this.throttleLabel = domElements.throttleLabel;
+        this.chronoWrapper = domElements.chronoWrapper;
+        this.btnRev = domElements.btnRev;
+        this.btnFwd = domElements.btnFwd;
+        this.btnPause = domElements.btnPause;
+        this.btn1x = domElements.btn1x;
+        this.btnLive = domElements.btnLive;
 
         this.initBindings();
     }
@@ -57,28 +69,28 @@ export class TimeThrottle {
         });
     }
 
-    applyThrottle(index) {
+    applyThrottle(rawIndex) {
         this.isLiveTime = false;
         this.btnLive.classList.remove('active');
         
-        // Clamp bounds
-        index = Math.max(0, Math.min(20, index));
-        this.timeSlider.value = index;
+        // 1. Get pure state
+        const state = calculateThrottleState(rawIndex);
+        
+        // 2. Apply internal data state
+        this.timeMultiplier = state.multiplier;
+        
+        // 3. Apply DOM side-effects
+        this.timeSlider.value = state.index;
+        this.throttleLabel.innerText = state.label;
+        this.throttleLabel.style.color = state.color;
 
-        if (index < 10) {
+        if (state.isReversed) {
             this.timeSlider.classList.add('reversed');
             this.chronoWrapper.classList.add('reversed');
         } else {
             this.timeSlider.classList.remove('reversed');
             this.chronoWrapper.classList.remove('reversed');
         }
-        
-        const mapping = this.timeScaleMap[index];
-        this.timeMultiplier = mapping.mult;
-        this.throttleLabel.innerText = mapping.label;
-        
-        if (index <= 10) this.throttleLabel.style.color = "#ff3333"; 
-        else this.throttleLabel.style.color = "#ffcc00"; 
     }
 
     pauseForManualInput() {
