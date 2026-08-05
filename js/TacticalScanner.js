@@ -53,7 +53,7 @@ export class TacticalScanner {
         const systemDate = this.ctx.getSystemDate();
         const currentTargetData = this.ctx.getCurrentTarget();
 
-        UI.telemetryDataEl.innerHTML = `<p style="color:#00ffff; font-weight:bold; animation: flicker 0.5s infinite;">INITIATING RADAR PING...</p>`;
+        UI.showScanningStatus();        
         
         setTimeout(() => {
             let scanOrigin = new THREE.Vector3();

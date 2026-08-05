@@ -196,6 +196,10 @@ export class UIController {
         this.telemetryManager.showLookupPending(query);
     }
 
+    showScanningStatus() {
+        this.telemetryManager.showScanningStatus();
+    }
+
     showLookupNotFound(query) {
         this.telemetryManager.showLookupNotFound(query);
     }

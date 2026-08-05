@@ -40,7 +40,7 @@ export class BodyListManager {
         let targetList = [];
         if (searchStr) {
             targetList = bodies.filter(b => b.data.name.toLowerCase().includes(searchStr));
-        } else if (currentTargetData && currentTargetData.parent !== "SUN" && currentTargetData.name !== "SUN") {
+        } else if (currentTargetData && currentTargetData.name !== "SUN") {
             const activeSystemName = currentTargetData.isMoon ? currentTargetData.parent : currentTargetData.name;
             targetList = bodies.filter(b => b.data.parent === activeSystemName);
         } else {

@@ -122,6 +122,10 @@ export class TelemetryManager {
             </p>`;
     }
 
+    showScanningStatus() {
+        this.telemetryDataEl.innerHTML = `<p style="color:#00ffff; font-weight:bold; animation: flicker 0.5s infinite;">INITIATING RADAR PING...</p>`;
+    }
+
     showLookupNotFound(query) {
         const safe = this._escapeHtml(query.toUpperCase());
         this.telemetryDataEl.innerHTML = `
