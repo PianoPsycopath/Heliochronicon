@@ -47,5 +47,33 @@ describe('OrbitalMath', () => {
             expect(pos.y).toBeCloseTo(0); 
             expect(pos.z).toBeCloseTo(0); 
         });
+        it('should match JPL Horizons ephemeris data for Earth at J2000', () => {
+        // J2000 Keplerian elements for Earth-Moon Barycenter (Epoch 2451545.0)
+        const a = 1.00000011;
+        const e = 0.01671022;
+        
+        // OrbitalMath expects angles in radians, despite the _deg parameter names
+        const i = 0.00005 * (Math.PI / 180);
+        const Node = -11.26064 * (Math.PI / 180); // Longitude of ascending node
+        
+        // JPL provides Longitude of Periapsis (102.94719) and Mean Longitude (100.46435).
+        // w = Longitude of Periapsis - Longitude of Ascending Node
+        const w = (102.94719 - (-11.26064)) * (Math.PI / 180); 
+        
+        // M = Mean Longitude - Longitude of Periapsis
+        const M = (100.46435 - 102.94719) * (Math.PI / 180); 
+        
+        const pos = OrbitalMath.calcPosFromM(a, e, i, w, Node, M);
+        
+        // JPL Horizons approximate heliocentric Cartesian coordinates for Earth at J2000:
+        // Ecliptic X ≈ -0.175 AU
+        // Ecliptic Y ≈  0.967 AU
+        // Ecliptic Z ≈  0.000 AU
+        
+        // OrbitalMath maps Ecliptic X -> x, Ecliptic Y -> -z, Ecliptic Z -> y
+        expect(pos.x).toBeCloseTo(-0.175, 2);
+        expect(pos.z).toBeCloseTo(-0.967, 2); 
+        expect(pos.y).toBeCloseTo(0.000, 2);
+    });
     });
 });
