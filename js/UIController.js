@@ -18,7 +18,11 @@ export class UIController {
             btn1x: document.getElementById('btn-time-1x'),
             btnLive: document.getElementById('btn-live')
         });
-        this.bodyListManager = new BodyListManager();
+        this.bodyListManager = new BodyListManager({
+            listContainer: document.getElementById('body-list'),
+            searchEl: document.getElementById('search-input'),
+            sortToggleEl: document.getElementById('sort-toggle')
+        });
         this.telemetryManager = new TelemetryManager();
         this.visibilityTreeManager = new VisibilityTreeManager();
 
