@@ -67,6 +67,24 @@ npm run dev
 For 
 ## Testing
 
+Place all csv files in raw/ `atira.csv` and `kerbin_system.csv` provided as examples
+```bash
+pip install -e ".[dev]"
+cd raw
+python csv_to_json.py
+cd ..
+npm install
+npm run dev
+```
+wait for local host to open in web browser
+press f-12 to open console
+
+
+`resetDataSource()` returns data to default solar system in public/data/
+
+
+`switchDataSource('raw/json_db/')` loads test data
+
 Core orbital mechanics (`solveKepler`, `calcPosFromM`) and the data
 parsing layer are covered by a Vitest suite: `npm test`.
 
