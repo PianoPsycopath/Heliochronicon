@@ -1,6 +1,7 @@
 // js/TutorialManager.js
 export class TutorialManager {
-    constructor() {
+    constructor(storage) {
+        this.storage = storage;
         this.overlay = document.getElementById('tutorial-overlay');
         this.box = document.getElementById('tutorial-box');
         this.title = document.getElementById('tutorial-title');
@@ -51,9 +52,9 @@ export class TutorialManager {
         this.btnSkip.addEventListener('click', () => this.endTutorial());
     }
     checkFirstRun() {
-        const hasSeenTutorial = localStorage.getItem('heliochronicon_tutorial');
-        if (!hasSeenTutorial) {
-            setTimeout(() => this.startTutorial(), 1000);
+        const hasSeen = this.storage.get('heliochronicon_tutorial', false);
+        if (!hasSeen) {
+            this.startTutorial();
         }
     }
     startTutorial() {
@@ -61,7 +62,7 @@ export class TutorialManager {
         this.currentStep = 0;
         this.isActive = true;
         this.overlay.classList.add('active');
-        localStorage.setItem('heliochronicon_tutorial', 'true');
+        this.storage.set('heliochronicon_tutorial', 'true');
         
         this.renderStep();
         this.trackTarget(); 
@@ -109,6 +110,7 @@ export class TutorialManager {
         this.trackingFrame = requestAnimationFrame(() => this.trackTarget());
     }
     endTutorial() {
+        this.storage.set('heliochronicon_tutorial', true);
         this.isActive = false;
         this.overlay.classList.remove('active');
         if (this.currentTargetEl) {

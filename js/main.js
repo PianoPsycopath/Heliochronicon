@@ -9,6 +9,7 @@ import { RenderPipeline} from './RenderPipeline.js';
 import { TacticalScanner} from './TacticalScanner.js';
 import { PhysicsEngine} from './PhysicsEngine.js';
 import { TutorialManager} from './TutorialManager.js';
+import { StorageManager } from './storage.js';
 import * as THREE from 'three'
 const AU_IN_KM = 149597870.7; 
 const MAX_WELLS = 35; 
@@ -20,6 +21,8 @@ const camera = sceneManager.camera;
 const renderer = sceneManager.renderer;
 const controls = sceneManager.controls;
 const frustumSize = sceneManager.frustumSize;
+
+const storage = new StorageManager();
 
 // --- STATE MANAGEMENT ---
 let systemDate = new Date();
@@ -38,7 +41,7 @@ let lookupInFlight = false;    // guards against overlapping lookups
 // --- GLOBAL ASSETS & MEMORY ---
 const dotTexture = Shaders.createDotTexture();
 const datasetMaterials = {}; 
-const savedColors = JSON.parse(localStorage.getItem('tacticalMapColors')) || {}; 
+const savedColors = storage.get('tacticalMapColors', {});
 
 // --- INITIALIZE UI & MATERIALS ---
 const gridMaterial = Shaders.getGridMaterial(MAX_WELLS);
@@ -188,7 +191,7 @@ UI.onDatasetColorChanged = (datasetName, colorHex) => {
         }
     }
     savedColors[datasetName] = colorHex;
-    localStorage.setItem('tacticalMapColors', JSON.stringify(savedColors));
+    storage.set('tacticalMapColors', savedColors)
 };
 
 
@@ -333,12 +336,12 @@ async function bootEngine() {
                 UI.addDatasetToggle(groupName, 'ASTEROID', savedColors[groupName], false, chunkUrls);
                 colorIdx++;
             }
-            localStorage.setItem('tacticalMapColors', JSON.stringify(savedColors));
+            storage.get('tacticalMapColors', {})
         }
     } catch (err) {
         console.error("Failed to load manifest.json from /data/", err);
     }
-    const tutorialManager = new TutorialManager();
+    const tutorialManager = new TutorialManager(storage);
 }
 
 // ==========================================
