@@ -2,6 +2,10 @@
 import { OrbitalMath } from './OrbitalMath.js';
 import * as THREE from 'three'
 
+export function getActiveSystemName(currentTargetData) {
+    if (!currentTargetData) return "NONE";
+    return currentTargetData.category === 'MOON' ? currentTargetData.parent : currentTargetData.name;
+}
 export class RenderPipeline {
     constructor(ctx) {
         this.camera = ctx.camera;
@@ -64,7 +68,7 @@ export class RenderPipeline {
 
     processScreenProjectionsAndCulling(celestialBodies, currentTargetData, currentOrigin, previewTargetData = null) {
         const filters = this.UI.getMoonFilters();
-        const activeSystemName = currentTargetData ? (currentTargetData.category === 'MOON' ? currentTargetData.parent : currentTargetData.name) : "NONE";
+        const activeSystemName = getActiveSystemName(currentTargetData);
         
         let wellIndex = 0;
         let trackTargetPos = new THREE.Vector3(0,0,0);

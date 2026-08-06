@@ -37,7 +37,17 @@ REQUIRED_COLUMNS = {"a", "e", "i", "om", "w", "ma", "n", "epoch"}
 # Already-converted app-schema export (e.g. planets.csv, moons.csv): columns
 # match the PlanetaryElement JSON shape DataLoader expects, so these rows
 # just need type coercion, not orbital-element conversion.
-APP_SCHEMA_COLUMNS = {"name", "parent", "category", "a_au", "e", "i_deg", "w_deg", "node_deg", "m_deg"}
+APP_SCHEMA_COLUMNS = {
+    "name",
+    "parent",
+    "category",
+    "a_au",
+    "e",
+    "i_deg",
+    "w_deg",
+    "node_deg",
+    "m_deg",
+}
 
 # MPC provisional designation: a 4-digit year, then a 1-2 letter half-month/
 # order code, then an optional cycle number, e.g. "2010 CD2", "2003 CP20".
