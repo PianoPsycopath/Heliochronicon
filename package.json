@@ -1,7 +1,7 @@
 {
   "name": "heliochronicon",
   "version": "1.0.1",
-  "description": "**A 3D temporal celestial note-taking platform scaled ad infinitum**",
+  "description": "A 3D temporal celestial note-taking platform scaled ad infinitum",
   "type":"module",
   "directories": {
     "example": "examples"
@@ -14,9 +14,9 @@
     "format": "prettier --write \"js/**/*.js\" \"index.html\" \"*.config.js\"",
     "test": "vitest run"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "keywords": ["Space", "Astronomy", "Celestial", "3D", "Visualization", "Simulation", "Solar System", "Planets", "Moons", "Asteroids", "Comets", "Stars", "Orbital Mechanics", "Physics", "Education", "Science", "Interactive", "Exploration", "Visualization Tool", "Astronomical Data", "Celestial Bodies", "Planetary Science", "Astrophysics", "Space Exploration", "note-taking", "temporal"],
+  "author": "PianoPsychopath [JF]",
+  "license": "MIT",
   "devDependencies": {
     "@eslint/js": "^10.0.1",
     "eslint": "^10.8.0",
