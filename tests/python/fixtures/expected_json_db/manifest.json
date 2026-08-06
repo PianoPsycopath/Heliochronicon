@@ -1,0 +1,10 @@
+{
+  "datasets": {
+    "sample_asteroids": {
+      "totalRecords": 6,
+      "chunks": [
+        "sample_asteroids_chunk_0.json"
+      ]
+    }
+  }
+}

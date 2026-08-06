@@ -42,7 +42,7 @@ export class StorageManager {
             }
         }
 
-        if (stringValue === null && this.memoryFallback.hasOwnProperty(key)) {
+        if (stringValue === null && Object.prototype.hasOwnProperty.call(this.memoryFallback, key)) {
             stringValue = this.memoryFallback[key];
         }
 

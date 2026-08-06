@@ -11,7 +11,8 @@
     "build": "vite build",
     "preview": "vite preview",
     "lint": "eslint js/",
-    "format": "prettier --write \"js/**/*.js\" \"index.html\" \"*.config.js\""
+    "format": "prettier --write \"js/**/*.js\" \"index.html\" \"*.config.js\"",
+    "test": "vitest run"
   },
   "keywords": [],
   "author": "",

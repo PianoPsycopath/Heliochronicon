@@ -1,0 +1,20 @@
+{
+  "compiledAt": "2026-08-06T06:22:17.442Z",
+  "epoch": "J2000",
+  "datasets": [
+    {
+      "datasetName": "Planets",
+      "datasetCategory": "PLANET",
+      "bodies": [
+        {"name":"KERBOL","type":"PLANET","datasetName":"Planets","datasetCategory":"PLANET","mass":2.3038346126325147e+22,"radius_km":1000,"rad":1000,"parent":"KERBOL","symbol":"•","GM":0,"a":1,"e":0,"i":0,"w":0,"Node":0,"M0":0,"n":0,"period":0,"pole_ra":0,"pole_dec":0,"pole_ra_rate":0,"pole_dec_rate":0,"pm_w":0,"pm_w_rate":0},
+        {"name":"MOHO","type":"PLANET","datasetName":"Planets","datasetCategory":"PLANET","mass":2.3038346126325147e+22,"radius_km":1000,"rad":1000,"parent":"KERBOL","symbol":"•","GM":0,"a":1,"e":0.2,"i":0,"w":0,"Node":0,"M0":0,"n":0,"period":0,"pole_ra":0,"pole_dec":0,"pole_ra_rate":0,"pole_dec_rate":0,"pm_w":0,"pm_w_rate":0},
+        {"name":"EVE","type":"PLANET","datasetName":"Planets","datasetCategory":"PLANET","mass":2.3038346126325147e+22,"radius_km":1000,"rad":1000,"parent":"KERBOL","symbol":"•","GM":0,"a":1,"e":0.01,"i":0,"w":0,"Node":0,"M0":0,"n":0,"period":0,"pole_ra":0,"pole_dec":0,"pole_ra_rate":0,"pole_dec_rate":0,"pm_w":0,"pm_w_rate":0},
+        {"name":"KERBIN","type":"PLANET","datasetName":"Planets","datasetCategory":"PLANET","mass":2.3038346126325147e+22,"radius_km":1000,"rad":1000,"parent":"KERBOL","symbol":"•","GM":0,"a":1,"e":0,"i":0,"w":0,"Node":0,"M0":0,"n":0,"period":0,"pole_ra":0,"pole_dec":0,"pole_ra_rate":0,"pole_dec_rate":0,"pm_w":0,"pm_w_rate":0},
+        {"name":"DUNA","type":"PLANET","datasetName":"Planets","datasetCategory":"PLANET","mass":2.3038346126325147e+22,"radius_km":1000,"rad":1000,"parent":"KERBOL","symbol":"•","GM":0,"a":1,"e":0.051,"i":0,"w":0,"Node":0,"M0":0,"n":0,"period":0,"pole_ra":0,"pole_dec":0,"pole_ra_rate":0,"pole_dec_rate":0,"pm_w":0,"pm_w_rate":0},
+        {"name":"DRES","type":"PLANET","datasetName":"Planets","datasetCategory":"PLANET","mass":2.3038346126325147e+22,"radius_km":1000,"rad":1000,"parent":"KERBOL","symbol":"•","GM":0,"a":1,"e":0.145,"i":0,"w":0,"Node":0,"M0":0,"n":0,"period":0,"pole_ra":0,"pole_dec":0,"pole_ra_rate":0,"pole_dec_rate":0,"pm_w":0,"pm_w_rate":0},
+        {"name":"JOOL","type":"PLANET","datasetName":"Planets","datasetCategory":"PLANET","mass":2.3038346126325147e+22,"radius_km":1000,"rad":1000,"parent":"KERBOL","symbol":"•","GM":0,"a":1,"e":0.05,"i":0,"w":0,"Node":0,"M0":0,"n":0,"period":0,"pole_ra":0,"pole_dec":0,"pole_ra_rate":0,"pole_dec_rate":0,"pm_w":0,"pm_w_rate":0},
+        {"name":"EELOO","type":"PLANET","datasetName":"Planets","datasetCategory":"PLANET","mass":2.3038346126325147e+22,"radius_km":1000,"rad":1000,"parent":"KERBOL","symbol":"•","GM":0,"a":1,"e":0.26,"i":0,"w":0,"Node":0,"M0":0,"n":0,"period":0,"pole_ra":0,"pole_dec":0,"pole_ra_rate":0,"pole_dec_rate":0,"pm_w":0,"pm_w_rate":0}
+      ]
+    }
+  ]
+}
