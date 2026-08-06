@@ -50,7 +50,7 @@ export class PhysicsEngine {
             b.RA_current_deg = ra_deg;
             b.DEC_current_deg = dec_deg;
 
-            if (d.name === "SUN") {
+            if (d.parent === d.name) {
                 b.globalPos = new THREE.Vector3(0,0,0);
             } else {
                 const M_current = d.M0 + d.n * daysSinceJ2000;
@@ -63,7 +63,7 @@ export class PhysicsEngine {
     static applyMoonParentOffsets(celestialBodies) {
         celestialBodies.forEach(b => {
             const d = b.data;
-            if (b.isCulled || d.name === "SUN") return;
+            if (b.isCulled || d.parent === d.name) return;
 
             let parentPos = new THREE.Vector3(0,0,0);
             let parentQuat = new THREE.Quaternion(); 
@@ -85,7 +85,7 @@ export class PhysicsEngine {
 
     static zSortCelestialBodies(celestialBodies, cameraPos, currentOrigin) {
         celestialBodies.forEach(b => {
-            if (!b.isCulled && b.data.name !== "SUN") {
+            if (!b.isCulled && b.data.parent !== b.data.name) {
                 b.distToCamSq = cameraPos.distanceToSquared(b.globalPos.clone().sub(currentOrigin));
             }
         });

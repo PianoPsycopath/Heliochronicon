@@ -14,6 +14,40 @@ import * as THREE from 'three'
 const AU_IN_KM = 149597870.7; 
 const MAX_WELLS = 35; 
 
+// --- DATA SOURCE (switchable at runtime from the browser console) ---
+// Defaults to the built-in dataset at data/ (public/data/ in the built app).
+// Point it at a custom dataset (e.g. the output of csv_to_json.py) with:
+//   switchDataSource('raw/json_db/')
+// and revert with:
+//   resetDataSource()
+// Both reload the page so the engine boots cleanly against the new path.
+const DATA_SOURCE_STORAGE_KEY = 'heliochronicon_dataSourcePath';
+const DEFAULT_DATA_BASE_PATH = 'data/';
+
+function normalizeDataBasePath(path) {
+    const trimmed = (path || '').trim();
+    if (!trimmed) return DEFAULT_DATA_BASE_PATH;
+    return trimmed.endsWith('/') ? trimmed : `${trimmed}/`;
+}
+
+const DATA_BASE_PATH = normalizeDataBasePath(
+    new URLSearchParams(window.location.search).get('dataSource') ||
+    localStorage.getItem(DATA_SOURCE_STORAGE_KEY) ||
+    DEFAULT_DATA_BASE_PATH
+);
+
+window.switchDataSource = function switchDataSource(path) {
+    localStorage.setItem(DATA_SOURCE_STORAGE_KEY, normalizeDataBasePath(path));
+    window.location.reload();
+};
+
+window.resetDataSource = function resetDataSource() {
+    localStorage.removeItem(DATA_SOURCE_STORAGE_KEY);
+    window.location.reload();
+};
+
+console.log(`[Heliochronicon] Data source: ${DATA_BASE_PATH} (switchDataSource('path/') to change, resetDataSource() to revert)`);
+
 // --- INITIALIZE SCENE MANAGER ---
 const sceneManager = new SceneManager('canvas-container');
 const scene = sceneManager.scene;
@@ -267,7 +301,11 @@ UI.onAsteroidLookup = async (rawQuery) => {
     lookupInFlight = true;
     UI.showLookupPending(query);
     try {
-        const skipGroups = [...activeDatasets, 'planets', 'moons'];
+        // Skip whatever's already loaded/active -- core datasets (planets,
+        // moons, custom systems) are found earlier in this function via the
+        // celestialBodies/gpuParticleSystems scan, so there's no need to
+        // hardcode specific group names here anymore.
+        const skipGroups = [...activeDatasets];
         const found = await DataLoader.findAsteroidInManifest(query, assetManifest, skipGroups);
         if (found) {
             UI.onFocusBody(found);
@@ -292,55 +330,90 @@ UI.onSearch = (query) => {
 // ==========================================
 // SYSTEM BOOTLOADER
 // ==========================================
+// Categories that make a dataset "core" (auto-loaded on boot, like the old
+// hardcoded Planets/Moons sets) rather than an opt-in asteroid-style group.
+// Membership is decided by what's actually IN the data, not by filename --
+// a manifest entry named "kerbin_system" containing STAR/PLANET rows is
+// treated the same way "planets.json" used to be.
+const CORE_CATEGORIES = new Set(['STAR', 'PLANET', 'DWARF_PLANET', 'MOON']);
+const ASTEROID_TOGGLE_COLORS = ['#ff3333', '#ff8800', '#ffff00', '#00ff00', '#00ffff', '#ff00ff'];
+
 async function bootEngine() {
-    // 1. Automatically load Core Datasets
-    const baseDatasets = [
-        { name: 'Planets', category: 'PLANET', defaultColor: '#ffffff', urls: ['data/planets.json'] },
-        { name: 'Moons',   category: 'MOON',   defaultColor: '#aaaaaa', urls: ['data/moons.json'] }
-    ];
-
-    baseDatasets.forEach(ds => {
-        if (!savedColors[ds.name]) savedColors[ds.name] = ds.defaultColor;
-    });
-
-    for (const ds of baseDatasets) {
-        try {
-            const rawData = await DataLoader.fetchJSONDataset(ds.urls[0]);
-            if (rawData && rawData.length > 0) {
-                const processed = DataLoader.processPlanetaryData(rawData, ds.name);
-                systemBuilder.buildSolarSystem(processed);
-                activeDatasets.add(ds.name);
-                
-                UI.addDatasetToggle(ds.name, ds.category, savedColors[ds.name], true, ds.urls);
-            }
-        } catch (err) {
-            console.error(`Base JSON missing: ${ds.urls[0]}`, err);
-        }
-    }
-
-    // 2. Fetch Manifest & Build Asteroid Group Toggles
+    let manifest = null;
     try {
-        const manifest = await DataLoader.fetchJSONDataset('data/manifest.json');
-        if (manifest && manifest.datasets) {
-            assetManifest = manifest;
-            
-            const defaultColors = ['#ff3333', '#ff8800', '#ffff00', '#00ff00', '#00ffff', '#ff00ff'];
-            let colorIdx = 0;
-
-            for (const [groupName, groupData] of Object.entries(manifest.datasets)) {
-                const chunkUrls = groupData.chunks.map(chunkFile => `data/${chunkFile}`);
-                
-                if (!savedColors[groupName]) {
-                    savedColors[groupName] = defaultColors[colorIdx % defaultColors.length];
-                }
-                UI.addDatasetToggle(groupName, 'ASTEROID', savedColors[groupName], false, chunkUrls);
-                colorIdx++;
-            }
-            storage.get('tacticalMapColors', {})
-        }
+        manifest = await DataLoader.fetchJSONDataset(`${DATA_BASE_PATH}manifest.json`);
     } catch (err) {
-        console.error("Failed to load manifest.json from /data/", err);
+        console.error(`Failed to load manifest.json from ${DATA_BASE_PATH}`, err);
     }
+
+    if (!manifest || !manifest.datasets || Object.keys(manifest.datasets).length === 0) {
+        console.error(`No datasets found in manifest at ${DATA_BASE_PATH}manifest.json`);
+        new TutorialManager(storage);
+        return;
+    }
+    assetManifest = manifest;
+
+    let asteroidColorIdx = 0;
+
+    for (const [groupName, groupData] of Object.entries(manifest.datasets)) {
+        const chunkUrls = (groupData.chunks || []).map(chunkFile => `${DATA_BASE_PATH}${chunkFile}`);
+        if (chunkUrls.length === 0) continue;
+
+        // Peek at the first chunk to see what this dataset actually contains.
+        // The category field on the rows -- not the group/file name -- decides
+        // whether it's a core system to load immediately or an asteroid-style
+        // group the user opts into.
+        let firstChunkRows = [];
+        try {
+            firstChunkRows = await DataLoader.fetchJSONDataset(chunkUrls[0]);
+        } catch (err) {
+            console.error(`Failed to load first chunk for dataset "${groupName}"`, err);
+        }
+
+        if (!firstChunkRows || firstChunkRows.length === 0) continue;
+
+        const categoriesPresent = new Set(
+            firstChunkRows.map(row => (row.category || '').toString().toUpperCase())
+        );
+        const isCore = [...categoriesPresent].some(cat => CORE_CATEGORIES.has(cat));
+
+        if (isCore) {
+            try {
+                const remainingChunks = chunkUrls.length > 1
+                    ? await Promise.all(chunkUrls.slice(1).map(url => DataLoader.fetchJSONDataset(url)))
+                    : [];
+                const mergedJSON = [firstChunkRows, ...remainingChunks].flat();
+                const processedData = DataLoader.processPlanetaryData(mergedJSON, groupName);
+
+                if (processedData.length > 0) {
+                    systemBuilder.buildSolarSystem(processedData);
+                    activeDatasets.add(groupName);
+
+                    if (!savedColors[groupName]) savedColors[groupName] = '#ffffff';
+
+                    // Icon/category shown on the toggle -- prefer STAR/PLANET
+                    // over MOON so mixed systems read as "planet" toggles.
+                    const iconCategory = (categoriesPresent.has('STAR') || categoriesPresent.has('PLANET'))
+                        ? 'PLANET'
+                        : (categoriesPresent.has('MOON') ? 'MOON' : 'PLANET');
+
+                    UI.addDatasetToggle(groupName, iconCategory, savedColors[groupName], true, chunkUrls);
+                }
+            } catch (err) {
+                console.error(`Failed to load core dataset "${groupName}"`, err);
+            }
+        } else {
+            // Asteroid-style dataset: register the toggle off by default; its
+            // chunks are fetched lazily by onDatasetVisibilityChanged when
+            // the user switches it on.
+            if (!savedColors[groupName]) {
+                savedColors[groupName] = ASTEROID_TOGGLE_COLORS[asteroidColorIdx % ASTEROID_TOGGLE_COLORS.length];
+                asteroidColorIdx++;
+            }
+            UI.addDatasetToggle(groupName, 'ASTEROID', savedColors[groupName], false, chunkUrls);
+        }
+    }
+
     const tutorialManager = new TutorialManager(storage);
 }
 
@@ -397,8 +470,8 @@ function updateDualGridsStage(bodies, currentTarget, eclipticGrid, eqGrid, eqMat
         const tBody = bodies.find(x => x.data.name === currentTarget.name);
 
         if (tBody) { 
-            const isPlanet = !tBody.isMoon && tBody.data.parent === "SUN";
-            if (tBody.data.name !== "SUN" && (isPlanet || tBody.isMoon)) {
+            const isPlanet = !tBody.isMoon && tBody.data.parent !== tBody.data.name;
+            if (tBody.data.parent !== tBody.data.name && (isPlanet || tBody.isMoon)) {
                 eqGrid.visible = true;
                 let anchorPos = tBody.renderPos;
                 let anchorQuat = tBody.poleQuaternion;

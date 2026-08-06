@@ -64,7 +64,7 @@ export class RenderPipeline {
 
     processScreenProjectionsAndCulling(celestialBodies, currentTargetData, currentOrigin, previewTargetData = null) {
         const filters = this.UI.getMoonFilters();
-        const activeSystemName = currentTargetData ? (currentTargetData.parent !== "SUN" ? currentTargetData.parent : currentTargetData.name) : "NONE";
+        const activeSystemName = currentTargetData ? (currentTargetData.category === 'MOON' ? currentTargetData.parent : currentTargetData.name) : "NONE";
         
         let wellIndex = 0;
         let trackTargetPos = new THREE.Vector3(0,0,0);
@@ -97,7 +97,7 @@ export class RenderPipeline {
             const isBehindCamera = this._projVec.z > 1;
 
             let isOccluded = false;
-            if (!isTarget && !isBehindCamera && d.name !== "SUN") {
+            if (!isTarget && !isBehindCamera && d.parent !== d.name) {
                 for (let i = 0; i < drawnScreenPositions.length; i++) {
                     const pos = drawnScreenPositions[i];
                     const dx = screenX - pos.x;
@@ -121,7 +121,7 @@ export class RenderPipeline {
             b.sprite.position.copy(b.renderPos);
             b.mesh.position.copy(b.renderPos);
 
-            if (d.name === "SUN") {
+            if (d.parent === d.name) {
                 const sunVisSize = b.physicalRadius * 2 * this.camera.zoom;
                 const isSunBigger = sunVisSize >= this.STAR_SPRITE_SIZE;
                 
@@ -182,7 +182,7 @@ export class RenderPipeline {
                 // === VISUAL DEPTH ===
                 const isBeingRendered = b.mesh.visible || b.sprite.visible;
 
-                if (isBeingRendered && wellIndex < this.MAX_WELLS && d.mass > 0 && d.name !== "SUN") {
+                if (isBeingRendered && wellIndex < this.MAX_WELLS && d.mass > 0 && d.parent !== d.name) {
                 this.gridMaterial.uniforms.wellPositions.value[wellIndex].set(b.renderPos.x, b.renderPos.z);
                 
                 const sunMass = 1988500; 

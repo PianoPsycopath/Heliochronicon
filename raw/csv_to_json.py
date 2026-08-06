@@ -29,7 +29,15 @@ from typing import Any
 
 J2000_JD = 2451545.0
 CHUNK_SIZE = 5000
+
+# Raw JPL/small-body-database query export (e.g. atira.csv): orbital elements
+# given at their own epoch, needs conversion to the app schema.
 REQUIRED_COLUMNS = {"a", "e", "i", "om", "w", "ma", "n", "epoch"}
+
+# Already-converted app-schema export (e.g. planets.csv, moons.csv): columns
+# match the PlanetaryElement JSON shape DataLoader expects, so these rows
+# just need type coercion, not orbital-element conversion.
+APP_SCHEMA_COLUMNS = {"name", "parent", "category", "a_au", "e", "i_deg", "w_deg", "node_deg", "m_deg"}
 
 # MPC provisional designation: a 4-digit year, then a 1-2 letter half-month/
 # order code, then an optional cycle number, e.g. "2010 CD2", "2003 CP20".
@@ -135,6 +143,85 @@ def row_to_asteroid_record(row: dict[str, str]) -> dict[str, Any]:
     }
 
 
+def row_to_app_schema_record(row: dict[str, str]) -> dict[str, Any]:
+    """
+    Pass an already-converted app-schema row (planets.csv, moons.csv, or any
+    other export that already matches the PlanetaryElement JSON shape)
+    through with type coercion only -- no orbital-element math needed since
+    it isn't raw JPL data.
+    """
+    name = (row.get("name") or "").strip()
+    parent = (row.get("parent") or "SUN").strip()
+    category = (row.get("category") or "").strip()
+    symbol = (row.get("symbol") or "").strip()
+
+    period = parse_float(row.get("period_days"))
+
+    return {
+        "name": name,
+        "parent": parent,
+        "category": category,
+        "a_au": parse_float(row.get("a_au")),
+        "a_km": parse_float(row.get("a_km")),
+        "e": parse_float(row.get("e")),
+        "i_deg": parse_float(row.get("i_deg")),
+        "w_deg": parse_float(row.get("w_deg")),
+        "node_deg": parse_float(row.get("node_deg")),
+        "m_deg": parse_float(row.get("m_deg")),
+        "period_days": period,
+        "mass_10_24_kg": parse_float(row.get("mass_10_24_kg")),
+        "radius_km": parse_float(row.get("radius_km")),
+        "pole_ra_deg": parse_float(row.get("pole_ra_deg")),
+        "pole_dec_deg": parse_float(row.get("pole_dec_deg")),
+        "pole_ra_rate_deg_per_cy": parse_float(row.get("pole_ra_rate_deg_per_cy")),
+        "pole_dec_rate_deg_per_cy": parse_float(row.get("pole_dec_rate_deg_per_cy")),
+        "pm_w_deg": parse_float(row.get("pm_w_deg")),
+        "pm_w_rate_deg_per_day": parse_float(row.get("pm_w_rate_deg_per_day")),
+        "symbol": symbol or "\u2022",
+    }
+
+
+def process_app_schema_rows(rows: list[dict[str, str]]) -> tuple[list[dict[str, Any]], int]:
+    """Convert already-converted app-schema CSV rows, skipping (and counting) bad ones."""
+    records: list[dict[str, Any]] = []
+    skipped = 0
+    for row in rows:
+        try:
+            records.append(row_to_app_schema_record(row))
+        except (ValueError, TypeError, KeyError) as exc:
+            skipped += 1
+            print(f"Skipping row due to missing/bad data: {row.get('name')} - Error: {exc}")
+    return records, skipped
+
+
+class CsvSchema:
+    JPL_RAW = "jpl_raw"
+    APP_SCHEMA = "app_schema"
+
+
+def detect_schema(fieldnames: list[str] | None, csv_path: Path) -> str:
+    """
+    Figure out which of the two supported CSV shapes this file is:
+      - a raw JPL small-body query export (needs orbital-element conversion)
+      - an already-converted app-schema export (needs type coercion only)
+    Raises UnrecognizedCsvSchemaError if it matches neither.
+    """
+    present = set(fieldnames or [])
+
+    if REQUIRED_COLUMNS <= present:
+        return CsvSchema.JPL_RAW
+    if APP_SCHEMA_COLUMNS <= present:
+        return CsvSchema.APP_SCHEMA
+
+    missing_jpl = REQUIRED_COLUMNS - present
+    missing_app = APP_SCHEMA_COLUMNS - present
+    raise UnrecognizedCsvSchemaError(
+        f"{csv_path.name} doesn't match either supported CSV schema.\n"
+        f"  - As a raw JPL small-body query export it's missing: {sorted(missing_jpl)}\n"
+        f"  - As an app-schema export it's missing: {sorted(missing_app)}"
+    )
+
+
 @dataclass
 class DatasetResult:
     name: str
@@ -170,26 +257,18 @@ def write_chunks(dataset_name: str, records: list[dict[str, Any]], output_dir: P
     return chunk_filenames
 
 
-def validate_schema(fieldnames: list[str] | None, csv_path: Path) -> None:
-    present = set(fieldnames or [])
-    missing = REQUIRED_COLUMNS - present
-    if missing:
-        raise UnrecognizedCsvSchemaError(
-            f"{csv_path.name} is missing expected JPL query columns: {sorted(missing)}. "
-            "This script converts raw JPL small-body query CSVs (like atira.csv), not "
-            "already-converted app-schema CSVs (like planets.csv/moons.csv, which use "
-            "a_au/i_deg/node_deg/... instead)."
-        )
-
-
 def process_dataset_file(csv_path: Path, output_dir: Path) -> DatasetResult:
     dataset_name = csv_path.stem.lower()
     with open(csv_path, encoding="utf-8", newline="") as infile:
         reader = csv.DictReader(infile)
-        validate_schema(reader.fieldnames, csv_path)
+        schema = detect_schema(reader.fieldnames, csv_path)
         rows = list(reader)
 
-    records, skipped = process_csv_rows(rows)
+    if schema == CsvSchema.JPL_RAW:
+        records, skipped = process_csv_rows(rows)
+    else:
+        records, skipped = process_app_schema_rows(rows)
+
     chunk_filenames = write_chunks(dataset_name, records, output_dir)
 
     return DatasetResult(
@@ -225,6 +304,9 @@ def process_datasets(input_dir: str | Path = ".", output_dir: str | Path = "json
             result = process_dataset_file(csv_path, output_dir)
         except UnrecognizedCsvSchemaError as exc:
             print(f" -> Skipping {csv_path.name}: {exc}")
+            continue
+        except Exception as exc:  # noqa: BLE001 - surface any other per-file failure and keep going
+            print(f" -> Failed on {csv_path.name}: {exc}")
             continue
 
         manifest["datasets"][result.name] = {

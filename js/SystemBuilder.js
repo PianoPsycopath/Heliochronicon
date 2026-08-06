@@ -161,8 +161,8 @@ export class SystemBuilder {
                 const d = planetaryData[index];
                 if (celestialBodies.some(b => b.data.name === d.name)) continue; 
 
-                const isSun = d.name === "SUN";
-                const isMoon = d.parent !== "SUN";
+                const isSun = d.parent === d.name;
+                const isMoon = !isSun && d.category === 'MOON';
 
                 const scaledA = this.getTacticalA(d, isMoon);
 

@@ -2,7 +2,7 @@
   {
     "name": "KERBOL",
     "parent": "SUN",
-    "category": "ASTEROID",
+    "category": "PLANET",
     "a_au": null,
     "a_km": null,
     "e": 0.0,
@@ -24,7 +24,7 @@
   {
     "name": "MOHO",
     "parent": "SUN",
-    "category": "ASTEROID",
+    "category": "PLANET",
     "a_au": null,
     "a_km": null,
     "e": 0.2,
@@ -46,7 +46,7 @@
   {
     "name": "EVE",
     "parent": "SUN",
-    "category": "ASTEROID",
+    "category": "PLANET",
     "a_au": null,
     "a_km": null,
     "e": 0.01,
@@ -68,7 +68,7 @@
   {
     "name": "KERBIN",
     "parent": "SUN",
-    "category": "ASTEROID",
+    "category": "PLANET",
     "a_au": null,
     "a_km": null,
     "e": 0.0,
@@ -90,7 +90,7 @@
   {
     "name": "DUNA",
     "parent": "SUN",
-    "category": "ASTEROID",
+    "category": "PLANET",
     "a_au": null,
     "a_km": null,
     "e": 0.051,
@@ -112,7 +112,7 @@
   {
     "name": "DRES",
     "parent": "SUN",
-    "category": "ASTEROID",
+    "category": "PLANET",
     "a_au": null,
     "a_km": null,
     "e": 0.145,
@@ -134,7 +134,7 @@
   {
     "name": "JOOL",
     "parent": "SUN",
-    "category": "ASTEROID",
+    "category": "PLANET",
     "a_au": null,
     "a_km": null,
     "e": 0.05,
@@ -156,7 +156,7 @@
   {
     "name": "EELOO",
     "parent": "SUN",
-    "category": "ASTEROID",
+    "category": "PLANET",
     "a_au": null,
     "a_km": null,
     "e": 0.26,

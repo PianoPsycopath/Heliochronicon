@@ -1,0 +1,16 @@
+{
+  "datasets": {
+    "atira": {
+      "totalRecords": 38,
+      "chunks": [
+        "atira_chunk_0.json"
+      ]
+    },
+    "kerbin_system": {
+      "totalRecords": 8,
+      "chunks": [
+        "kerbin_system_chunk_0.json"
+      ]
+    }
+  }
+}

@@ -1,5 +1,13 @@
 {
   "datasets": {
+    "planets": {
+      "totalRecords": 9,
+      "chunks": ["planets.json"]
+    },
+    "moons": {
+      "totalRecords": 460,
+      "chunks": ["moons.json"]
+    },
     "amor": {
       "totalRecords": 14645,
       "chunks": [
