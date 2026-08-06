@@ -88,6 +88,9 @@ press f-12 to open console
 Core orbital mechanics (`solveKepler`, `calcPosFromM`) and the data
 parsing layer are covered by a Vitest suite: `npm test`.
 
+<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/2cb56069-4974-42db-b590-2ecb46e2c640" />
+
+
 ## Known Limitations
 
 Orbital positions are propagated using two-body Keplerian mechanics from a
