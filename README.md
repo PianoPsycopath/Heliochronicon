@@ -3,7 +3,7 @@
 
 **A 3D temporal celestial note-taking platform scaled ad infinitum**
 
-Heliochronicon is an interactive solar system simulator and world-building tool. It lets users explore a realistic model of our solar system. Users can scan for asteroids, and annotate celestial bodies, in real time or any time between 0 AD and 4000 AD accurately.
+Heliochronicon is an interactive solar system simulator and world-building tool. It renders a physically-grounded model of our solar system; Sun, planets, moons, and millions of asteroids; that you can scrub through time, scan, and annotate.
 
 **Live Demo:** [heliochronicon.vercel.app](https://heliochronicon.vercel.app/)
 
@@ -23,8 +23,8 @@ This project started as a world builder tool. It creates realistic simulations o
 
 - **Orbital Data**: Elements sourced from NASA JPL Horizons, which itself
   uses N-body integration to produce ephemerides. This app propagates
-  those elements at runtime with two-body Keplerian mechanics — not
-  live N-body — see Known Limitations
+  those elements at runtime with two-body Keplerian mechanics; not
+  live N-body; see Known Limitations
 - **Asteroid Visualization** 
 Renders millions of asteroids with instanced WebGL rendering for performance.
 - **Interactive Scanning** 
@@ -37,6 +37,8 @@ Group and label asteroid populations (e.g., TNOs, Apollo, Amor).
 Saves pinned asteroids and view settings in the browser.
 - **Telemetry Panel** 
 Shows real-time information about selected targets.
+- **Custom Planetary Systems**
+Bring your own orbital elements via CSV and load them in place of the default dataset (see Custom Solar Systems below).
 
 <img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/6dac736d-15cf-4d30-ae1e-957eb1a621bc" />
 
@@ -47,27 +49,38 @@ Shows real-time information about selected targets.
 
 This project pushes browser-based 3D graphics limits:
 
-- **Data Pipeline**: NASA Horizons → CSV parsing → CSV to JSON DB → Chunking → WebGL InstancedMesh streaming.
-- **Performance Optimizations**: Binary array handling for millions of interpolated asteroid positions. GPU instancing bypasses traditional WebGL object count limits.
-- **Architecture**: Modular JavaScript with Three.js for rendering, custom shaders for surfaces and orbits, and Web Workers for heavy orbital calculations.
+- **Data Pipeline (Live APP)**: 
+Precalculated JSON datasets (data/planets.json, data/moons.json, chunked asteroid files) are fetched at runtime and parsed into a single enforced CelestialBody schema
+- **Data Pipeline (custom systems)**:
+A separate Python pipeline converts user-supplied JPL/Horizons CSVs into the same chunked JSON db compatible with the app.
+- **Performance Optimizations**: 
+GPU-instanced rendering bypasses per-object draw-call limits, letting millions of asteroids render at interactive frame rates.
+- **Architecture**: 
+ES modules built with Vite, Three.js for rendering, custom shaders for surfaces and orbits, and a manual-DI composition pattern (see `ARCHITECTURE.md`) that keeps core orbital math fully unit-testable and decoupled from the DOM/Three.js.
 
 ## Installation
 
 1. Clone the repository from releases or open terminal in your chosen folder then:
-`git clone https://github.com/PianoPsycopath/Heliochronicon.git`
-2. Once you have cloned or downloaded the repo:
 ```bash
 git clone https://github.com/PianoPsycopath/Heliochronicon.git
+
 cd Heliochronicon
 npm install
 npm run dev
 ```
 3. Opens at `http://localhost:5173` by default.
 
-For 
 ## Testing
 
-Place all csv files in raw/ `atira.csv` and `kerbin_system.csv` provided as examples
+Core orbital mechanics (`solveKepler`, `calcPosFromM`) and the data parsing layer are covered by a Vitest suite:
+```bash
+npm test
+```
+
+##Custom Solar Systems
+
+You can swap in your own dataset instead of the default solar system:
+
 ```bash
 pip install -e ".[dev]"
 cd raw
@@ -76,17 +89,12 @@ cd ..
 npm install
 npm run dev
 ```
-wait for local host to open in web browser
-press f-12 to open console
 
+Two example CSVs (`atira.csv`, `kerbin_system.csv`) are provided in `raw/` as a starting point. Once the dev server is running, open the browser console (F12) and use:
 
-`resetDataSource()` returns data to default solar system in public/data/
+`switchDataSource('raw/json_db/')` | load your generated dataset
 
-
-`switchDataSource('raw/json_db/')` loads test data
-
-Core orbital mechanics (`solveKepler`, `calcPosFromM`) and the data
-parsing layer are covered by a Vitest suite: `npm test`.
+`resetDataSource()`                | return to the default solar system in public/data/
 
 <img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/2cb56069-4974-42db-b590-2ecb46e2c640" />
 
@@ -97,6 +105,9 @@ Orbital positions are propagated using two-body Keplerian mechanics from a
 single fixed-epoch element set per body (no continuous N-body integration
 at runtime). This is accurate to within roughly ±40 years around the 
 element epoch, and degrades noticeably outside that window.
+
+##Contributing
+See `CONTRIBUTING.md` for local setup, conventions, and where `ARCHITECTURE.md` fits into the workflow.
 
 ## Roadmap
 
