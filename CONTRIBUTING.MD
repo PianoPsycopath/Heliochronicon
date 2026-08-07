@@ -1,6 +1,6 @@
 # Local setup
 
-You will need Node.js [insert version, e.g., v18+] and Python [insert version, e.g., 3.10+].
+You will need Node.js v18+ and Python 3.0+
 
 ```bash
 git clone https://github.com/PianoPsycopath/Heliochronicon.git
