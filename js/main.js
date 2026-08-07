@@ -11,16 +11,12 @@ import { PhysicsEngine} from './PhysicsEngine.js';
 import { TutorialManager} from './TutorialManager.js';
 import { StorageManager } from './storage.js';
 import * as THREE from 'three'
+
 const AU_IN_KM = 149597870.7; 
 const MAX_WELLS = 35; 
 
+const storage = new StorageManager();
 // --- DATA SOURCE (switchable at runtime from the browser console) ---
-// Defaults to the built-in dataset at data/ (public/data/ in the built app).
-// Point it at a custom dataset (e.g. the output of csv_to_json.py) with:
-//   switchDataSource('raw/json_db/')
-// and revert with:
-//   resetDataSource()
-// Both reload the page so the engine boots cleanly against the new path.
 const DATA_SOURCE_STORAGE_KEY = 'heliochronicon_dataSourcePath';
 const DEFAULT_DATA_BASE_PATH = 'data/';
 
@@ -32,17 +28,17 @@ function normalizeDataBasePath(path) {
 
 const DATA_BASE_PATH = normalizeDataBasePath(
     new URLSearchParams(window.location.search).get('dataSource') ||
-    localStorage.getItem(DATA_SOURCE_STORAGE_KEY) ||
+    storage.get(DATA_SOURCE_STORAGE_KEY) || 
     DEFAULT_DATA_BASE_PATH
 );
 
 window.switchDataSource = function switchDataSource(path) {
-    localStorage.setItem(DATA_SOURCE_STORAGE_KEY, normalizeDataBasePath(path));
+    storage.set(DATA_SOURCE_STORAGE_KEY, normalizeDataBasePath(path));
     window.location.reload();
 };
 
 window.resetDataSource = function resetDataSource() {
-    localStorage.removeItem(DATA_SOURCE_STORAGE_KEY);
+    storage.remove(DATA_SOURCE_STORAGE_KEY);
     window.location.reload();
 };
 
@@ -55,8 +51,6 @@ const camera = sceneManager.camera;
 const renderer = sceneManager.renderer;
 const controls = sceneManager.controls;
 const frustumSize = sceneManager.frustumSize;
-
-const storage = new StorageManager();
 
 // --- STATE MANAGEMENT ---
 let systemDate = new Date();

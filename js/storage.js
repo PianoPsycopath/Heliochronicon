@@ -55,4 +55,17 @@ export class StorageManager {
             return defaultValue;
         }
     }
+
+    // NEW: Add a remove method to support resetDataSource()
+    remove(key) {
+        if (this.backend) {
+            try {
+                this.backend.removeItem(key);
+                return;
+            } catch (e) {
+                console.warn(`Storage remove failed for "${key}".`);
+            }
+        }
+        delete this.memoryFallback[key];
+    }
 }
