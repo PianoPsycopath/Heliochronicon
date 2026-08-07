@@ -21,13 +21,75 @@
     <div id="crt-overlay"></div>
     <div id="tactical-zoom-ruler">
         <div class="ruler-landmarks">
-            <span class="landmark" data-val="0.00001" title="Galaxy (Deep Space)">🌌</span>
-            <span class="landmark" data-val="0.01" title="Oort Cloud">☄️</span>
-            <span class="landmark" data-val="2" title="Solar System">☀️</span>
-            <span class="landmark" data-val="50" title="Planet System">🪐</span>
-            <span class="landmark" data-val="2000" title="Moon System">🌙</span>
-            <span class="landmark" data-val="500000" title="Asteroid Scale">🪨</span>
-            <span class="landmark" data-val="150000000" title="Planetary Surface">🌲</span>
+            <span class="landmark" data-val="0.00001" title="Galaxy (Deep Space)">
+                <svg viewBox="0 0 24 24">
+                    <!-- spiral arms -->
+                    <ellipse cx="12" cy="12" rx="10" ry="2.8" transform="rotate(15 12 12)"/>
+                    <ellipse cx="12" cy="12" rx="10" ry="2.8" transform="rotate(75 12 12)"/>
+                    <ellipse cx="12" cy="12" rx="10" ry="2.8" transform="rotate(135 12 12)"/>
+                    <!-- bright core -->
+                    <circle cx="12" cy="12" r="1.8" fill="currentColor" stroke="none"/>
+                </svg>
+            </span>
+        
+            <span class="landmark" data-val="0.01" title="Oort Cloud">
+                <svg viewBox="0 0 24 24">
+                    <polygon points="12,2 14.5,8.5 21.5,8.5 16,13 18,20 12,16 6,20 8,13 2.5,8.5 9.5,8.5"
+                             fill="currentColor" stroke="none"/>
+                </svg>
+            </span>
+        
+            <span class="landmark" data-val="2" title="Solar System">
+                <svg viewBox="0 0 24 24">
+                    <!-- sun -->
+                    <circle cx="12" cy="12" r="2.5" fill="currentColor" stroke="none"/>
+                    <!-- orbits -->
+                    <circle cx="12" cy="12" r="6"/>
+                    <circle cx="12" cy="12" r="9.5"/>
+                    <!-- planets on the rings -->
+                    <circle cx="18" cy="12" r="1.1" fill="currentColor" stroke="none"/>
+                    <circle cx="12" cy="5.5" r="0.9" fill="currentColor" stroke="none"/>
+                    <circle cx="7.5" cy="16.5" r="0.85" fill="currentColor" stroke="none"/>
+                </svg>
+            </span>
+        
+            <span class="landmark" data-val="50" title="Planet System">
+                <svg viewBox="0 0 24 24">
+                    <!-- larger planet body -->
+                    <circle cx="12" cy="12" r="5.5"/>
+                    <!-- ring -->
+                    <ellipse cx="12" cy="12" rx="11" ry="3"/>
+                </svg>
+            </span>
+        
+            <span class="landmark" data-val="2000" title="Moon System">
+                <svg viewBox="0 0 24 24">
+                    <!-- crescent -->
+                    <path d="M14 4
+                             A8.5 8.5 0 1 0 14 20
+                             A6.5 6.5 0 1 1 14 4Z"
+                          fill="currentColor" stroke="none"/>
+                </svg>
+            </span>
+        
+            <span class="landmark" data-val="500000" title="Asteroid Scale">
+                <svg viewBox="0 0 24 24">
+                    <polygon points="12,3 18,7 19,14 14,20 7,19 4,12 7,6"/>
+                    <!-- small crater -->
+                    <circle cx="10" cy="11" r="1.2" fill="currentColor" stroke="none"/>
+                </svg>
+            </span>
+        
+            <span class="landmark" data-val="150000000" title="Planetary Surface">
+                <svg viewBox="0 0 24 24">
+                    <!-- layered pine foliage -->
+                    <polygon points="12,2 7,9 17,9"/>
+                    <polygon points="12,6 5.5,14 18.5,14"/>
+                    <polygon points="12,11 4,20 20,20"/>
+                    <!-- trunk -->
+                    <line x1="12" y1="20" x2="12" y2="22.5"/>
+                </svg>
+            </span>
         </div>
         <div id="ruler-interactive-zone">
             <canvas id="tactical-ruler-canvas"></canvas>

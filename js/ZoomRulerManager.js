@@ -20,41 +20,66 @@ export class ZoomRulerManager {
         this.scale = (this.logMax - this.logMin) / 1000;
         
         this.isDragging = false;
+        this.lastZoom = this.camera.zoom;
         
         this.initBindings();
         this.updateRuler(); 
+        this.startContinuousTracking();
+    }
+
+    startContinuousTracking() {
+        // Continuous Sync: By checking the camera every frame, the UI will flawlessly track 
+        // the depth even when the engine animates the camera programmatically (clicking planets).
+        const sync = () => {
+            if (this.camera.zoom !== this.lastZoom) {
+                this.lastZoom = this.camera.zoom;
+                
+                if (!this.isDragging) {
+                    const zoom = Math.max(this.minZoom, Math.min(this.maxZoom, this.camera.zoom));
+                    const sliderVal = (Math.log(zoom) - this.logMin) / this.scale;
+                    this.slider.value = sliderVal;
+                }
+                this.updateRuler();
+            }
+            requestAnimationFrame(sync);
+        };
+        sync();
+    }
+
+    abortCameraLock() {
+        // Ghost Event: Trick the InteractionController into thinking we used the mouse wheel.
+        // This instantly aborts the engine's "Focus on Planet" animation loops.
+        this.controls.dispatchEvent({ type: 'start' });
+        if (this.controls.domElement) {
+            const fakeWheel = new WheelEvent('wheel', { deltaY: 0, bubbles: true });
+            this.controls.domElement.dispatchEvent(fakeWheel);
+        }
     }
     
     initBindings() {
+        this.slider.addEventListener('pointerdown', () => {
+            this.abortCameraLock();
+            this.isDragging = true;
+        });
+
         this.slider.addEventListener('input', (e) => {
             this.isDragging = true;
             const val = parseFloat(e.target.value);
             const targetZoom = Math.exp(this.logMin + val * this.scale);
             this.camera.zoom = targetZoom;
             this.camera.updateProjectionMatrix();
-            this.updateRuler();
+            // Note: updateRuler() is automatically handled by the continuous tracking loop
         });
         
         this.slider.addEventListener('change', () => this.isDragging = false);
         this.slider.addEventListener('pointerup', () => this.isDragging = false);
-
-        this.controls.addEventListener('change', () => {
-            if (!this.isDragging) {
-                const zoom = Math.max(this.minZoom, Math.min(this.maxZoom, this.camera.zoom));
-                const sliderVal = (Math.log(zoom) - this.logMin) / this.scale;
-                this.slider.value = sliderVal;
-                this.updateRuler();
-            }
-        });
         
         this.landmarks.forEach(lm => {
             lm.addEventListener('click', (e) => {
-                const targetZoom = parseFloat(e.target.dataset.val);
+                this.abortCameraLock();
+                const targetZoom = parseFloat(e.currentTarget.dataset.val);
                 this.camera.zoom = targetZoom;
                 this.camera.updateProjectionMatrix();
-                const sliderVal = (Math.log(targetZoom) - this.logMin) / this.scale;
-                this.slider.value = sliderVal;
-                this.updateRuler();
             });
         });
 
@@ -108,33 +133,30 @@ export class ZoomRulerManager {
         const trackY = 15;
         const cx = w / 2;
 
-        // --- 1. DYNAMIC MAP SCALE CALCULATION ---
-        // Evaluate what ~150px represents in exact world AU
         const visibleWidthAU = (this.camera.right - this.camera.left) / this.camera.zoom;
-        const auPerPixel = visibleWidthAU / window.innerWidth; 
-        const targetAU = auPerPixel * 150;
+        const auPerPixel = visibleWidthAU / window.innerWidth;
+        const targetAU = auPerPixel * 150; 
         
         let magnitude, unit, multiplier;
         
-        if (targetAU * this.AU_IN_KM < 1) { // Zoomed to Surface
+        if (targetAU * this.AU_IN_KM < 1) { 
             magnitude = targetAU * this.AU_IN_KM * 1000;
             unit = "M";
             multiplier = 1 / (this.AU_IN_KM * 1000);
-        } else if (targetAU < 0.01) { // Zoomed to Moons/Asteroids
+        } else if (targetAU < 0.01) { 
             magnitude = targetAU * this.AU_IN_KM;
             unit = "KM";
             multiplier = 1 / this.AU_IN_KM;
-        } else if (targetAU > 1000) { // Zoomed to Deep Space
+        } else if (targetAU > 1000) { 
             magnitude = targetAU / this.LY_IN_AU;
             unit = "LY";
             multiplier = this.LY_IN_AU;
-        } else { // Standard Solar System
+        } else { 
             magnitude = targetAU;
             unit = "AU";
             multiplier = 1;
         }
 
-        // Snap the magnitude to a perfect Tactical interval (1, 2, 5, 10...)
         const p10 = Math.pow(10, Math.floor(Math.log10(magnitude)));
         const norm = magnitude / p10;
         let niceNorm = 1;
@@ -145,7 +167,6 @@ export class ZoomRulerManager {
         const exactAU = cleanMagnitude * multiplier;
         const tickPx = exactAU / auPerPixel;
 
-        // --- 2. DRAW THE MAIN GRID LINE ---
         ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
         ctx.lineWidth = 1;
         ctx.beginPath();
@@ -153,12 +174,11 @@ export class ZoomRulerManager {
         ctx.lineTo(w, trackY);
         ctx.stroke();
 
-        // --- 3. DRAW SUBDIVISIONS (NATO RADAR STYLE) ---
-        const minorTickPx = tickPx / 5; // 4 small ticks between every major tick
+        const minorTickPx = tickPx / 5;
         ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
         ctx.beginPath();
         for (let i = 1; (i * minorTickPx) < w / 2; i++) {
-            if (i % 5 === 0) continue; // Skip major tick spots
+            if (i % 5 === 0) continue; 
             const xRight = cx + i * minorTickPx;
             const xLeft = cx - i * minorTickPx;
             ctx.moveTo(xRight, trackY - 3);
@@ -168,13 +188,11 @@ export class ZoomRulerManager {
         }
         ctx.stroke();
 
-        // --- 4. DRAW MAJOR DISTANCE MARKERS ---
-        ctx.fillStyle = '#00ffff'; // Tactical Cyan Text
+        ctx.fillStyle = '#00ffff'; 
         ctx.strokeStyle = 'rgba(255, 255, 255, 0.8)';
         ctx.font = '13px "Teko", monospace';
         ctx.textBaseline = 'top';
 
-        // Draw Center Coordinate Tick
         ctx.beginPath();
         ctx.moveTo(cx, trackY - 6);
         ctx.lineTo(cx, trackY + 6);
@@ -183,7 +201,6 @@ export class ZoomRulerManager {
         ctx.textAlign = 'center';
         ctx.fillText("0", cx, trackY + 10);
 
-        // Expand left and right drawing dynamic markers
         const maxTicks = Math.ceil(cx / tickPx);
         for(let i = 1; i <= maxTicks; i++) {
             const xRight = cx + i * tickPx;
@@ -191,29 +208,23 @@ export class ZoomRulerManager {
             const valText = `${(i * cleanMagnitude).toLocaleString(undefined, { maximumFractionDigits: 1 })} ${unit}`;
 
             ctx.beginPath();
-            // Draw Right Tick
             ctx.moveTo(xRight, trackY - 6);
             ctx.lineTo(xRight, trackY + 6);
-            // Draw Left Tick
             ctx.moveTo(xLeft, trackY - 6);
             ctx.lineTo(xLeft, trackY + 6);
             ctx.stroke();
 
-            // Label text pushing outward
             ctx.fillText(valText, xRight, trackY + 10);
             ctx.fillText(valText, xLeft, trackY + 10);
         }
 
-        // --- 5. THE ZOOM TARGETING THUMB ---
         const thumbX = (this.slider.value / 1000) * w;
         
-        ctx.strokeStyle = '#ffcc00'; // Amber UI Glow
+        ctx.strokeStyle = '#ffcc00'; 
         ctx.lineWidth = 2;
         ctx.beginPath();
-        // Central crosshair
         ctx.moveTo(thumbX, trackY - 12);
         ctx.lineTo(thumbX, trackY + 12);
-        // Sci-Fi Winglets
         ctx.moveTo(thumbX - 5, trackY - 12);
         ctx.lineTo(thumbX + 5, trackY - 12);
         ctx.moveTo(thumbX - 5, trackY + 12);

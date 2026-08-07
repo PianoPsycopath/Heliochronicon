@@ -25,12 +25,28 @@
 
 .landmark {
     position: absolute;
-    bottom: 0;
-    font-size: 1.2rem;
+    bottom: 5px;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: #ffcc00; 
     user-select: none;
-    pointer-events: auto; /* Re-enable clicking on emojis */
+    pointer-events: auto;
     cursor: pointer;
     transition: filter 0.1s ease;
+}
+
+.landmark svg {
+    width: 20px;
+    height: 20px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.5px;
+    stroke-linecap: square;
+    stroke-linejoin: miter;
+    pointer-events: none; 
 }
 
 #ruler-interactive-zone {
