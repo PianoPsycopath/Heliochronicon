@@ -88,6 +88,11 @@ export class UIController {
         this.chronoCanvas = document.getElementById('chrono-canvas');
         this.chronometerDisplay = new ChronometerDisplay(this.chronoCanvas);
 
+        // --- MEASUREMENT TOGGLE ---
+        this.btnMeasure = document.getElementById('btn-measure');
+        this.isMeasureMode = false;
+        this.onMeasureModeChanged = null;
+
         const applyManualTime = () => {
             const parsed = new Date(this.timeInput.value + "Z");
             if (!isNaN(parsed) && this.onTimeChanged) {
@@ -141,6 +146,23 @@ export class UIController {
                     this.panelRight.classList.add('mobile-active');
                     this.btnMobileToggle.innerText = 'CLOSE TERMINAL';
                     this.btnMobileToggle.style.color = '#ff3333'; 
+                }
+            });
+        }
+
+        if (this.btnMeasure) {
+            this.btnMeasure.addEventListener('click', () => {
+                this.isMeasureMode = !this.isMeasureMode;
+                
+                // Pure CSS class toggle (HTML/CSS handles the visuals)
+                if (this.isMeasureMode) {
+                    this.btnMeasure.classList.add('active');
+                } else {
+                    this.btnMeasure.classList.remove('active');
+                }
+                
+                if (this.onMeasureModeChanged) {
+                    this.onMeasureModeChanged(this.isMeasureMode);
                 }
             });
         }

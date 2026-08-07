@@ -75,3 +75,94 @@
     opacity: 0; /* Fully invisible, exposing the canvas below */
     cursor: ew-resize; /* Left/Right radar drag cursor */
 }
+
+/* Container anchored to the top-left of the Chronometer */
+#tactical-tools {
+    position: absolute;
+    top: -40px; /* Dynamically hovers exactly 40px above the chronometer */
+    left: 0;
+    z-index: 100;
+}
+
+/* Base Button Styling */
+.tactical-tool-btn {
+    background: #000000;
+    border: 1px solid #ffcc00;
+    color: #ffcc00;
+    font-family: 'Teko', sans-serif;
+    font-size: 1.2rem;
+    letter-spacing: 1px;
+    padding: 0;
+    height: 32px;
+    width: 180px; /* Fixed width hides the overflowing marquee text */
+    cursor: pointer;
+    border-radius: 2px;
+    box-shadow: inset 0 0 10px rgba(255, 204, 0, 0.1), 0 0 5px rgba(0,0,0,0.5);
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    overflow: hidden;
+}
+
+.tactical-tool-btn:hover {
+    box-shadow: inset 0 0 15px rgba(255, 204, 0, 0.3), 0 0 5px rgba(0,0,0,0.8);
+}
+
+.tactical-tool-btn.active {
+    border-color: #ff0000;
+    box-shadow: 0 0 15px rgba(255, 0, 0, 0.4);
+}
+
+/* 1. STANDBY STATE */
+.stby-content {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    height: 100%;
+}
+
+/* 2. ACTIVE STATE (Red & Yellow Hazard Stripes) */
+.actv-content {
+    display: none;
+    width: 100%;
+    height: 100%;
+    /* Strict 40px tile with perfect mathematical stops */
+    background-image: linear-gradient(
+        -45deg,
+        #ffcc00 25%,
+        #ff0000 25%,
+        #ff0000 50%,
+        #ffcc00 50%,
+        #ffcc00 75%,
+        #ff0000 75%,
+        #ff0000 100%
+    );
+    background-size: 40px 40px;
+    color: #000000;
+    align-items: center;
+    /* Slide exactly one tile width */
+    animation: hazard-slide 1s linear infinite; 
+}
+
+.tactical-tool-btn.active .stby-content { display: none; }
+.tactical-tool-btn.active .actv-content { display: flex; }
+
+/* 3. SCROLLING MARQUEE TEXT */
+.marquee {
+    display: flex;
+    white-space: nowrap;
+    font-weight: bold;
+    text-shadow: 1px 1px 0px rgba(255,255,255,0.4);
+    animation: text-scroll 4s linear infinite;
+}
+
+/* Keyframe Animations */
+@keyframes text-scroll {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(-50%); }
+}
+
+@keyframes hazard-slide {
+    0% { background-position: 0 0; }
+    /* Shift exactly by the integer tile size to prevent the snap */
+    100% { background-position: -40px 0; } 
+}

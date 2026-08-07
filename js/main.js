@@ -11,6 +11,7 @@ import { PhysicsEngine} from './PhysicsEngine.js';
 import { TutorialManager} from './TutorialManager.js';
 import { StorageManager } from './storage.js';
 import { ZoomRulerManager } from './ZoomRulerManager.js';
+import { MeasurementManager } from './MeasurementManager.js';
 
 import * as THREE from 'three'
 
@@ -92,6 +93,8 @@ equatorialGridPlane.visible = false;
 equatorialGridPlane.renderOrder = -1; 
 scene.add(equatorialGridPlane);
 
+const measurementManager = new MeasurementManager(scene, camera);
+
 const tacticalMaterial = Shaders.getTacticalMaterial();
 const UI = new UIController();
 
@@ -112,7 +115,13 @@ const systemBuilder = new SystemBuilder({
 const interactionController = new InteractionController({
     camera, controls, frustumSize, pickableObjects, UI,
     getCurrentTarget: () => currentTargetData,
-    onBodyClicked: (data, isHardLock) => { UI.onFocusBody(data, isHardLock); },
+    onBodyClicked: (data, isHardLock) => { 
+        if (UI.isMeasureMode) {
+            measurementManager.handleNodeSelection(data, celestialBodies);
+        } else {
+            UI.onFocusBody(data, isHardLock); 
+        }
+    },
     onTrackingBroken: () => { trackingTargetData = null; },
     onBodyHovered: (data) => { previewTargetData = data; }
 });
@@ -328,6 +337,13 @@ UI.onScanRequested = (isActive) => {
 UI.onSearch = (query) => {
     tacticalScanner.executeSearch(query);
 };
+
+UI.onMeasureModeChanged = (isActive) => {
+    if (!isActive) {
+        // Clear all active rulers and the pending node when untoggled
+        measurementManager.breakCycleAndClear();
+    }
+};
 // ==========================================
 // SYSTEM BOOTLOADER
 // ==========================================
@@ -536,6 +552,8 @@ function animate() {
     
     // 5. Dual-Grid Architecture Logic
     updateDualGridsStage(celestialBodies, currentTargetData, gridPlane, equatorialGridPlane, equatorialMaterial, camera);
+    
+    measurementManager.update(camera);
     
     // 6. Final GPU Updates
     executeFinalRenderStage(renderPipeline, renderer, scene, camera, daysSinceJ2000, currentOrigin, gridPlane);
