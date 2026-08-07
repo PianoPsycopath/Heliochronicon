@@ -14,11 +14,26 @@
     <link rel="stylesheet" href="css/chronometer.css">
     <link rel="stylesheet" href="css/magi.css">
     <link rel="stylesheet" href="css/tutorial.css">
+    <link rel="stylesheet" href="css/ruler.css">
 </head>
 <body oncontextmenu="return false;"> 
 
     <div id="crt-overlay"></div>
-
+    <div id="tactical-zoom-ruler">
+        <div class="ruler-landmarks">
+            <span class="landmark" data-val="0.00001" title="Galaxy (Deep Space)">🌌</span>
+            <span class="landmark" data-val="0.01" title="Oort Cloud">☄️</span>
+            <span class="landmark" data-val="2" title="Solar System">☀️</span>
+            <span class="landmark" data-val="50" title="Planet System">🪐</span>
+            <span class="landmark" data-val="2000" title="Moon System">🌙</span>
+            <span class="landmark" data-val="500000" title="Asteroid Scale">🪨</span>
+            <span class="landmark" data-val="150000000" title="Planetary Surface">🌲</span>
+        </div>
+        <div id="ruler-interactive-zone">
+            <canvas id="tactical-ruler-canvas"></canvas>
+            <input type="range" id="zoom-slider" min="0" max="1000" value="500">
+        </div>
+    </div>
     <button id="btn-mobile-toggle">ACCESS TERMINAL</button>
     <div id="panel-left" class="panel">
         <h2>System Status</h2>

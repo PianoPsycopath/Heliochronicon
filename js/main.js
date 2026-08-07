@@ -10,6 +10,8 @@ import { TacticalScanner} from './TacticalScanner.js';
 import { PhysicsEngine} from './PhysicsEngine.js';
 import { TutorialManager} from './TutorialManager.js';
 import { StorageManager } from './storage.js';
+import { ZoomRulerManager } from './ZoomRulerManager.js';
+
 import * as THREE from 'three'
 
 const AU_IN_KM = 149597870.7; 
@@ -132,6 +134,11 @@ const tacticalScanner = new TacticalScanner({
         UI.updateTargetPanel(null);
         UI.renderBodyList(celestialBodies, null);
     }
+});
+
+const zoomRuler = new ZoomRulerManager({
+    camera: sceneManager.camera,
+    controls: sceneManager.controls
 });
 
 // --- UI CALLBACKS ---
