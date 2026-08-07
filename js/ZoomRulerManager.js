@@ -51,7 +51,7 @@ export class ZoomRulerManager {
         // This instantly aborts the engine's "Focus on Planet" animation loops.
         this.controls.dispatchEvent({ type: 'start' });
         if (this.controls.domElement) {
-            const fakeWheel = new WheelEvent('wheel', { deltaY: 0, bubbles: true });
+            const fakeWheel = new window.WheelEvent('wheel', { deltaY: 0, bubbles: true });
             this.controls.domElement.dispatchEvent(fakeWheel);
         }
     }
