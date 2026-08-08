@@ -65,7 +65,7 @@ export class Shaders {
                         }
                     }
 
-                    float safeY = min(viewDir.y, -0.2); 
+                    float safeY = viewDir.y >= 0.0 ? max(viewDir.y, 0.2) : min(viewDir.y, -0.2);
                     float zoomDampener = clamp(1.2 / pow(zoomScale, 0.7), 0.15, 1.0);
                     
                     vec2 parallaxCoord = coord;
@@ -197,7 +197,7 @@ export class Shaders {
         ctx.moveTo(64, 0); ctx.quadraticCurveTo(64, 64, 128, 64); ctx.quadraticCurveTo(64, 64, 64, 128); ctx.quadraticCurveTo(64, 64, 0, 64); ctx.quadraticCurveTo(64, 64, 64, 0);
         ctx.closePath(); ctx.fill();
         ctx.fillStyle = '#000'; ctx.font = 'bold 45px sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText("☉", 64, 66);
-        return new THREE.SpriteMaterial({ map: new THREE.CanvasTexture(canvas), depthTest: false });
+        return new THREE.SpriteMaterial({ map: new THREE.CanvasTexture(canvas), depthTest: false, depthWrite: false });
     }
 
     static createDiamondSpriteMat(symbol) {
@@ -412,7 +412,7 @@ export class Shaders {
                 }
             `,
             transparent: true,
-            depthTest: true,
+            depthTest: false,
             depthWrite: false,
             blending: THREE.CustomBlending,
             blendEquation: THREE.MaxEquation

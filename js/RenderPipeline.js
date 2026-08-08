@@ -129,12 +129,15 @@ export class RenderPipeline {
                 const sunVisSize = b.physicalRadius * 2 * this.camera.zoom;
                 const isSunBigger = sunVisSize >= this.STAR_SPRITE_SIZE;
                 
-                b.mesh.visible = isSunBigger; 
-                b.sprite.visible = !isOccluded && !isSunBigger; 
+                // Hide the custom sprite and fallback to the base particle at macro zoom scales
+                const ZOOM_OUT_THRESHOLD = 0.075; 
+                const isMacroScale = this.camera.zoom <= ZOOM_OUT_THRESHOLD;
+                
+                b.mesh.visible = isSunBigger || isMacroScale; 
+                b.sprite.visible = !isOccluded && !isSunBigger && !isMacroScale; 
                 
                 const starScale = this.STAR_SPRITE_SIZE / this.camera.zoom;
                 b.sprite.scale.set(starScale, starScale, 1);
-                
                 
                 this.gridMaterial.uniforms.wellPositions.value[wellIndex].set(0, 0);
                 this.gridMaterial.uniforms.wellDepths.value[wellIndex] = -60.0;

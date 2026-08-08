@@ -1,5 +1,11 @@
 {
   "datasets": {
+    "stars_unk": {
+      "totalRecords": 1,
+      "chunks": [
+        "stars_unk_chunk_0.json"
+      ]
+    },
     "stars_psc": {
       "totalRecords": 1992,
       "chunks": [

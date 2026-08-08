@@ -351,7 +351,7 @@ UI.onMeasureModeChanged = (isActive) => {
 // BACKGROUND STAR FIELD (GPU PARTICLES)
 // ==========================================
 let starFieldMaterial = null;
-const STAR_FAR_PLANE_AU = 1.5e9;
+const STAR_FAR_PLANE_AU = 1e14;
 
 async function initStarField() {
     const starGeometry = await StarLoader.loadStars(STAR_DATA_BASE_PATH, scene);
