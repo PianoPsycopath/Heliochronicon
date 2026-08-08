@@ -56,12 +56,6 @@
         "inner-belt_chunk_6.json"
       ]
     },
-    "interstellar": {
-      "totalRecords": 5,
-      "chunks": [
-        "interstellar_chunk_0.json"
-      ]
-    },
     "main-belt": {
       "totalRecords": 1374548,
       "chunks": [
