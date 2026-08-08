@@ -14,6 +14,7 @@ from pathlib import Path
 
 CHUNK_SIZE = 5000
 
+
 def parse_float(value: str) -> float | None:
     """Safely convert an empty/missing CSV field to None."""
     if not value or not value.strip():
@@ -22,6 +23,7 @@ def parse_float(value: str) -> float | None:
         return float(value)
     except ValueError:
         return None
+
 
 def process_hyg_csv(input_csv: Path, output_dir: Path):
     output_dir.mkdir(parents=True, exist_ok=True)
@@ -52,14 +54,14 @@ def process_hyg_csv(input_csv: Path, output_dir: Path):
                     "name": name,
                     "category": "STAR",
                     "con": con,
-                    "x": parse_float(row.get("x")),   # Parsecs
-                    "y": parse_float(row.get("y")),   # Parsecs
-                    "z": parse_float(row.get("z")),   # Parsecs
-                    "vx": parse_float(row.get("vx")), # Parsecs per year
-                    "vy": parse_float(row.get("vy")), # Parsecs per year
-                    "vz": parse_float(row.get("vz")), # Parsecs per year
-                    "mag": parse_float(row.get("mag")), # Visual magnitude for size
-                    "ci": parse_float(row.get("ci")),   # Color Index for temperature
+                    "x": parse_float(row.get("x")),  # Parsecs
+                    "y": parse_float(row.get("y")),  # Parsecs
+                    "z": parse_float(row.get("z")),  # Parsecs
+                    "vx": parse_float(row.get("vx")),  # Parsecs per year
+                    "vy": parse_float(row.get("vy")),  # Parsecs per year
+                    "vz": parse_float(row.get("vz")),  # Parsecs per year
+                    "mag": parse_float(row.get("mag")),  # Visual magnitude for size
+                    "ci": parse_float(row.get("ci")),  # Color Index for temperature
                 }
                 constellations[con].append(record)
             except Exception:
@@ -91,7 +93,7 @@ def process_hyg_csv(input_csv: Path, output_dir: Path):
         # Build the manifest entry grouping the constellation chunks
         manifest["datasets"][dataset_name] = {
             "totalRecords": len(records),
-            "chunks": chunk_filenames
+            "chunks": chunk_filenames,
         }
         print(
             f" -> Completed {dataset_name}: {len(records)} records "
@@ -105,6 +107,7 @@ def process_hyg_csv(input_csv: Path, output_dir: Path):
 
     print(f"\nAll datasets processed successfully. Manifest written to {manifest_path}.")
 
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--input-file", default="hyg_v42.csv", help="Path to HYG CSV file")
@@ -117,6 +120,7 @@ def main():
         return
 
     process_hyg_csv(input_path, Path(args.output_dir))
+
 
 if __name__ == "__main__":
     main()
