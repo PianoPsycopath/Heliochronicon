@@ -105,6 +105,7 @@ export class TacticalScanner {
                 if (!system.visible) return;
                 
                 const sourceData = system.userData.sourceData;
+                if (!sourceData || !system.geometry.attributes.a) return;
                 const a_arr = system.geometry.attributes.a.array;
                 const e_arr = system.geometry.attributes.e.array;
                 const i_arr = system.geometry.attributes.i.array;
