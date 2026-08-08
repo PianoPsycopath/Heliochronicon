@@ -350,6 +350,9 @@ UI.onMeasureModeChanged = (isActive) => {
 // ==========================================
 // BACKGROUND STAR FIELD (GPU PARTICLES)
 // ==========================================
+let starFieldMaterial = null;
+const STAR_FAR_PLANE_AU = 1.5e9;
+
 async function initStarField() {
     const starGeometry = await StarLoader.loadStars(STAR_DATA_BASE_PATH, scene);
     if (!starGeometry) return; // no stars_manifest.json for this data source -- skip silently
@@ -364,8 +367,19 @@ async function initStarField() {
 
     scene.add(starField);
     gpuParticleSystems.push(starField);
+    starFieldMaterial = starMaterial;
 }
 initStarField();
+
+function updateStarFieldFarProjection(cam, material) {
+    if (!material || typeof cam.updateProjectionMatrix !== 'function') return;
+    const realFar = cam.far;
+    cam.far = STAR_FAR_PLANE_AU;
+    cam.updateProjectionMatrix();
+    material.uniforms.uStarProjectionMatrix.value.copy(cam.projectionMatrix);
+    cam.far = realFar;
+    cam.updateProjectionMatrix();
+}
 
 // ==========================================
 // SYSTEM BOOTLOADER
@@ -542,6 +556,7 @@ function updateDualGridsStage(bodies, currentTarget, eclipticGrid, eqGrid, eqMat
 
 function executeFinalRenderStage(pipeline, webglRenderer, scn, cam, daysSinceJ2000, origin, eclipticGrid) {
     pipeline.updateGPU(daysSinceJ2000, origin, eclipticGrid);
+    updateStarFieldFarProjection(cam, starFieldMaterial);
     webglRenderer.render(scn, cam);
 }
 

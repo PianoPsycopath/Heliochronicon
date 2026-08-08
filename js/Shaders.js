@@ -321,13 +321,27 @@ export class Shaders {
                 uTime: { value: 0.0 },       // days since J2000 (matches gpuParticleSystems convention)
                 uOrigin: { value: new THREE.Vector3(0, 0, 0) },
                 uZoom: { value: 1.0 },
-                uPixelRatio: { value: (typeof window !== 'undefined' ? window.devicePixelRatio : 1) || 1 }
+                uPixelRatio: { value: (typeof window !== 'undefined' ? window.devicePixelRatio : 1) || 1 },
+                // Real star distances (hundreds of millions of AU) are far
+                // beyond the scene camera's actual `far` plane, which is
+                // kept tight on purpose for AU-scale planet depth precision.
+                // The built-in `projectionMatrix` uniform IS that tight
+                // camera matrix, so using it here hardware-clips stars the
+                // instant they cross it -- angle-dependently, since it's a
+                // frustum. uStarProjectionMatrix is a separate copy of the
+                // same camera (same fov/aspect/near/zoom) but with `far`
+                // pushed out past every real star distance -- see
+                // updateStarFieldFarProjection() in main.js, called once per
+                // frame. Nothing else in the scene uses this matrix, so
+                // planet/grid depth precision is untouched.
+                uStarProjectionMatrix: { value: new THREE.Matrix4() }
             },
             vertexShader: `
                 uniform float uTime;
                 uniform vec3 uOrigin;
                 uniform float uZoom;
                 uniform float uPixelRatio;
+                uniform mat4 uStarProjectionMatrix;
 
                 attribute vec3 velocity; // AU / year
                 attribute float mag;
@@ -345,7 +359,10 @@ export class Shaders {
                     vec3 renderPos = globalPos - uOrigin;
 
                     vec4 mvPosition = viewMatrix * vec4(renderPos, 1.0);
-                    gl_Position = projectionMatrix * mvPosition;
+                    // Use the far-reaching projection, NOT the built-in
+                    // projectionMatrix (that's the camera's real, tight
+                    // far plane and is why stars were being clipped).
+                    gl_Position = uStarProjectionMatrix * mvPosition;
 
                     // Apparent brightness from magnitude (lower mag = brighter).
                     // Stars are effectively at infinity for the purposes of this
