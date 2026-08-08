@@ -310,6 +310,98 @@ export class Shaders {
             blendEquation: THREE.MaxEquation 
         });
     }
+
+    // (position/velocity baked in AU by StarLoader, magnitude + B-V color
+    // index carried as attributes). Proper motion is integrated on the GPU
+    // from uTime (days since J2000, same clock the asteroid field uses) and
+    // shifted by the floating origin exactly like the asteroid particles.
+    static getStarFieldMaterial() {
+        return new THREE.ShaderMaterial({
+            uniforms: {
+                uTime: { value: 0.0 },       // days since J2000 (matches gpuParticleSystems convention)
+                uOrigin: { value: new THREE.Vector3(0, 0, 0) },
+                uZoom: { value: 1.0 },
+                uPixelRatio: { value: (typeof window !== 'undefined' ? window.devicePixelRatio : 1) || 1 }
+            },
+            vertexShader: `
+                uniform float uTime;
+                uniform vec3 uOrigin;
+                uniform float uZoom;
+                uniform float uPixelRatio;
+
+                attribute vec3 velocity; // AU / year
+                attribute float mag;
+                attribute float ci;
+
+                varying float vMag;
+                varying float vCi;
+                varying float vAlpha;
+
+                void main() {
+                    // Proper motion, integrated linearly (stars are effectively
+                    // unaccelerated over the simulation's timescale).
+                    float years = uTime / 365.25;
+                    vec3 globalPos = position + velocity * years;
+                    vec3 renderPos = globalPos - uOrigin;
+
+                    vec4 mvPosition = viewMatrix * vec4(renderPos, 1.0);
+                    gl_Position = projectionMatrix * mvPosition;
+
+                    // Apparent brightness from magnitude (lower mag = brighter).
+                    // Stars are effectively at infinity for the purposes of this
+                    // sim, so size/brightness is driven by mag + zoom only, not
+                    // by camera distance to the star.
+                    float brightness = pow(2.512, -mag + 4.0);
+                    float basePx = clamp(sqrt(brightness) * 1.1, 0.6, 3.2);
+                    gl_PointSize = clamp(basePx / max(uZoom, 0.05), 0.5, 6.0) * uPixelRatio;
+
+                    vAlpha = clamp(brightness, 0.08, 1.0);
+                    vMag = mag;
+                    vCi = ci;
+                }
+            `,
+            fragmentShader: `
+                varying float vMag;
+                varying float vCi;
+                varying float vAlpha;
+
+                // Rough B-V color index -> RGB (blue-white-yellow-orange-red),
+                // enough to read as believable stellar color without a full
+                // blackbody LUT.
+                vec3 bvToColor(float bv) {
+                    vec3 hot  = vec3(0.61, 0.72, 1.0);   // blue-white, bv ~ -0.3
+                    vec3 mid1 = vec3(1.0, 1.0, 1.0);     // white, bv ~ 0.3
+                    vec3 mid2 = vec3(1.0, 0.86, 0.6);    // yellow-white, bv ~ 0.8
+                    vec3 cool = vec3(1.0, 0.5, 0.35);    // orange-red, bv ~ 1.6+
+
+                    float t1 = smoothstep(-0.3, 0.3, bv);
+                    vec3 c1 = mix(hot, mid1, t1);
+                    float t2 = smoothstep(0.3, 0.8, bv);
+                    vec3 c2 = mix(c1, mid2, t2);
+                    float t3 = smoothstep(0.8, 1.6, bv);
+                    return mix(c2, cool, t3);
+                }
+
+                void main() {
+                    vec2 coord = gl_PointCoord - vec2(0.5);
+                    float d = length(coord);
+                    if (d > 0.5) discard;
+
+                    float glow = 1.0 - smoothstep(0.0, 0.5, d);
+                    vec3 color = bvToColor(vCi);
+                    float alpha = vAlpha * glow;
+
+                    gl_FragColor = vec4(color * alpha, alpha);
+                }
+            `,
+            transparent: true,
+            depthTest: true,
+            depthWrite: false,
+            blending: THREE.CustomBlending,
+            blendEquation: THREE.MaxEquation
+        });
+    }
+
     static createGroupLabelMat(text, colorHex = '#ffffff', meanA = 2.5) {
         const displayText = text.toUpperCase().replace(/[-_]/g, ' ');
         const size = 512;

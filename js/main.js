@@ -12,6 +12,7 @@ import { TutorialManager} from './TutorialManager.js';
 import { StorageManager } from './storage.js';
 import { ZoomRulerManager } from './ZoomRulerManager.js';
 import { MeasurementManager } from './MeasurementManager.js';
+import { StarLoader } from './StarLoader.js';
 
 import * as THREE from 'three'
 
@@ -34,6 +35,8 @@ const DATA_BASE_PATH = normalizeDataBasePath(
     storage.get(DATA_SOURCE_STORAGE_KEY) || 
     DEFAULT_DATA_BASE_PATH
 );
+
+const STAR_DATA_BASE_PATH = 'star_data/';
 
 window.switchDataSource = function switchDataSource(path) {
     storage.set(DATA_SOURCE_STORAGE_KEY, normalizeDataBasePath(path));
@@ -345,13 +348,28 @@ UI.onMeasureModeChanged = (isActive) => {
     }
 };
 // ==========================================
+// BACKGROUND STAR FIELD (GPU PARTICLES)
+// ==========================================
+async function initStarField() {
+    const starGeometry = await StarLoader.loadStars(STAR_DATA_BASE_PATH, scene);
+    if (!starGeometry) return; // no stars_manifest.json for this data source -- skip silently
+
+    const starMaterial = Shaders.getStarFieldMaterial();
+    const starField = new THREE.Points(starGeometry, starMaterial);
+
+    starField.frustumCulled = false; // positions are computed in-shader (proper motion + origin shift)
+    starField.matrixAutoUpdate = false;
+    starField.renderOrder = -10; // draw behind everything else
+    starField.userData = { datasetVisible: true };
+
+    scene.add(starField);
+    gpuParticleSystems.push(starField);
+}
+initStarField();
+
+// ==========================================
 // SYSTEM BOOTLOADER
 // ==========================================
-// Categories that make a dataset "core" (auto-loaded on boot, like the old
-// hardcoded Planets/Moons sets) rather than an opt-in asteroid-style group.
-// Membership is decided by what's actually IN the data, not by filename --
-// a manifest entry named "kerbin_system" containing STAR/PLANET rows is
-// treated the same way "planets.json" used to be.
 const CORE_CATEGORIES = new Set(['STAR', 'PLANET', 'DWARF_PLANET', 'MOON']);
 const ASTEROID_TOGGLE_COLORS = ['#ff3333', '#ff8800', '#ffff00', '#00ff00', '#00ffff', '#ff00ff'];
 

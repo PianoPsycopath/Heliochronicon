@@ -1,0 +1,532 @@
+{
+  "datasets": {
+    "stars_psc": {
+      "totalRecords": 1992,
+      "chunks": [
+        "stars_psc_chunk_0.json"
+      ]
+    },
+    "stars_cet": {
+      "totalRecords": 3030,
+      "chunks": [
+        "stars_cet_chunk_0.json"
+      ]
+    },
+    "stars_and": {
+      "totalRecords": 2144,
+      "chunks": [
+        "stars_and_chunk_0.json"
+      ]
+    },
+    "stars_phe": {
+      "totalRecords": 1414,
+      "chunks": [
+        "stars_phe_chunk_0.json"
+      ]
+    },
+    "stars_peg": {
+      "totalRecords": 2744,
+      "chunks": [
+        "stars_peg_chunk_0.json"
+      ]
+    },
+    "stars_scl": {
+      "totalRecords": 1390,
+      "chunks": [
+        "stars_scl_chunk_0.json"
+      ]
+    },
+    "stars_cas": {
+      "totalRecords": 2352,
+      "chunks": [
+        "stars_cas_chunk_0.json"
+      ]
+    },
+    "stars_oct": {
+      "totalRecords": 798,
+      "chunks": [
+        "stars_oct_chunk_0.json"
+      ]
+    },
+    "stars_cep": {
+      "totalRecords": 1907,
+      "chunks": [
+        "stars_cep_chunk_0.json"
+      ]
+    },
+    "stars_tuc": {
+      "totalRecords": 936,
+      "chunks": [
+        "stars_tuc_chunk_0.json"
+      ]
+    },
+    "stars_hyi": {
+      "totalRecords": 663,
+      "chunks": [
+        "stars_hyi_chunk_0.json"
+      ]
+    },
+    "stars_umi": {
+      "totalRecords": 610,
+      "chunks": [
+        "stars_umi_chunk_0.json"
+      ]
+    },
+    "stars_eri": {
+      "totalRecords": 2789,
+      "chunks": [
+        "stars_eri_chunk_0.json"
+      ]
+    },
+    "stars_per": {
+      "totalRecords": 2000,
+      "chunks": [
+        "stars_per_chunk_0.json"
+      ]
+    },
+    "stars_tri": {
+      "totalRecords": 332,
+      "chunks": [
+        "stars_tri_chunk_0.json"
+      ]
+    },
+    "stars_for": {
+      "totalRecords": 1081,
+      "chunks": [
+        "stars_for_chunk_0.json"
+      ]
+    },
+    "stars_ari": {
+      "totalRecords": 988,
+      "chunks": [
+        "stars_ari_chunk_0.json"
+      ]
+    },
+    "stars_hor": {
+      "totalRecords": 708,
+      "chunks": [
+        "stars_hor_chunk_0.json"
+      ]
+    },
+    "stars_ret": {
+      "totalRecords": 332,
+      "chunks": [
+        "stars_ret_chunk_0.json"
+      ]
+    },
+    "stars_cam": {
+      "totalRecords": 2120,
+      "chunks": [
+        "stars_cam_chunk_0.json"
+      ]
+    },
+    "stars_men": {
+      "totalRecords": 424,
+      "chunks": [
+        "stars_men_chunk_0.json"
+      ]
+    },
+    "stars_tau": {
+      "totalRecords": 2281,
+      "chunks": [
+        "stars_tau_chunk_0.json"
+      ]
+    },
+    "stars_dor": {
+      "totalRecords": 532,
+      "chunks": [
+        "stars_dor_chunk_0.json"
+      ]
+    },
+    "stars_cae": {
+      "totalRecords": 344,
+      "chunks": [
+        "stars_cae_chunk_0.json"
+      ]
+    },
+    "stars_pic": {
+      "totalRecords": 750,
+      "chunks": [
+        "stars_pic_chunk_0.json"
+      ]
+    },
+    "stars_aur": {
+      "totalRecords": 1966,
+      "chunks": [
+        "stars_aur_chunk_0.json"
+      ]
+    },
+    "stars_ori": {
+      "totalRecords": 1977,
+      "chunks": [
+        "stars_ori_chunk_0.json"
+      ]
+    },
+    "stars_lep": {
+      "totalRecords": 733,
+      "chunks": [
+        "stars_lep_chunk_0.json"
+      ]
+    },
+    "stars_col": {
+      "totalRecords": 809,
+      "chunks": [
+        "stars_col_chunk_0.json"
+      ]
+    },
+    "stars_mon": {
+      "totalRecords": 1452,
+      "chunks": [
+        "stars_mon_chunk_0.json"
+      ]
+    },
+    "stars_gem": {
+      "totalRecords": 1471,
+      "chunks": [
+        "stars_gem_chunk_0.json"
+      ]
+    },
+    "stars_car": {
+      "totalRecords": 2162,
+      "chunks": [
+        "stars_car_chunk_0.json"
+      ]
+    },
+    "stars_pup": {
+      "totalRecords": 2427,
+      "chunks": [
+        "stars_pup_chunk_0.json"
+      ]
+    },
+    "stars_cma": {
+      "totalRecords": 1367,
+      "chunks": [
+        "stars_cma_chunk_0.json"
+      ]
+    },
+    "stars_lyn": {
+      "totalRecords": 1583,
+      "chunks": [
+        "stars_lyn_chunk_0.json"
+      ]
+    },
+    "stars_vol": {
+      "totalRecords": 470,
+      "chunks": [
+        "stars_vol_chunk_0.json"
+      ]
+    },
+    "stars_cmi": {
+      "totalRecords": 481,
+      "chunks": [
+        "stars_cmi_chunk_0.json"
+      ]
+    },
+    "stars_cha": {
+      "totalRecords": 373,
+      "chunks": [
+        "stars_cha_chunk_0.json"
+      ]
+    },
+    "stars_cnc": {
+      "totalRecords": 1218,
+      "chunks": [
+        "stars_cnc_chunk_0.json"
+      ]
+    },
+    "stars_vel": {
+      "totalRecords": 2238,
+      "chunks": [
+        "stars_vel_chunk_0.json"
+      ]
+    },
+    "stars_uma": {
+      "totalRecords": 3616,
+      "chunks": [
+        "stars_uma_chunk_0.json"
+      ]
+    },
+    "stars_hya": {
+      "totalRecords": 3061,
+      "chunks": [
+        "stars_hya_chunk_0.json"
+      ]
+    },
+    "stars_pyx": {
+      "totalRecords": 635,
+      "chunks": [
+        "stars_pyx_chunk_0.json"
+      ]
+    },
+    "stars_leo": {
+      "totalRecords": 2165,
+      "chunks": [
+        "stars_leo_chunk_0.json"
+      ]
+    },
+    "stars_lmi": {
+      "totalRecords": 620,
+      "chunks": [
+        "stars_lmi_chunk_0.json"
+      ]
+    },
+    "stars_dra": {
+      "totalRecords": 2722,
+      "chunks": [
+        "stars_dra_chunk_0.json"
+      ]
+    },
+    "stars_ant": {
+      "totalRecords": 691,
+      "chunks": [
+        "stars_ant_chunk_0.json"
+      ]
+    },
+    "stars_sex": {
+      "totalRecords": 644,
+      "chunks": [
+        "stars_sex_chunk_0.json"
+      ]
+    },
+    "stars_crt": {
+      "totalRecords": 584,
+      "chunks": [
+        "stars_crt_chunk_0.json"
+      ]
+    },
+    "stars_cen": {
+      "totalRecords": 4270,
+      "chunks": [
+        "stars_cen_chunk_0.json"
+      ]
+    },
+    "stars_mus": {
+      "totalRecords": 606,
+      "chunks": [
+        "stars_mus_chunk_0.json"
+      ]
+    },
+    "stars_vir": {
+      "totalRecords": 2921,
+      "chunks": [
+        "stars_vir_chunk_0.json"
+      ]
+    },
+    "stars_cru": {
+      "totalRecords": 382,
+      "chunks": [
+        "stars_cru_chunk_0.json"
+      ]
+    },
+    "stars_crv": {
+      "totalRecords": 369,
+      "chunks": [
+        "stars_crv_chunk_0.json"
+      ]
+    },
+    "stars_com": {
+      "totalRecords": 1103,
+      "chunks": [
+        "stars_com_chunk_0.json"
+      ]
+    },
+    "stars_cvn": {
+      "totalRecords": 1373,
+      "chunks": [
+        "stars_cvn_chunk_0.json"
+      ]
+    },
+    "stars_boo": {
+      "totalRecords": 2477,
+      "chunks": [
+        "stars_boo_chunk_0.json"
+      ]
+    },
+    "stars_cir": {
+      "totalRecords": 454,
+      "chunks": [
+        "stars_cir_chunk_0.json"
+      ]
+    },
+    "stars_aps": {
+      "totalRecords": 701,
+      "chunks": [
+        "stars_aps_chunk_0.json"
+      ]
+    },
+    "stars_lup": {
+      "totalRecords": 1287,
+      "chunks": [
+        "stars_lup_chunk_0.json"
+      ]
+    },
+    "stars_lib": {
+      "totalRecords": 1327,
+      "chunks": [
+        "stars_lib_chunk_0.json"
+      ]
+    },
+    "stars_tra": {
+      "totalRecords": 462,
+      "chunks": [
+        "stars_tra_chunk_0.json"
+      ]
+    },
+    "stars_ser": {
+      "totalRecords": 1554,
+      "chunks": [
+        "stars_ser_chunk_0.json"
+      ]
+    },
+    "stars_nor": {
+      "totalRecords": 680,
+      "chunks": [
+        "stars_nor_chunk_0.json"
+      ]
+    },
+    "stars_crb": {
+      "totalRecords": 468,
+      "chunks": [
+        "stars_crb_chunk_0.json"
+      ]
+    },
+    "stars_sco": {
+      "totalRecords": 1722,
+      "chunks": [
+        "stars_sco_chunk_0.json"
+      ]
+    },
+    "stars_her": {
+      "totalRecords": 3434,
+      "chunks": [
+        "stars_her_chunk_0.json"
+      ]
+    },
+    "stars_oph": {
+      "totalRecords": 2270,
+      "chunks": [
+        "stars_oph_chunk_0.json"
+      ]
+    },
+    "stars_ara": {
+      "totalRecords": 970,
+      "chunks": [
+        "stars_ara_chunk_0.json"
+      ]
+    },
+    "stars_pav": {
+      "totalRecords": 1253,
+      "chunks": [
+        "stars_pav_chunk_0.json"
+      ]
+    },
+    "stars_sgr": {
+      "totalRecords": 2504,
+      "chunks": [
+        "stars_sgr_chunk_0.json"
+      ]
+    },
+    "stars_cra": {
+      "totalRecords": 488,
+      "chunks": [
+        "stars_cra_chunk_0.json"
+      ]
+    },
+    "stars_tel": {
+      "totalRecords": 909,
+      "chunks": [
+        "stars_tel_chunk_0.json"
+      ]
+    },
+    "stars_lyr": {
+      "totalRecords": 954,
+      "chunks": [
+        "stars_lyr_chunk_0.json"
+      ]
+    },
+    "stars_sct": {
+      "totalRecords": 273,
+      "chunks": [
+        "stars_sct_chunk_0.json"
+      ]
+    },
+    "stars_aql": {
+      "totalRecords": 1672,
+      "chunks": [
+        "stars_aql_chunk_0.json"
+      ]
+    },
+    "stars_sge": {
+      "totalRecords": 294,
+      "chunks": [
+        "stars_sge_chunk_0.json"
+      ]
+    },
+    "stars_vul": {
+      "totalRecords": 963,
+      "chunks": [
+        "stars_vul_chunk_0.json"
+      ]
+    },
+    "stars_cyg": {
+      "totalRecords": 3116,
+      "chunks": [
+        "stars_cyg_chunk_0.json"
+      ]
+    },
+    "stars_cap": {
+      "totalRecords": 975,
+      "chunks": [
+        "stars_cap_chunk_0.json"
+      ]
+    },
+    "stars_del": {
+      "totalRecords": 529,
+      "chunks": [
+        "stars_del_chunk_0.json"
+      ]
+    },
+    "stars_mic": {
+      "totalRecords": 655,
+      "chunks": [
+        "stars_mic_chunk_0.json"
+      ]
+    },
+    "stars_ind": {
+      "totalRecords": 954,
+      "chunks": [
+        "stars_ind_chunk_0.json"
+      ]
+    },
+    "stars_aqr": {
+      "totalRecords": 2188,
+      "chunks": [
+        "stars_aqr_chunk_0.json"
+      ]
+    },
+    "stars_equ": {
+      "totalRecords": 173,
+      "chunks": [
+        "stars_equ_chunk_0.json"
+      ]
+    },
+    "stars_psa": {
+      "totalRecords": 675,
+      "chunks": [
+        "stars_psa_chunk_0.json"
+      ]
+    },
+    "stars_gru": {
+      "totalRecords": 1206,
+      "chunks": [
+        "stars_gru_chunk_0.json"
+      ]
+    },
+    "stars_lac": {
+      "totalRecords": 888,
+      "chunks": [
+        "stars_lac_chunk_0.json"
+      ]
+    }
+  }
+}
