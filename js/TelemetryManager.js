@@ -8,6 +8,14 @@ export class TelemetryManager {
         this.onPinRequested = null;
         this.onPurgeRequested = null;
         this.onFocusBody = null;
+        this.onPinStarRequested = null;
+    }
+    //spectral class needs adding in data
+    static _getStarClass(data) {
+        const raw = data.spect ?? data.spectral_class ?? data.spectralClass ??
+                    data.st_spectype ?? data.class ?? data.sptype ?? null;
+        if (raw === null || raw === undefined || raw === '') return '—';
+        return String(raw);
     }
 
     setManualOverride(name) {
@@ -60,6 +68,63 @@ export class TelemetryManager {
                 if (this.onPurgeRequested) this.onPurgeRequested(data);
             });
         }
+
+        this.triggerCRTFlash();
+    }
+    showStarSelection(data) {
+        if (!data) return;
+
+        const displayName = (
+            data.name || data.designation || data.proper ||
+            data.hip || data.hd || data.hr || data.gl || data.id || 'STAR'
+        ).toString();
+
+        this.currentTargetEl.innerText = displayName.toUpperCase();
+
+        const starClass = this._escapeHtml(TelemetryManager._getStarClass(data));
+        const ci = (data.ci != null && isFinite(data.ci))
+            ? Number(data.ci).toFixed(3) : '—';
+
+        let distStr = '—';
+        if (data.engineX != null) {
+            const d = Math.hypot(data.engineX, data.engineY || 0, data.engineZ || 0);
+            if (isFinite(d) && d > 0) {
+                distStr = d >= 206265
+                    ? `${(d / 206265).toFixed(2)} pc`
+                    : `${d.toExponential(3)} AU`;
+            }
+        } else if (data.x != null) {
+            const d = Math.hypot(data.x || 0, data.y || 0, data.z || 0);
+            if (isFinite(d) && d > 0) distStr = `${d.toFixed(2)} pc`;
+        }
+
+        const extraIds = [];
+        if (data.hip) extraIds.push(`HIP ${data.hip}`);
+        if (data.hd) extraIds.push(`HD ${data.hd}`);
+        if (data.hr) extraIds.push(`HR ${data.hr}`);
+        if (data.gl) extraIds.push(`GL ${data.gl}`);
+
+        const pinText = data.isPinned ? 'UNPIN STAR' : 'PIN STAR';
+        const pinColor = data.isPinned ? '#00ff00' : '#ffcc00';
+
+        this.telemetryDataEl.innerHTML = `
+            <p style="color: #ffcc00; font-weight: bold;">STAR: ${this._escapeHtml(displayName.toUpperCase())}</p>
+            <p style="color:#00aaff;">BACKGROUND STAR FIELD</p>
+            <p>SPECTRAL CLASS: <span style="color:#fff">${starClass}</span></p>
+            <p>B−V COLOR INDEX: <span style="color:#fff">${ci}</span></p>
+            <p>DISTANCE: <span style="color:#fff">${distStr}</span></p>
+            ${extraIds.length ? `<p style="margin-top:10px; color:#888;">${extraIds.map(s => this._escapeHtml(s)).join(' · ')}</p>` : ''}
+            <div style="display:flex; gap:5px; margin-top:15px;">
+                <button id="btn-pin-star" class="full-btn" style="border-color: ${pinColor}; color: ${pinColor};">${pinText}</button>
+            </div>
+            <p style="margin-top:14px; font-size:0.72rem; color:#666;">
+                Selection only — no camera lock or zoom.
+            </p>
+        `;
+
+        document.getElementById('btn-pin-star').addEventListener('click', () => {
+            if (this.onPinStarRequested) this.onPinStarRequested(data);
+        });
 
         this.triggerCRTFlash();
     }

@@ -419,6 +419,64 @@ export class Shaders {
         });
     }
 
+    static getStarPickingMaterial() {
+        return new THREE.ShaderMaterial({
+            uniforms: {
+                uTime: { value: 0.0 },
+                uOrigin: { value: new THREE.Vector3(0, 0, 0) },
+                uZoom: { value: 1.0 },
+                uPixelRatio: { value: (typeof window !== 'undefined' ? window.devicePixelRatio : 1) || 1 },
+                uStarProjectionMatrix: { value: new THREE.Matrix4() }
+            },
+            vertexShader: `
+                uniform float uTime;
+                uniform vec3 uOrigin;
+                uniform float uZoom;
+                uniform float uPixelRatio;
+                uniform mat4 uStarProjectionMatrix;
+
+                attribute vec3 velocity;
+                attribute float pickId;
+
+                varying vec3 vPickColor;
+
+                vec3 packId(float id) {
+                    float r = floor(id / 65536.0);
+                    float g = floor((id - r * 65536.0) / 256.0);
+                    float b = id - r * 65536.0 - g * 256.0;
+                    return vec3(r, g, b) / 255.0;
+                }
+
+                void main() {
+                    float years = uTime / 365.25;
+                    vec3 globalPos = position + velocity * years;
+                    vec3 renderPos = globalPos - uOrigin;
+
+                    vec4 mvPosition = viewMatrix * vec4(renderPos, 1.0);
+                    gl_Position = uStarProjectionMatrix * mvPosition;
+
+                    // Larger, zoom-independent floor than the visual dots so
+                    // faint/small stars are still easy to hit with the mouse.
+                    gl_PointSize = clamp(6.0 / max(uZoom, 0.05), 4.0, 10.0) * uPixelRatio;
+
+                    vPickColor = packId(pickId);
+                }
+            `,
+            fragmentShader: `
+                precision highp float;
+                varying vec3 vPickColor;
+
+                void main() {
+                    vec2 coord = gl_PointCoord - vec2(0.5);
+                    if (length(coord) > 0.5) discard;
+                    gl_FragColor = vec4(vPickColor, 1.0);
+                }
+            `,
+            depthTest: false,
+            depthWrite: false
+        });
+    }
+
     static createGroupLabelMat(text, colorHex = '#ffffff', meanA = 2.5) {
         const displayText = text.toUpperCase().replace(/[-_]/g, ' ');
         const size = 512;

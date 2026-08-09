@@ -13,6 +13,7 @@ export class StarLoader {
             const velocities = [];
             const mags = [];
             const cis = [];
+            const pickIds = [];
             const sourceData = [];
 
             const PARSEC_TO_AU = 206264.806;
@@ -55,6 +56,8 @@ export class StarLoader {
                     velocities.push(evx, evy, evz);
                     mags.push(star.mag !== null ? star.mag : 10.0);
                     cis.push(star.ci !== null ? star.ci : 0.0);
+                    // 1-based pick ID (0 is reserved for "no hit" in the picking pass)
+                    pickIds.push(sourceData.length + 1);
                     
                     // 3. Save calculations for CPU Promotion
                     star.engineX = ex; star.engineY = ey; star.engineZ = ez;
@@ -67,6 +70,7 @@ export class StarLoader {
             geometry.setAttribute('velocity', new THREE.Float32BufferAttribute(velocities, 3));
             geometry.setAttribute('mag', new THREE.Float32BufferAttribute(mags, 1));
             geometry.setAttribute('ci', new THREE.Float32BufferAttribute(cis, 1));
+            geometry.setAttribute('pickId', new THREE.Float32BufferAttribute(pickIds, 1));
             
             geometry.userData = { sourceData: sourceData }; 
 

@@ -1,19 +1,37 @@
 import * as THREE from 'three';
 
+const STAR_FAR_PLANE_AU = 1e14;
+
 export class MeasurementManager {
     constructor(scene) {
         this.scene = scene;
         this.activeRulers = [];
         this.currentNodeA = null;
+        this._farCamera = null;
         
-        // Solid white, non-glowing material. 
-        // depthTest: false ensures it renders OVER massive objects like the Sun.
-        this.rulerMaterial = new THREE.LineBasicMaterial({
-            color: 0xffffff,
-            depthTest: false,
-            depthWrite: false,
+        this.rulerMaterial = new THREE.ShaderMaterial({
+            uniforms: {
+                uFarProjectionMatrix: { value: new THREE.Matrix4() },
+                uColor: { value: new THREE.Color(0xffffff) },
+                uOpacity: { value: 0.9 }
+            },
+            vertexShader: `
+                uniform mat4 uFarProjectionMatrix;
+                void main() {
+                    vec4 mvPosition = viewMatrix * modelMatrix * vec4(position, 1.0);
+                    gl_Position = uFarProjectionMatrix * mvPosition;
+                }
+            `,
+            fragmentShader: `
+                uniform vec3 uColor;
+                uniform float uOpacity;
+                void main() {
+                    gl_FragColor = vec4(uColor, uOpacity);
+                }
+            `,
             transparent: true,
-            opacity: 0.9
+            depthTest: false,
+            depthWrite: false
         });
 
         this.labelContainer = document.createElement('div');
@@ -30,13 +48,20 @@ export class MeasurementManager {
     }
 
     handleNodeSelection(bodyData, celestialBodies) {
-        const body = celestialBodies.find(b => b.data.name === bodyData.name);
-        if (!body) return;
+        let node;
+
+        if (bodyData.datasetCategory === 'BACKGROUND_STAR') {
+            node = { data: bodyData, isStar: true };
+        } else {
+            const body = celestialBodies.find(b => b.data.name === bodyData.name);
+            if (!body) return;
+            node = body;
+        }
 
         if (!this.currentNodeA) {
-            this.currentNodeA = body;
+            this.currentNodeA = node;
         } else {
-            this.createRuler(this.currentNodeA, body);
+            this.createRuler(this.currentNodeA, node);
             this.currentNodeA = null; 
         }
     }
@@ -81,8 +106,30 @@ export class MeasurementManager {
         }
     }
 
-    update(camera) {
+    // Returns a render-space (floating-origin-relative) position for a node,
+    // whether it's a regular celestialBody (mesh.position, already kept
+    // up to date by the physics/floating-origin pipeline) or a star (no
+    // mesh -- position + velocity * years, same math the star shaders use).
+    _getNodePosition(node, currentOrigin, daysSinceJ2000) {
+        if (node.isStar) {
+            const d = node.data;
+            const years = daysSinceJ2000 / 365.25;
+            const wx = (d.engineX || 0) + (d.engineVx || 0) * years;
+            const wy = (d.engineY || 0) + (d.engineVy || 0) * years;
+            const wz = (d.engineZ || 0) + (d.engineVz || 0) * years;
+            return new THREE.Vector3(wx, wy, wz).sub(currentOrigin);
+        }
+        return node.mesh.position;
+    }
+
+    update(camera, currentOrigin = new THREE.Vector3(), daysSinceJ2000 = 0) {
         if (this.activeRulers.length === 0) return;
+
+        if (!this._farCamera) this._farCamera = camera.clone();
+        this._farCamera.copy(camera);
+        this._farCamera.far = STAR_FAR_PLANE_AU;
+        this._farCamera.updateProjectionMatrix();
+        this.rulerMaterial.uniforms.uFarProjectionMatrix.value.copy(this._farCamera.projectionMatrix);
 
         const tempVec = new THREE.Vector3();
         const lineDir = new THREE.Vector3();
@@ -90,8 +137,8 @@ export class MeasurementManager {
         const perp = new THREE.Vector3();
 
         for (const ruler of this.activeRulers) {
-            const posA = ruler.bodyA.mesh.position;
-            const posB = ruler.bodyB.mesh.position;
+            const posA = this._getNodePosition(ruler.bodyA, currentOrigin, daysSinceJ2000);
+            const posB = this._getNodePosition(ruler.bodyB, currentOrigin, daysSinceJ2000);
             
             const points = [posA.x, posA.y, posA.z, posB.x, posB.y, posB.z];
 
@@ -121,7 +168,7 @@ export class MeasurementManager {
             // Pass the native AU 3D distance into our revised formatter
             ruler.label.innerText = this.formatDistance(dist);
 
-            tempVec.copy(midPoint).project(camera);
+            tempVec.copy(midPoint).project(this._farCamera);
             if (tempVec.z > 1.0) {
                 ruler.label.style.display = 'none';
             } else {

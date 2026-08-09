@@ -13,6 +13,7 @@ import { StorageManager } from './storage.js';
 import { ZoomRulerManager } from './ZoomRulerManager.js';
 import { MeasurementManager } from './MeasurementManager.js';
 import { StarLoader } from './StarLoader.js';
+import { PinnedStarManager } from './PinnedStarManager.js';
 
 import * as THREE from 'three'
 
@@ -116,13 +117,23 @@ const systemBuilder = new SystemBuilder({
 });
 
 const interactionController = new InteractionController({
-    camera, controls, frustumSize, pickableObjects, UI,
+    camera, controls, frustumSize, pickableObjects, gpuParticleSystems, UI, renderer,
+    getCurrentOrigin: () => currentOrigin,
+    getDaysSinceJ2000: () => PhysicsEngine.getJ2000Days(systemDate),
     getCurrentTarget: () => currentTargetData,
-    onBodyClicked: (data, isHardLock) => { 
+    onBodyClicked: (data, isHardLock) => {
+        if (data && data.datasetCategory === 'BACKGROUND_STAR') {
+            if (UI.isMeasureMode) {
+                measurementManager.handleNodeSelection(data, celestialBodies);
+            } else {
+                UI.showStarSelection(data);
+            }
+            return;
+        }
         if (UI.isMeasureMode) {
             measurementManager.handleNodeSelection(data, celestialBodies);
         } else {
-            UI.onFocusBody(data, isHardLock); 
+            UI.onFocusBody(data, isHardLock);
         }
     },
     onTrackingBroken: () => { trackingTargetData = null; },
@@ -152,6 +163,8 @@ const zoomRuler = new ZoomRulerManager({
     camera: sceneManager.camera,
     controls: sceneManager.controls
 });
+
+const pinnedStarManager = new PinnedStarManager();
 
 // --- UI CALLBACKS ---
 UI.onTimeChanged = (date) => { systemDate = date; };
@@ -243,6 +256,10 @@ UI.onDatasetColorChanged = (datasetName, colorHex) => {
 
 
 UI.onFocusBody = (data, isHardLock = true) => {
+    if (data && data.datasetCategory === 'BACKGROUND_STAR') {
+        UI.showStarSelection(data);
+        return;
+    }
     if (data.datasetCategory === 'ASTEROID' || data.datasetCategory === 'RADAR_CONTACT') {
         systemBuilder.promoteAsteroidToCPU(data);
         data = celestialBodies.find(b => b.data.name === data.name && b.data.datasetCategory === 'PROMOTED_ASTEROID').data;
@@ -288,6 +305,11 @@ UI.onPurgeRequested = (data) => {
     UI.updateTargetPanel(null);
     UI.renderBodyList(celestialBodies, currentTargetData);
 };
+UI.onPinStarRequested = (data) => {
+    pinnedStarManager.toggle(data);
+    UI.showStarSelection(data); // refresh panel so the button flips PIN/UNPIN
+};
+
 UI.onAsteroidLookup = async (rawQuery) => {
     if (lookupInFlight) return;
     const query = rawQuery.trim();
@@ -586,7 +608,10 @@ function animate() {
     // 5. Dual-Grid Architecture Logic
     updateDualGridsStage(celestialBodies, currentTargetData, gridPlane, equatorialGridPlane, equatorialMaterial, camera);
     
-    measurementManager.update(camera);
+    measurementManager.update(camera, currentOrigin, daysSinceJ2000);
+    
+    // 5b. Pinned Star Labels (persist regardless of hover)
+    pinnedStarManager.update(camera, currentOrigin, daysSinceJ2000);
     
     // 6. Final GPU Updates
     executeFinalRenderStage(renderPipeline, renderer, scene, camera, daysSinceJ2000, currentOrigin, gridPlane);

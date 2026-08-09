@@ -53,6 +53,7 @@ export class UIController {
         this.onPurgeRequested = null;
         this.onScanRequested = null;
         this.onAsteroidLookup = null;
+        this.onPinStarRequested = null;
 
         // Route internal manager events to UIController callbacks
         this.bodyListManager.onFocusBody = (data) => { if (this.onFocusBody) this.onFocusBody(data); };
@@ -62,6 +63,7 @@ export class UIController {
         this.telemetryManager.onPinRequested = (data) => { if (this.onPinRequested) this.onPinRequested(data); };
         this.telemetryManager.onPurgeRequested = (data) => { if (this.onPurgeRequested) this.onPurgeRequested(data); };
         this.telemetryManager.onFocusBody = (data) => { if (this.onFocusBody) this.onFocusBody(data); };
+        this.telemetryManager.onPinStarRequested = (data) => { if (this.onPinStarRequested) this.onPinStarRequested(data); };
 
         this.visibilityTreeManager.onDatasetVisibilityChanged = async (name, state, urls) => {
             if (this.onDatasetVisibilityChanged) await this.onDatasetVisibilityChanged(name, state, urls);
@@ -238,6 +240,10 @@ export class UIController {
 
     showLookupNotFound(query) {
         this.telemetryManager.showLookupNotFound(query);
+    }
+
+    showStarSelection(data) {
+        this.telemetryManager.showStarSelection(data);
     }
 
     getMoonFilters() {
