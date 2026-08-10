@@ -1,0 +1,12 @@
+{
+  "EARTH": {
+    "url": "data/heightmaps/earth/global_rg.png",
+    "elevMin": -450,
+    "elevMax": 6800
+  },
+  "MOON": {
+    "url": "data/heightmaps/moon/global_rg.png",
+    "elevMin": -9200,
+    "elevMax": 10900
+  }
+}

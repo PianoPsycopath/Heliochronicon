@@ -15,7 +15,8 @@ export class RenderPipeline {
         this.UI = ctx.UI;
         this.savedColors = ctx.savedColors;
         this.MAX_WELLS = ctx.MAX_WELLS;
-
+        this.terrainController = ctx.terrainController;
+        
         // Visual Pipeline Constants
         this.PLANET_SPRITE_SIZE = 4.5;
         this.MOON_SPRITE_SIZE = 2.5;
@@ -178,6 +179,7 @@ export class RenderPipeline {
             const isMeshBigger = meshVisSize >= baseSize;
             
             b.mesh.visible = isMeshBigger; 
+            this.terrainController.onMeshVisibilityChange(b, isMeshBigger);
             b.sprite.visible = !isOccluded && !isMeshBigger; 
             
             b.orbitLine.position.copy(b.parentPos.clone().sub(currentOrigin));

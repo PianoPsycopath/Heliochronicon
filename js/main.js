@@ -14,6 +14,7 @@ import { ZoomRulerManager } from './ZoomRulerManager.js';
 import { MeasurementManager } from './MeasurementManager.js';
 import { StarLoader } from './StarLoader.js';
 import { PinnedStarManager } from './PinnedStarManager.js';
+import { TerrainController } from './TerrainController.js';
 
 import * as THREE from 'three'
 
@@ -140,8 +141,9 @@ const interactionController = new InteractionController({
     onBodyHovered: (data) => { previewTargetData = data; }
 });
 
+const terrainController = new TerrainController({ celestialBodies });
 const renderPipeline = new RenderPipeline({
-    camera, controls, gridMaterial, gpuParticleSystems, UI, savedColors, MAX_WELLS
+    camera, controls, gridMaterial, gpuParticleSystems, UI, savedColors, MAX_WELLS, terrainController
 });
 
 const tacticalScanner = new TacticalScanner({

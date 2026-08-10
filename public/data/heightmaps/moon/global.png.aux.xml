@@ -1,0 +1,11 @@
+<PAMDataset>
+  <Metadata>
+    <MDI key="TIFFTAG_DATETIME">2019:06:04 16:14:16</MDI>
+    <MDI key="TIFFTAG_DOCUMENTNAME">/svs/frames/etwright/moon3dkit/ldem_16_uint.tif</MDI>
+    <MDI key="TIFFTAG_IMAGEDESCRIPTION">IDL TIFF file</MDI>
+    <MDI key="TIFFTAG_RESOLUTIONUNIT">2 (pixels/inch)</MDI>
+    <MDI key="TIFFTAG_SOFTWARE">IDL 8.7.2, Harris Geospatial Solutions, Inc.</MDI>
+    <MDI key="TIFFTAG_XRESOLUTION">100</MDI>
+    <MDI key="TIFFTAG_YRESOLUTION">100</MDI>
+  </Metadata>
+</PAMDataset>
