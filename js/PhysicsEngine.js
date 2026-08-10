@@ -72,7 +72,7 @@ export class PhysicsEngine {
                 const pBody = celestialBodies.find(x => x.data.name === d.parent);
                 if (pBody) {
                     parentPos = pBody.globalPos.clone();
-                    parentQuat = pBody.poleQuaternion.clone();
+                    parentQuat = b.poleQuaternion.clone();
                     b.localPos.applyQuaternion(parentQuat);
                 }
             }
