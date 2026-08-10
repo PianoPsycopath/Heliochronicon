@@ -95,6 +95,10 @@ export class UIController {
         this.isMeasureMode = false;
         this.onMeasureModeChanged = null;
 
+        this.btnDaylightToggle = document.getElementById('btn-daylight-toggle');
+        this.isDaylightEnabled = true;
+        this.onDaylightToggleChanged = null;
+
         const applyManualTime = () => {
             const parsed = new Date(this.timeInput.value + "Z");
             if (!isNaN(parsed) && this.onTimeChanged) {
@@ -167,6 +171,35 @@ export class UIController {
                     this.onMeasureModeChanged(this.isMeasureMode);
                 }
             });
+        }
+
+        if (this.btnDaylightToggle) {
+            this.btnDaylightToggle.addEventListener('click', () => {
+                this.isDaylightEnabled = !this.isDaylightEnabled;
+                this.btnDaylightToggle.classList.toggle('active', this.isDaylightEnabled);
+
+                if (this.onDaylightToggleChanged) {
+                    this.onDaylightToggleChanged(this.isDaylightEnabled);
+                }
+            });
+        }
+
+        if (this.btnMeasure && this.btnDaylightToggle) {
+            const bottomDeck = document.getElementById('bottom-deck');
+            const syncToggleLayout = () => {
+                const measureRect = this.btnMeasure.getBoundingClientRect();
+                if (measureRect.height > 0) {
+                    this.btnDaylightToggle.style.height = `${measureRect.height}px`;
+                    this.btnDaylightToggle.style.width = `${measureRect.height}px`;
+                }
+                if (bottomDeck) {
+                    const deckRect = bottomDeck.getBoundingClientRect();
+                    const gap = measureRect.left - deckRect.left;
+                    if (gap > 0) this.btnDaylightToggle.style.marginLeft = `${gap}px`;
+                }
+            };
+            syncToggleLayout();
+            window.addEventListener('resize', syncToggleLayout);
         }
 
         // --- PURGE SYSTEM MEMORY ---

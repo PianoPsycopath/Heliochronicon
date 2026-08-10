@@ -16,6 +16,7 @@ export class RenderPipeline {
         this.savedColors = ctx.savedColors;
         this.MAX_WELLS = ctx.MAX_WELLS;
         this.terrainController = ctx.terrainController;
+        this.daylightController = ctx.daylightController;
         
         // Visual Pipeline Constants
         this.PLANET_SPRITE_SIZE = 4.5;
@@ -43,6 +44,7 @@ export class RenderPipeline {
         if (b.orbitLine && b.orbitLine.visible) b.orbitLine.visible = false;
         if (b.orbitCurtain && b.orbitCurtain.visible) b.orbitCurtain.visible = false;
         if (b.label && b.label.style.display !== 'none') b.label.style.display = 'none';
+        if (this.daylightController) this.daylightController.onMeshVisibilityChange(b, false);
     }
 
     processFloatingOrigin(celestialBodies, trackingTargetData, currentOrigin, daysSinceJ2000) {
@@ -180,6 +182,10 @@ export class RenderPipeline {
             
             b.mesh.visible = isMeshBigger; 
             this.terrainController.onMeshVisibilityChange(b, isMeshBigger);
+            if (this.daylightController) {
+                this.daylightController.onMeshVisibilityChange(b, isMeshBigger);
+                if (isMeshBigger) this.daylightController.updateForBody(b);
+            }
             b.sprite.visible = !isOccluded && !isMeshBigger; 
             
             b.orbitLine.position.copy(b.parentPos.clone().sub(currentOrigin));

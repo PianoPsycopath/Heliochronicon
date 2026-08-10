@@ -15,6 +15,7 @@ import { MeasurementManager } from './MeasurementManager.js';
 import { StarLoader } from './StarLoader.js';
 import { PinnedStarManager } from './PinnedStarManager.js';
 import { TerrainController } from './TerrainController.js';
+import { DaylightController } from './DaylightController.js';
 
 import * as THREE from 'three'
 
@@ -142,8 +143,9 @@ const interactionController = new InteractionController({
 });
 
 const terrainController = new TerrainController({ celestialBodies });
+const daylightController = new DaylightController({ scene, celestialBodies });
 const renderPipeline = new RenderPipeline({
-    camera, controls, gridMaterial, gpuParticleSystems, UI, savedColors, MAX_WELLS, terrainController
+    camera, controls, gridMaterial, gpuParticleSystems, UI, savedColors, MAX_WELLS, terrainController, daylightController
 });
 
 const tacticalScanner = new TacticalScanner({
@@ -211,6 +213,7 @@ UI.onDatasetVisibilityChanged = async (datasetName, isVisible, urls) => {
                 if (b.orbitLine) scene.remove(b.orbitLine);
                 if (b.orbitCurtain) scene.remove(b.orbitCurtain);
                 if (b.label && b.label.parentNode) b.label.parentNode.removeChild(b.label);
+                daylightController.removeBody(b.data.name);
                 
                 let pIdx = pickableObjects.indexOf(b.mesh);
                 if (pIdx > -1) pickableObjects.splice(pIdx, 1);
@@ -292,6 +295,7 @@ UI.onPurgeRequested = (data) => {
         scene.remove(b.orbitLine);
         scene.remove(b.orbitCurtain);
         if (b.label && b.label.parentNode) b.label.parentNode.removeChild(b.label);
+        daylightController.removeBody(b.data.name);
         
         let pIdx = pickableObjects.indexOf(b.mesh);
         if (pIdx > -1) pickableObjects.splice(pIdx, 1);
@@ -370,6 +374,10 @@ UI.onMeasureModeChanged = (isActive) => {
         // Clear all active rulers and the pending node when untoggled
         measurementManager.breakCycleAndClear();
     }
+};
+
+UI.onDaylightToggleChanged = (isEnabled) => {
+    daylightController.setEnabled(isEnabled);
 };
 // ==========================================
 // BACKGROUND STAR FIELD (GPU PARTICLES)
