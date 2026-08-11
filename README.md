@@ -51,7 +51,7 @@ Bring your own orbital elements via CSV and load them in place of the default da
 
 *Satellite orbit viewer*
 
-<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/7c6beea1-2a8f-4b1f-aa75-1d1a725f9386" />
+<img width="1920" height="1080" alt="stellarmotion" src="https://github.com/user-attachments/assets/419cf94f-7fff-43f0-8076-5acaae7b1a68" />
 
 *Stellar motion with measurements*
 
