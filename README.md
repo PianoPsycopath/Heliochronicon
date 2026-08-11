@@ -55,13 +55,29 @@ Bring your own orbital elements via CSV and load them in place of the default da
 
 *Stellar motion with measurements*
 
-<img width="1920" height="1080" alt="lunareclipse" src="https://github.com/user-attachments/assets/224c7048-7ab3-43d1-886d-3039352dd6ff" />
-
-*Lunar Eclipse with umbra and penumbra*
-
-<img width="1920" height="1080" alt="solareclipse" src="https://github.com/user-attachments/assets/cc0258dd-4dc5-4002-b3fd-381eea9dbb2b" />
-
-*Annular Solar Eclipse*
+**Eclipses**
+<table width="100%">
+  <tr>
+    <td width="50%" align="center">
+      <img src="https://github.com/user-attachments/assets/cc0258dd-4dc5-4002-b3fd-381eea9dbb2b" width="100%" alt="Solar Eclipse 1"><br>
+      <em>Solar Eclipse</em>
+    </td>
+    <td width="50%" align="center">
+      <img src="https://github.com/user-attachments/assets/224c7048-7ab3-43d1-886d-3039352dd6ff" width="100%" alt="Solar Eclipse 2"><br>
+      <em>Lunar Eclipse</em>
+    </td>
+  </tr>
+  <tr>
+    <td width="50%" align="center">
+      <img src="https://github.com/user-attachments/assets/1141afb8-ee9e-4a09-af34-e4f55cec7b0a" width="100%" alt="Solar Eclipse 3"><br>
+      <em>Ganymede's Shadow catches up with Callisto's</em>
+    </td>
+    <td width="50%" align="center">
+      <img src="https://github.com/user-attachments/assets/68e46c5d-77cb-43fc-822c-83b0899ff3a6" width="100%" alt="Solar Eclipse 4"><br>
+      <em>Solar Eclipse near South America</em>
+    </td>
+  </tr>
+</table>
 
 ## Technical Highlights
 
