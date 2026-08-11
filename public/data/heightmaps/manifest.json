@@ -8,5 +8,10 @@
     "url": "data/heightmaps/moon/global_rg.png",
     "elevMin": -9200,
     "elevMax": 10900
+  },
+  "JUPITER": {
+    "url": "data/heightmaps/jupiter/global_rg.png",
+    "elevMin": 0,
+    "elevMax": 255
   }
 }
