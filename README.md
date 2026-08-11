@@ -73,11 +73,12 @@ Bring your own orbital elements via CSV and load them in place of the default da
       <em>Ganymede's Shadow catches up with Callisto's</em>
     </td>
     <td width="50%" align="center">
-      <img src="https://github.com/user-attachments/assets/68e46c5d-77cb-43fc-822c-83b0899ff3a6" width="100%" alt="Solar Eclipse 4"><br>
-      <em>Solar Eclipse near South America</em>
+      <img src="https://github.com/user-attachments/assets/ccee5a3e-74bd-45a6-b3fc-2bd4875eb000"><br>
+      <em>Solar Eclipse August 12th 2026 [Saros 126 (48 of 72)]</em>
     </td>
   </tr>
 </table>
+
 
 ## Technical Highlights
 
