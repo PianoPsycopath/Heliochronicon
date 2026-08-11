@@ -5,24 +5,42 @@ between modules, and the current known debt. It exists so that contributors (inc
 future maintainers) don't have to reverse-engineer the system from `main.js`, and so future
 changes have a documented baseline to check against.
 
-Last verified against the main branch (August 07 2026).
+**Last verified against the main branch: August 11 2026.**
 
 ## 1. What the system does
 
 Heliochronicon renders a real-time (or time-scrubbed) 3D model of the solar system, plus
-millions of asteroids, using precalculated JPL orbital elements and pure two-body Keplerian
-propagation. There is no N-body integration at runtime.
+millions of asteroids and a background star field, using precalculated JPL orbital elements
+and a mix of propagation models:
 
-**Known accuracy limitation:** each body uses a single, fixed-epoch element set with no
-secular perturbation terms applied post-epoch, so propagated positions are reliable for
-roughly plus or minus 40 years around the element epoch (an 80-year window total) and degrade
-outside it. This is a deliberate scope decision, not a bug. Generating multi-epoch element
-sets so the app could pick the closest epoch to the current sim date would remove this
-limitation, but that work has not been started.
+- **Default / most bodies:** pure two-body Keplerian propagation from a single fixed-epoch
+  element set.
+- **Selected high-value bodies:** analytic models (`orbit_model: "VSOP87"` for major planets,
+  `orbit_model: "MEEUS"` for the Moon) with optional Earth–Moon barycenter correction.
+
+There is **no N-body integration at runtime**.
+
+**Known accuracy limitation (Kepler path):** each body uses a single, fixed-epoch element set
+with no secular perturbation terms applied post-epoch. Propagated positions are reliable for
+roughly ±40 years around the element epoch (an 80-year window) and degrade outside it. This
+is a deliberate scope decision. Multi-epoch element sets (pick closest epoch to sim date)
+would remove the limitation; that work has not started. Earth Moon has solved this using 
+VSOP87 and Meeus algorithm which now has within 1 arcsecond of a window of 6thousand years
+
+Additional runtime features that affect architecture:
+
+- Planetary surface heightmaps (Earth, Moon, Jupiter initially) via `TerrainController`.
+- Day/night shading and multi-body eclipse/umbra–penumbra overlays via `DaylightController`
+  + `EclipseEngine` / `EclipseShadowController`.
+- GPU-instanced background star field with proper motion (`StarLoader` + custom star shader).
+- Spatial measurement tools and a dynamic zoom ruler.
+- Tactical scanning that can promote GPU asteroids to full CPU `CelestialBody` instances.
+
+---
 
 ## 2. Runtime model: Vite + ES modules
 
-The app is built with **Vite**. Every file under `js/` is an ES module (`export class ...` /
+The app is built with **Vite**. Every file under `js/` is an ES module (`export class …` /
 named exports) with real `import` statements. There is no reliance on `<script>` tag load
 order.
 
@@ -35,21 +53,22 @@ order.
 - **Dev:** `npm run dev` (Vite dev server with HMR).
 - **Prod:** `npm run build` produces static assets in `dist/`; Vercel deploys from that
   output.
-- **Tooling:** ESLint and Prettier for JS; Vitest for unit testing pure modules. CI
-  (`.github/workflows/ci.yml`) runs two jobs in parallel: a JS job (`npm ci`, `npm run lint`,
-  `npm test`, `npm run build`) and a Python job (`pip install -e ".[dev]"`, `ruff check .`,
-  `black --check .`, `pytest`).
-- No TypeScript is in use. `package.json` has no TS devDependencies; the stack is Vite plus
-  plain JS. A full TS migration remains a candidate for future work.
+- **Tooling:** ESLint + Prettier for JS; Vitest for unit testing pure modules. CI
+  (`.github/workflows/ci.yml`) runs two jobs in parallel:
+  - JS: `npm ci` → `npm run lint` → `npm test` → `npm run build`
+  - Python: `pip install -e ".[dev]"` → `ruff check .` → `black --check .` → `pytest`
+- No TypeScript is in use. A full TS migration remains paused.
 
-`main.js` is the composition root: it imports every subsystem, instantiates them, and wires
-them together. Missing or circular imports fail at build/dev time instead of surfacing as a
-silent runtime `ReferenceError`.
+`main.js` is the **composition root**: it imports every subsystem, instantiates them, and
+wires them together with a plain context object (`ctx`). Missing or circular imports fail 
+at build/dev time instead of surfacing as asilent runtime `ReferenceError`.
+
+---
 
 ## 3. Composition pattern: manual context-object DI
 
-Instead of subsystem classes reaching into globals directly, `main.js` passes each subsystem
-a plain `ctx` object of references and callbacks at construction time:
+Instead of subsystem classes reaching into globals, `main.js` passes each subsystem a plain
+`ctx` object of references and callbacks at construction time:
 
 ```js
 const systemBuilder = new SystemBuilder({
@@ -59,141 +78,263 @@ const systemBuilder = new SystemBuilder({
 });
 ```
 
-This is manual dependency injection, and it's a good pattern to preserve: subsystems are
-unit-testable in principle, since a class only needs a fake `ctx`, not a real DOM or scene.
-Core math modules like `OrbitalMath` are fully decoupled from the DOM and Three.js (returning
-plain `{x, y, z}` objects), which is what allows them to be tested in isolation.
+This is manual dependency injection. Subsystems are unit-testable in principle (a class only
+needs a fake `ctx`). Core math modules (`OrbitalMath`, `EclipseEngine` pure helpers,
+`MeeusMoon`, `VSOP87`) are fully decoupled from the DOM and Three.js where practical,
+returning plain objects or numbers.
+
+**Preserve this pattern.** New subsystems must receive everything they need through `ctx`
+(or pure function arguments). Do not introduce module-level mutable globals.
+
+---
 
 ## 4. Where state actually lives
 
 `main.js` owns all mutable application state as top-level `let`/`const` bindings.
-Everything else reaches it only through the `ctx` callbacks and getters described above:
+Everything else reaches it only through the `ctx` callbacks and getters:
 
-| State | Owner | Read by |
+| State | Owner | Read / mutated by |
 |---|---|---|
-| `celestialBodies[]` | main.js | SystemBuilder, PhysicsEngine, RenderPipeline, TacticalScanner, InteractionController |
+| `celestialBodies[]` | main.js | SystemBuilder, PhysicsEngine, RenderPipeline, TacticalScanner, InteractionController, Terrain/Daylight/Eclipse controllers, MeasurementManager |
 | `pickableObjects[]` | main.js | SystemBuilder, InteractionController, TacticalScanner |
-| `gpuParticleSystems[]` | main.js | SystemBuilder, RenderPipeline, TacticalScanner |
-| `currentTargetData` / `trackingTargetData` | main.js | nearly everything, via `getCurrentTarget()` |
-| `systemDate`, `currentOrigin` | main.js | PhysicsEngine, RenderPipeline, TacticalScanner |
-| `activeDatasets` (Set) | main.js closure | only main.js |
-| `savedColors` (`tacticalMapColors`) | main.js, persisted via `StorageManager` (`js/storage.js`) | SystemBuilder, RenderPipeline, TacticalScanner |
-| `DATA_BASE_PATH` (which dataset directory to boot from) | main.js, persisted via raw `localStorage`, not `StorageManager`; see §7 | DataLoader, indirectly, via fetch URLs built in main.js |
+| `gpuParticleSystems[]` | main.js | SystemBuilder, RenderPipeline, TacticalScanner, StarLoader (star field) |
+| `currentTargetData` / `trackingTargetData` / `previewTargetData` | main.js | nearly everything, via getters / callbacks |
+| `systemDate`, `currentOrigin` | main.js | PhysicsEngine, RenderPipeline, TacticalScanner, MeasurementManager, PinnedStarManager |
+| `activeDatasets` (Set) | main.js closure | only main.js (visibility toggle handler) |
+| `savedColors` (`tacticalMapColors`) | main.js, persisted via `StorageManager` | SystemBuilder, RenderPipeline, TacticalScanner |
+| `DATA_BASE_PATH` | main.js, persisted via `StorageManager` (`heliochronicon_dataSourcePath`) | DataLoader (indirectly, via URLs built in main.js) |
+| `assetManifest` | main.js | deep asteroid lookup, boot |
+| `starFieldMaterial` | main.js | final render stage (far-plane projection hack) |
 
-There is no formal store or reducer; state changes happen by direct mutation of shared
-arrays and objects, coordinated by callback wiring in `main.js`. The correctness of the app
-depends on every subsystem mutating the shared `celestialBodies` array in a consistent
-order. This execution order is formalized as a "frame pipeline" of named, testable stages
-inside `animate()` (`js/main.js`): time update, physics, hardware/camera/telemetry update,
-render pre-pass (projection and culling), dual-grid logic, then final GPU update and render.
+There is **no formal store or reducer**. State changes happen by direct mutation of shared
+arrays and objects, coordinated by callback wiring in `main.js`. Correctness depends on
+every subsystem mutating `celestialBodies` (and related lists) in a consistent order.
+
+### Frame pipeline (`animate()`)
+
+Execution order is formalized as named, testable stages inside `animate()`:
+
+1. **Time update** — `updateSystemTimeStage` (throttle → new `systemDate` + J2000 days)
+2. **Physics** — `runPhysicsStage` (positions, poles, floating origin, culling inputs)
+3. **Hardware / camera / telemetry** — `updateHardwareStage`
+4. **Render pre-pass** — `runRenderPrePassStage` (screen projection, culling, label decisions;
+   also drives terrain/daylight/eclipse visibility hooks)
+5. **Dual-grid logic** — `updateDualGridsStage` (ecliptic + targeted equatorial)
+6. **Measurement + pinned-star labels** — `measurementManager.update`, `pinnedStarManager.update`
+7. **Final GPU update + render** — `executeFinalRenderStage` (incl. star-field far projection)
+
 Each stage is a standalone function taking explicit arguments rather than closing over
-`main.js` globals.
+`main.js` globals where practical. See also the planned sequence diagrams under `docs/`.
+
+---
 
 ## 5. The body object: an enforced schema
 
 Every entry in `celestialBodies[]` is an instance of the `CelestialBody` class
-(`js/CelestialBody.js`), constructed at exactly three call sites:
-`SystemBuilder.buildSolarSystem`, `SystemBuilder.promoteAsteroidToCPU`, and
-`TacticalScanner.performTacticalScan`. This guarantees that whether a body is a primary
-planet, a moon, a user-promoted asteroid, or a transient radar contact, it adheres to the
-same structural schema, and that all math and unit conversions (like `kmToAU`, centralized
-in `OrbitalMath.js`) happen in exactly one place.
+(`js/CelestialBody.js`), constructed at the factory call sites in:
 
-```ts
-// js/CelestialBody.js
+- `SystemBuilder.buildSolarSystem`
+- `SystemBuilder.promoteAsteroidToCPU`
+- `TacticalScanner.performTacticalScan` (and related promote paths)
+
+Do not construct body object literals elsewhere; extend the factory instead.
+
+```js
+// js/CelestialBody.js (conceptual shape)
 class CelestialBody {
-  data: PlanetaryElement;       // parsed orbital elements and metadata, see §5.1
-  isMoon: boolean;
-  mesh: THREE.Mesh | null;
-  sprite: THREE.Sprite | null;
-  orbitLine: THREE.Line | null;
-  orbitCurtain: THREE.LineSegments | null;
-  label: HTMLDivElement | null;
-  datasetVisible: boolean;
-  isCulled: boolean;
-  hideLabel: boolean;
-  globalPos: THREE.Vector3;     // set per frame by PhysicsEngine
-  renderPos: THREE.Vector3;     // globalPos minus the floating origin; set per frame by RenderPipeline
-  parentPos: THREE.Vector3;
-  W_current: number;
-  poleQuaternion: THREE.Quaternion;
-  scaledA: number;              // semi-major axis, AU
-  physicalRadius: number;       // AU
+  data;                 // PlanetaryElement (see §5.1)
+  isMoon;
+  mesh;                 // THREE.Mesh | null
+  sprite;               // THREE.Sprite | null
+  orbitLine;            // THREE.Line | null
+  orbitCurtain;         // THREE.LineSegments | null
+  label;                // HTMLDivElement | null
+  datasetVisible;
+  isCulled;
+  hideLabel;
+  globalPos;            // THREE.Vector3 — set per frame by PhysicsEngine
+  renderPos;            // globalPos − floating origin — set per frame by RenderPipeline
+  parentPos;
+  W_current;
+  poleQuaternion;
+  scaledA;              // semi-major axis, AU
+  physicalRadius;       // AU
 }
 ```
 
-Three additional fields are attached dynamically, per frame, by `PhysicsEngine` rather than
-initialized in the constructor. They do not exist on a freshly built body until the physics
-stage has run once: `localPos` (position before parent offset is applied), `parentQuat`
-(the cached parent pole quaternion, also read by `RenderPipeline` to orient moon orbit
-lines), and `distToCamSq` (used for camera-distance sort and cull ordering).
+Additional per-frame fields attached by `PhysicsEngine` / `RenderPipeline` (not necessarily
+present on a freshly constructed body): `localPos`, `parentQuat`, `distToCamSq`,
+`RA_current_deg`, `DEC_current_deg`, etc.
 
 ### 5.1 The `PlanetaryElement` shape (output of `DataLoader.processPlanetaryData`)
 
-```ts
-interface PlanetaryElement {
-  name: string; parent: string;
-  a: number; e: number; i: number; w: number; Node: number; M0: number; // radians, AU
-  period: number; n: number;    // mean motion, rad/day
-  mass: number; radius_km: number; symbol: string;
-  pole_ra: number; pole_dec: number; pole_ra_rate: number; pole_dec_rate: number;
-  pm_w: number; pm_w_rate: number;
-  datasetName: string; datasetCategory: 'PLANET' | 'MOON' | 'ASTEROID';
-  isTargetable: true;
+```js
+// Conceptual — see JSDoc @typedefs in DataLoader / CelestialBody
+{
+  name, parent, category,           // category ≈ PLANET | MOON | ASTEROID | ...
+  orbit_model,                      // "KEPLER" (default) | "VSOP87" | "MEEUS"
+  a, e, i, w, Node, M0,             // radians / AU as appropriate
+  period, n,                        // mean motion rad/day
+  mass, radius_km, symbol,
+  pole_ra, pole_dec, pole_ra_rate, pole_dec_rate,
+  pm_w, pm_w_rate,                  // and related rates where present
+  barycenter_model, barycenter_mass_ratio,  // optional Earth–Moon style correction
+  datasetName, datasetCategory,
+  isTargetable, isPinned, ...
 }
 ```
 
+Unit conversions (`kmToAU`, etc.) are centralized in `OrbitalMath.js`. Call that function;
+do not re-implement the constant.
+
+---
+
 ## 6. Data pipeline
 
-**Default, live path:**
-`public/data/planets.json`, `moons.json`, `manifest.json`, and asteroid chunk files are read
-by `DataLoader.fetchJSONDataset`, then parsed by `DataLoader.processPlanetaryData` into
-`PlanetaryElement`s (converting moon `a_km` to AU via the shared `kmToAU`, deriving
-period/mean-motion when missing), then handed to `SystemBuilder.buildSolarSystem`, which
-splits the result into GPU-instanced asteroid particle systems and CPU mesh objects for
-planets and moons.
+### Default (live) path
 
-**Custom-system path:**
-`raw/csv_to_json.py` (pure standard library, no runtime dependencies; dev tooling pinned via
-`pyproject.toml`) converts a user-supplied JPL/Horizons-style CSV into the same chunked JSON
-and manifest shape as the default dataset, written to `raw/json_db/`. Two example inputs
-ship in `raw/`: `atira.csv` and `kerbin_system.csv`.
+`public/data/planets.json`, `moons.json`, `manifest.json`, asteroid chunk files, and
+heightmap assets under `public/data/heightmaps/` are read by `DataLoader.fetchJSONDataset`
+(and `TerrainController` for the heightmap manifest). `DataLoader.processPlanetaryData`
+normalizes into `PlanetaryElement`s (moon `a_km` → AU, period/mean-motion derivation, category
+defaults, `orbit_model` default `"KEPLER"`). `SystemBuilder.buildSolarSystem` then splits the
+result into:
 
-This custom output is directly usable by the live app, not just importable in theory.
-`main.js` reads its data directory from a runtime-configurable `DATA_BASE_PATH` (a
-`?dataSource=` URL param, or a value saved under the key `heliochronicon_dataSourcePath`),
-and exposes `window.switchDataSource(path)` / `window.resetDataSource()` on the browser
-console. A user can point the deployed app at `raw/json_db/`, or any other directory with the
-same shape, and reload to load it. The README documents this workflow under
-"Custom Solar Systems."
+- GPU-instanced particle systems for asteroid populations
+- Full CPU `CelestialBody` meshes for planets, moons, and other primaries
+
+### Custom-system path
+
+`raw/csv_to_json.py` (stdlib only at runtime; dev tooling pinned in `pyproject.toml`) converts
+a user-supplied JPL/Horizons-style CSV into the same chunked JSON + manifest shape, written
+to `raw/json_db/`. Examples: `raw/atira.csv`, `raw/kerbin_system.csv`.
+
+`main.js` reads its data directory from a runtime-configurable `DATA_BASE_PATH`
+(`?dataSource=` URL param or `StorageManager` key `heliochronicon_dataSourcePath`) and
+exposes `window.switchDataSource(path)` / `window.resetDataSource()` on the console.
+
+### Star field path
+
+`public/star_data/` (constellation-chunked JSON + `stars_manifest.json`) is loaded by
+`StarLoader.loadStars`. Stars become a single `THREE.Points` GPU system with positions and
+proper-motion velocities. The material is produced by `Shaders.getStarFieldMaterial()`. A
+far-plane projection hack (`updateStarFieldFarProjection`) temporarily expands `camera.far`
+so stars at interstellar distances still project correctly.
+
+### Heightmap / terrain path
+
+`public/data/heightmaps/manifest.json` maps body names → texture URL + elevation range.
+`TerrainController` lazily loads textures when a mesh becomes visible and swaps materials.
+Missing manifest is non-fatal (terrain simply stays off).
+
+---
 
 ## 7. Module inventory
 
-`UIController.js` is a thin composition and wiring layer (around 240 lines) that
-instantiates and coordinates several single-responsibility modules, wiring their `on*`
-callbacks to what `main.js` expects:
+### Core / composition
 
-- `ChronometerDisplay.js`: the oscilloscope/CRT canvas widget, fully self-contained
-- `TimeThrottle.js`: the time-scale state machine (slider to multiplier/label mapping)
-- `BodyListManager.js`: body-list search, sort, and render
-- `TelemetryManager.js`: target telemetry panel rendering
-- `VisibilityTreeManager.js`: dataset visibility tree and master-toggle logic
-- `storage.js` (`StorageManager`): the `localStorage` abstraction described in §4 and §8
+| Module | Role |
+|---|---|
+| `main.js` | Composition root, state ownership, frame pipeline, boot, dataset visibility/purge |
+| `SceneManager.js` | Canvas, scene, camera, renderer, OrbitControls |
+| `SystemBuilder.js` | Build / clear solar system, promote asteroid to CPU body |
+| `DataLoader.js` | Fetch + normalize planetary / asteroid JSON |
+| `CelestialBody.js` | Enforced body schema / factory |
+| `storage.js` | `StorageManager` — sole `localStorage` access point |
+
+### Physics & math
+
+| Module | Role |
+|---|---|
+| `OrbitalMath.js` | Kepler solver, `calcPosFromM`, `kmToAU`, dispatch to analytic models |
+| `PhysicsEngine.js` | Per-frame position / pole / origin updates |
+| `MeeusMoon.js` | Analytic Moon position |
+| `vsop87.js` | VSOP87 planetary positions |
+| `EclipseEngine.js` | Pure-ish shadow geometry tests (umbra/penumbra) |
+
+### Rendering & visual systems
+
+| Module | Role |
+|---|---|
+| `RenderPipeline.js` | Floating origin, projection, culling, GPU particle updates, coordinates terrain/daylight/eclipse hooks |
+| `Shaders.js` | **Monolithic** shader factory (grids, tactical dots, star field, eclipse overlays, terrain/night-side, etc.) |
+| `TerrainController.js` | Heightmap registry, lazy texture load, material swap |
+| `DaylightController.js` | Day/night / night-side shading |
+| `EclipseShadowController.js` | Per-body eclipse overlay meshes (up to N concurrent shadows) |
+| `StarLoader.js` | Load + build star-field `BufferGeometry` |
+| `PinnedStarManager.js` | Persistent star label pins |
+
+### Interaction & UI
+
+| Module | Role |
+|---|---|
+| `UIController.js` | Thin composition layer (~300 lines) wiring UI modules to `main.js` callbacks |
+| `ChronometerDisplay.js` | CRT / oscilloscope time widget |
+| `TimeThrottle.js` | Time-scale state machine |
+| `BodyListManager.js` | Body list search / sort / render |
+| `TelemetryManager.js` | Target telemetry panel (incl. eclipse readout hooks) |
+| `VisibilityTreeManager.js` | Dataset visibility tree |
+| `InteractionController.js` | Picking, focus, tracking, hover preview |
+| `TacticalScanner.js` | Near-field scan + promote |
+| `MeasurementManager.js` | Spatial measurement tools |
+| `ZoomRulerManager.js` | Dynamic 3D distance ruler |
+| `TutorialManager.js` | First-run tutorial (uses `StorageManager`) |
+
+---
 
 ## 8. Known architectural debt
 
-1. **`localStorage` is referenced from more than one file.** `StorageManager`
-   (`js/storage.js`) exists specifically to keep `localStorage` access in one place and
-   mockable in tests, and `TutorialManager` and the `tacticalMapColors` value both go through
-   it correctly. However, the runtime-switchable data source described in §6 bypasses it:
-   `main.js` makes three direct `localStorage.getItem/setItem/removeItem` calls at the top
-   of the file for `DATA_SOURCE_STORAGE_KEY`. This should be routed through `StorageManager`
-   for consistency and testability.
+1. **Planet / moon duplicate chunks** — `main.js` still carries a TODO:
+   `// TODO: GET RID OF PLANET AND MOON DUPLICATE CHUNKS`. Loading the same body from more
+   than one chunk can produce duplicate entries or wasted work.
+
+2. **`Shaders.js` monolith** (~820 lines) — every shader lives in one class. A
+   `ShaderManager` (or per-feature modules: grid, star, eclipse, terrain, tactical) would
+   improve navigability and allow tree-shaking / lazy creation.
+
+3. **Star-field performance at high zoom / mobile** — the background star map (proper-motion
+   GPU particles + far-plane projection hack) is a known source of lag, especially on mobile
+   when the camera is deep in the interstellar regime. Needs culling, LOD, or density
+   throttling.
+
+4. **No formal store** — shared mutable arrays remain the source of truth. A lightweight
+   registry / event bus (or even a minimal store) for body lifecycle (add / promote / purge /
+   dispose) would reduce duplicated dispose logic across visibility toggles and purge paths.
+
+5. **Body lifecycle / dispose duplication** — purge sequences for meshes, sprites, orbit
+   lines, curtains, labels, daylight/eclipse overlays, and particle systems exist in more
+   than one place. A single `BodyRegistry` or scene-graph service would own add/remove/dispose.
+
+6. **Test coverage lag** — pure orbital math, DataLoader, TimeThrottle, storage, and parts of
+   Physics/Render are covered. Newer systems (EclipseEngine pure helpers, TerrainController
+   decisions, StarLoader parsing, MeasurementManager, promote/purge paths) have little or no
+   automated coverage. An eclipse unit test exists locally but is not yet in the repo.
+
+7. **Large static data in Git** — `public/data` is ~836 MB (asteroid chunks + heightmaps) plus
+   `public/star_data` (~27 MB). Currently required for Vercel-from-GitHub deploys; external
+   object storage remains a future option once notes / full-feature release constraints allow.
+
+8. **`DataLoader` lookup cost** — there is a TODO to move a hot designation-normalization /
+   lookup path into a cheaper structure.
+
+9. **ARCHITECTURE.md / docs lag risk** — this file must be updated whenever the frame
+   pipeline, body schema, or module inventory changes. Sequence diagrams under `docs/` are
+   planned but not yet committed.
+
+---
 
 ## 9. What's out of scope right now
 
-- The single-epoch, plus or minus 40-year accuracy limitation described in §1. This is
-  documented and accepted, not something actively being fixed.
-- Visual and rendering feature work; see the README's own roadmap section for planned
-  features.
-- A full TypeScript migration.
+- The single-epoch ±40-year accuracy limitation on the Kepler path (§1). 
+- Full TypeScript migration.
+- Multi-epoch / N-Raw revival (explicitly deferred; core boundaries are now clean enough to
+  revisit later).
+
+---
+
+## 10. Related documents
+
+- `README.md` — features, limitations summary, install, custom systems, live demo.
+- `CONTRIBUTING.md` — local setup, conventions, CI expectations.
+- `docs/` — planned home for sequence diagrams (frame pipeline, body lifecycle, data load,
+  eclipse/terrain attachment).
