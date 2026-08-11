@@ -29,47 +29,77 @@ export class TelemetryManager {
     }
 
     updateTargetPanel(data) {
-        if (!data || !data.name) {
-            this.currentTargetEl.innerText = "NONE";
-            this.telemetryDataEl.innerHTML = `<p>AWAITING DATA INPUT...</p>`;
-            return;
-        }
+    if (!data || !data.name) {
+        this.currentTargetEl.innerText = "NONE";
+        this.telemetryDataEl.innerHTML = `<p>AWAITING DATA INPUT...</p>`;
+        return;
+    }
 
-        this.currentTargetEl.innerText = data.name.toUpperCase();
-        
-        let actionButtons = '';
-        if (data.datasetCategory === 'PROMOTED_ASTEROID') {
-            const pinText = data.isPinned ? 'PINNED TO CPU' : 'PIN TO CPU';
-            const pinColor = data.isPinned ? '#00ff00' : '#ffcc00';
-            actionButtons = `
-                <div style="display:flex; gap:5px; margin-top:15px;">
-                    <button id="btn-pin" class="full-btn" style="border-color: ${pinColor}; color: ${pinColor};">${pinText}</button>
-                    <button id="btn-purge" class="full-btn" style="border-color: #ff3333; color: #ff3333;">PURGE CLONE</button>
-                </div>
-            `;
-        }
+    this.currentTargetEl.innerText = data.name.toUpperCase();
 
-        this.telemetryDataEl.innerHTML = `
-            <p style="color: #ffcc00; font-weight: bold;">TARGET: ${data.name.toUpperCase()}</p>
-            <p>PARENT: ${data.parent}</p>
-            ${data.a > 0 ? `<p>DIST: ${data.a.toFixed(4)} AU</p><p>PERIOD: ${data.period.toFixed(2)} D</p><p>RADIUS: ${(data.radius_km || 0).toFixed(1)} KM</p>` : `<p>CLASS: ANCHOR STAR</p>`}
-            <p style="color:#00aaff; margin-top: 15px;">J2000 ROTATION TRACKING</p>
-            <p>POLE RA/DEC: <span id="tel-ra" style="color: #fff">${data.pole_ra.toFixed(2)}</span>° / <span id="tel-dec" style="color: #fff">${data.pole_dec.toFixed(2)}</span>°</p>
-            <p>CURRENT ROT (W): <span id="tel-rot" style="color: #fff">0.00</span>°</p>
-            <p>ROTATION RATE: ${data.pm_w_rate.toFixed(2)}° / DAY</p>
-            ${actionButtons}
+    let actionButtons = '';
+    if (data.datasetCategory === 'PROMOTED_ASTEROID') {
+        const pinText = data.isPinned ? 'PINNED TO CPU' : 'PIN TO CPU';
+        const pinColor = data.isPinned ? '#00ff00' : '#ffcc00';
+        actionButtons = `
+            <div style="display:flex; gap:5px; margin-top:15px;">
+                <button id="btn-pin" class="full-btn" style="border-color: ${pinColor}; color: ${pinColor};">${pinText}</button>
+                <button id="btn-purge" class="full-btn" style="border-color: #ff3333; color: #ff3333;">PURGE CLONE</button>
+            </div>
         `;
-        
-        if (data.datasetCategory === 'PROMOTED_ASTEROID') {
-            document.getElementById('btn-pin').addEventListener('click', () => {
-                if (this.onPinRequested) this.onPinRequested(data);
-            });
-            document.getElementById('btn-purge').addEventListener('click', () => {
-                if (this.onPurgeRequested) this.onPurgeRequested(data);
-            });
-        }
+    }
 
-        this.triggerCRTFlash();
+    const canEclipse = data.parent !== data.name;
+    const eclipseSection = canEclipse ? `
+        <div style="display:flex; gap:5px; margin-top:10px;">
+            <button id="btn-eclipse-prev" class="full-btn">◀ PREV ECLIPSE</button>
+            <button id="btn-eclipse-next" class="full-btn">NEXT ECLIPSE ▶</button>
+        </div>
+        <div id="eclipse-result"></div>
+    ` : '';
+
+    this.telemetryDataEl.innerHTML = `
+        <p style="color: #ffcc00; font-weight: bold;">TARGET: ${data.name.toUpperCase()}</p>
+        <p>PARENT: ${data.parent}</p>
+        ${data.a > 0 ? `<p>DIST: ${data.a.toFixed(4)} AU</p><p>PERIOD: ${data.period.toFixed(2)} D</p><p>RADIUS: ${(data.radius_km || 0).toFixed(1)} KM</p>` : `<p>CLASS: ANCHOR STAR</p>`}
+        <p style="color:#00aaff; margin-top: 15px;">J2000 ROTATION TRACKING</p>
+        <p>POLE RA/DEC: <span id="tel-ra" style="color: #fff">${data.pole_ra.toFixed(2)}</span>° / <span id="tel-dec" style="color: #fff">${data.pole_dec.toFixed(2)}</span>°</p>
+        <p>CURRENT ROT (W): <span id="tel-rot" style="color: #fff">0.00</span>°</p>
+        <p>ROTATION RATE: ${data.pm_w_rate.toFixed(2)}° / DAY</p>
+        ${actionButtons}
+        ${eclipseSection}
+    `;
+
+    if (data.datasetCategory === 'PROMOTED_ASTEROID') {
+        document.getElementById('btn-pin').addEventListener('click', () => {
+            if (this.onPinRequested) this.onPinRequested(data);
+        });
+        document.getElementById('btn-purge').addEventListener('click', () => {
+            if (this.onPurgeRequested) this.onPurgeRequested(data);
+        });
+    }
+
+    if (canEclipse) {
+        document.getElementById('btn-eclipse-prev').addEventListener('click', () => {
+            if (this.onEclipseNavRequested) this.onEclipseNavRequested(-1);
+        });
+        document.getElementById('btn-eclipse-next').addEventListener('click', () => {
+            if (this.onEclipseNavRequested) this.onEclipseNavRequested(1);
+        });
+    }
+
+    this.triggerCRTFlash();
+}
+    renderEclipseResult(event) {
+        const box = document.getElementById('eclipse-result');
+        if (!box) return;
+        if (!event) { box.innerHTML = `<p style="color:#ff3333;">NO EVENT FOUND IN RANGE</p>`; return; }
+        const date = new Date(Date.UTC(2000, 0, 1, 12, 0, 0) + event.days * 86400000);
+        box.innerHTML = `
+            <p style="color:#00ffff;">${event.type} ECLIPSE</p>
+            <p>${event.occulter.name} occults ${event.shadowed.name}</p>
+            <p>${date.toISOString().replace('T', ' ').substring(0, 19)}</p>
+        `;
     }
     showStarSelection(data) {
         if (!data) return;

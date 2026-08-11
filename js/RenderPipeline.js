@@ -17,6 +17,7 @@ export class RenderPipeline {
         this.MAX_WELLS = ctx.MAX_WELLS;
         this.terrainController = ctx.terrainController;
         this.daylightController = ctx.daylightController;
+        this.eclipseShadowController = ctx.eclipseShadowController;
         
         // Visual Pipeline Constants
         this.PLANET_SPRITE_SIZE = 4.5;
@@ -45,6 +46,7 @@ export class RenderPipeline {
         if (b.orbitCurtain && b.orbitCurtain.visible) b.orbitCurtain.visible = false;
         if (b.label && b.label.style.display !== 'none') b.label.style.display = 'none';
         if (this.daylightController) this.daylightController.onMeshVisibilityChange(b, false);
+        if (this.eclipseShadowController) this.eclipseShadowController.onMeshVisibilityChange(b, false);
     }
 
     processFloatingOrigin(celestialBodies, trackingTargetData, currentOrigin, daysSinceJ2000) {
@@ -81,6 +83,10 @@ export class RenderPipeline {
         const halfH = window.innerHeight * 0.5;
         
         celestialBodies.forEach(b => {
+            b.renderPos = b.globalPos.clone().sub(currentOrigin);
+        });
+
+        celestialBodies.forEach(b => {
             const d = b.data;
             if (b.isCulled) { this.hideObject(b); return; }
 
@@ -96,7 +102,6 @@ export class RenderPipeline {
                 }
             }
 
-            b.renderPos = b.globalPos.clone().sub(currentOrigin);
             this._projVec.copy(b.renderPos).project(this.camera);
             
             const screenX = (this._projVec.x * halfW) + halfW;
@@ -185,6 +190,10 @@ export class RenderPipeline {
             if (this.daylightController) {
                 this.daylightController.onMeshVisibilityChange(b, isMeshBigger);
                 if (isMeshBigger) this.daylightController.updateForBody(b);
+            }
+            if (this.eclipseShadowController) {
+                this.eclipseShadowController.onMeshVisibilityChange(b, isMeshBigger);
+                if (isMeshBigger) this.eclipseShadowController.updateForBody(b);
             }
             b.sprite.visible = !isOccluded && !isMeshBigger; 
             

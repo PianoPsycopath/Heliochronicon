@@ -65,6 +65,8 @@ export class UIController {
         this.telemetryManager.onFocusBody = (data) => { if (this.onFocusBody) this.onFocusBody(data); };
         this.telemetryManager.onPinStarRequested = (data) => { if (this.onPinStarRequested) this.onPinStarRequested(data); };
 
+        this.telemetryManager.onEclipseNavRequested = (dir) => { if (this.onEclipseNavRequested) this.onEclipseNavRequested(dir); };
+
         this.visibilityTreeManager.onDatasetVisibilityChanged = async (name, state, urls) => {
             if (this.onDatasetVisibilityChanged) await this.onDatasetVisibilityChanged(name, state, urls);
         };

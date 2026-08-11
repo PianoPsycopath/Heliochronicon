@@ -16,6 +16,8 @@ import { StarLoader } from './StarLoader.js';
 import { PinnedStarManager } from './PinnedStarManager.js';
 import { TerrainController } from './TerrainController.js';
 import { DaylightController } from './DaylightController.js';
+import { EclipseEngine } from './EclipseEngine.js';
+import { EclipseShadowController } from './EclipseShadowController.js';
 
 import * as THREE from 'three'
 
@@ -144,8 +146,10 @@ const interactionController = new InteractionController({
 
 const terrainController = new TerrainController({ celestialBodies });
 const daylightController = new DaylightController({ scene, celestialBodies });
+const eclipseShadowController = new EclipseShadowController({ scene, celestialBodies, AU_IN_KM });
 const renderPipeline = new RenderPipeline({
-    camera, controls, gridMaterial, gpuParticleSystems, UI, savedColors, MAX_WELLS, terrainController, daylightController
+    camera, controls, gridMaterial, gpuParticleSystems, UI, savedColors, MAX_WELLS,
+    terrainController, daylightController, eclipseShadowController
 });
 
 const tacticalScanner = new TacticalScanner({
@@ -379,6 +383,22 @@ UI.onMeasureModeChanged = (isActive) => {
 UI.onDaylightToggleChanged = (isEnabled) => {
     daylightController.setEnabled(isEnabled);
 };
+
+UI.onEclipseNavRequested = (direction) => {
+    if (!currentTargetData) return;
+    const allBodiesData = [...celestialBodies.map(b => b.data), ...gpuParticleSystems.flatMap(s => s.userData.sourceData || [])];
+    const fromDays = PhysicsEngine.getJ2000Days(systemDate);
+    const event = EclipseEngine.findNextEclipse(currentTargetData, allBodiesData, fromDays, direction);
+    if (event) {
+        const newDate = new Date(Date.UTC(2000, 0, 1, 12, 0, 0) + event.days * 86400000);
+        systemDate = newDate;
+        UI.updateTimeInput(newDate);
+        UI.timeThrottle.pauseForManualInput(); // <-- breaks live-lock so the jump sticks
+        UI.telemetryManager.renderEclipseResult(event);
+    } else {
+        UI.telemetryManager.renderEclipseResult(null);
+    }
+};
 // ==========================================
 // BACKGROUND STAR FIELD (GPU PARTICLES)
 // ==========================================
@@ -484,9 +504,7 @@ async function bootEngine() {
                 console.error(`Failed to load core dataset "${groupName}"`, err);
             }
         } else {
-            // Asteroid-style dataset: register the toggle off by default; its
-            // chunks are fetched lazily by onDatasetVisibilityChanged when
-            // the user switches it on.
+
             if (!savedColors[groupName]) {
                 savedColors[groupName] = ASTEROID_TOGGLE_COLORS[asteroidColorIdx % ASTEROID_TOGGLE_COLORS.length];
                 asteroidColorIdx++;
@@ -510,7 +528,7 @@ let lastFrameTime = performance.now();
 
 function updateSystemTimeStage(ui, currentSysDate, deltaSec) {
     let dateToUse = currentSysDate;
-    if (ui.isLiveTime) {
+    if (ui.timeThrottle.isLiveTime) {
         dateToUse = new Date(); // Lock strictly to system clock
     }
     return PhysicsEngine.updateSystemTime(ui, dateToUse, deltaSec);

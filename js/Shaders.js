@@ -585,7 +585,89 @@ export class Shaders {
             side: THREE.FrontSide
         });
     }
-
+    static createEclipseShadowMat() {
+        return new THREE.ShaderMaterial({
+            uniforms: {
+                uStarPos: { value: new THREE.Vector3() },
+                uStarRadius: { value: 0.00465 },
+                uOccPos: { value: new THREE.Vector3() },
+                uOccRadius: { value: 0.0001 },
+                
+                uPlanetCenter: { value: new THREE.Vector3() },
+                
+                // SWAPPED COLORS
+                uUmbraColor: { value: new THREE.Color(0xff0000) },     // Now Bright Red
+                uPenumbraColor: { value: new THREE.Color(0x8a185d) },  // Now Dark Magenta
+                
+                uBarScale: { value: 0.05 },
+                uOpacity: { value: 0.85 } 
+            },
+            vertexShader: `
+                varying vec3 vWorldPos;
+                void main() {
+                    vec4 worldPos = modelMatrix * vec4(position, 1.0);
+                    vWorldPos = worldPos.xyz;
+                    gl_Position = projectionMatrix * viewMatrix * worldPos;
+                }
+            `,
+            fragmentShader: `
+                uniform vec3 uStarPos; 
+                uniform float uStarRadius;
+                uniform vec3 uOccPos;  
+                uniform float uOccRadius;
+                
+                uniform vec3 uPlanetCenter; 
+                
+                uniform vec3 uUmbraColor; 
+                uniform vec3 uPenumbraColor;
+                
+                uniform float uBarScale;
+                uniform float uOpacity;
+                
+                varying vec3 vWorldPos;
+                
+                void main() {
+                    // CULL THE BACK SIDE: Prevent the shadow from piercing through the night side
+                    vec3 sphereNormal = normalize(vWorldPos - uPlanetCenter);
+                    vec3 sunDir = normalize(uStarPos - uPlanetCenter);
+                    if (dot(sphereNormal, sunDir) < 0.0) discard;
+                    
+                    vec3 axisVec = uOccPos - uStarPos;
+                    float D = length(axisVec);
+                    vec3 axisDir = axisVec / D;
+                    
+                    vec3 rel = vWorldPos - uOccPos;
+                    float t = dot(rel, axisDir); 
+                    
+                    if (t <= 0.0 || t > D * 0.10) discard;
+                    
+                    float perpDist = length(rel - axisDir * t);
+                    
+                    float rUmbra = uOccRadius - t * (uStarRadius - uOccRadius) / D;
+                    float rPenumbra = uOccRadius + t * (uStarRadius + uOccRadius) / D;
+                    
+                    if (perpDist > rPenumbra) discard;
+                    
+                    float coreRadius = abs(rUmbra);
+                    
+                    float insideCore = step(perpDist, coreRadius); 
+                    float isTotal = step(0.0, rUmbra); 
+                    float isUmbra = insideCore * isTotal;
+                    
+                    vec3 finalColor = mix(uPenumbraColor, uUmbraColor, isUmbra);
+                    
+                    float diag = (gl_FragCoord.x + gl_FragCoord.y) * uBarScale;
+                    float bar = step(0.5, fract(diag));
+                    float barAlpha = mix(0.35, 1.0, bar);
+                    
+                    gl_FragColor = vec4(finalColor, barAlpha * uOpacity);
+                }
+            `,
+            transparent: true, 
+            depthWrite: false, 
+            side: THREE.FrontSide
+        });
+    }
     static createTerrainContourMat(heightmapTexture, elevMin = -450, elevMax = 6800) {
         return new THREE.ShaderMaterial({
             uniforms: {
