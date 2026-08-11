@@ -31,15 +31,16 @@ export class EclipseEngine {
             if (d.parent === d.name) {
                 pos = new THREE.Vector3(0, 0, 0);
             } else {
-                const isMoon = d.category === 'MOON';
-                const scaledA = this._scaledA(d, isMoon);
-                const M = d.M0 + d.n * daysSinceJ2000;
-                const local = OrbitalMath.calcPosFromM(scaledA, d.e, d.i, d.w, d.Node, M);
+                // 1. ROUTE THROUGH THE NEW ANALYTICAL ROUTER
+                const local = OrbitalMath.calculatePosition(d, daysSinceJ2000);
                 let localVec = new THREE.Vector3(local.x, local.y, local.z);
-
-                if (isMoon) {
-                    localVec.applyQuaternion(this._poleQuaternion(d, daysSinceJ2000)); // <-- fixed: own quaternion
+            
+                // 2. ONLY APPLY POLE QUATERNION TO STANDARD KEPLER MOONS
+                // (Meeus/VSOP87 coordinates are already in Ecliptic space)
+                if (d.category === 'MOON' && (!d.orbit_model || d.orbit_model === 'KEPLER')) {
+                    localVec.applyQuaternion(this._poleQuaternion(d, daysSinceJ2000));
                 }
+            
                 const parentData = members.find(b => b.name === d.parent);
                 const parentPos = parentData ? resolve(parentData) : new THREE.Vector3(0, 0, 0);
                 pos = localVec.add(parentPos);

@@ -1,5 +1,6 @@
 // js/main.js
 import { DataLoader} from './DataLoader.js';
+import { OrbitalMath } from './OrbitalMath.js';
 import { SceneManager} from './SceneManager.js';
 import { Shaders} from './Shaders.js';
 import { UIController} from './UIController.js';
@@ -555,8 +556,8 @@ function updateHardwareStage(bodies, currentTarget, ui, interactionCtrl, ctrls, 
     cam.updateMatrixWorld();
 }
 
-function runRenderPrePassStage(pipeline, bodies, currentTarget, origin, previewTarget) {
-    return pipeline.processScreenProjectionsAndCulling(bodies, currentTarget, origin, previewTarget);
+function runRenderPrePassStage(pipeline, bodies, currentTarget, origin, previewTarget, daysSinceJ2000) {
+    return pipeline.processScreenProjectionsAndCulling(bodies, currentTarget, origin, previewTarget, daysSinceJ2000);
 }
 
 function updateDualGridsStage(bodies, currentTarget, eclipticGrid, eqGrid, eqMat, cam) {
@@ -631,7 +632,7 @@ function animate() {
     updateHardwareStage(celestialBodies, currentTargetData, UI, interactionController, controls, camera);
     
     // 4. Render Pre-Pass (Projections, Culling, Matrices)
-    const trackTargetPos = runRenderPrePassStage(renderPipeline, celestialBodies, currentTargetData, currentOrigin, previewTargetData);
+    const trackTargetPos = runRenderPrePassStage(renderPipeline, celestialBodies, currentTargetData, currentOrigin, previewTargetData, daysSinceJ2000);
     
     // 5. Dual-Grid Architecture Logic
     updateDualGridsStage(celestialBodies, currentTargetData, gridPlane, equatorialGridPlane, equatorialMaterial, camera);

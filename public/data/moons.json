@@ -3,6 +3,7 @@
     "name": "MOON",
     "parent": "EARTH",
     "category": "MOON",
+    "orbit_model": "MEEUS",
     "a_au": null,
     "a_km": 384400,
     "e": 0.0554,

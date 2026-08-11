@@ -1,6 +1,6 @@
 // js/PhysicsEngine.js
 import { OrbitalMath } from './OrbitalMath.js';
-import * as THREE from 'three'
+import * as THREE from 'three';
 
 export class PhysicsEngine {
     static getJ2000Days(date) { 
@@ -51,11 +51,13 @@ export class PhysicsEngine {
             b.DEC_current_deg = dec_deg;
 
             if (d.parent === d.name) {
-                b.globalPos = new THREE.Vector3(0,0,0);
+                b.localPos = new THREE.Vector3(0, 0, 0);
+                b.globalPos = new THREE.Vector3(0, 0, 0);
             } else {
-                const M_current = d.M0 + d.n * daysSinceJ2000;
-                const pos = OrbitalMath.calcPosFromM(b.scaledA, d.e, d.i, d.w, d.Node, M_current);
+                // Instantiates localPos and globalPos safely
+                const pos = OrbitalMath.calculatePosition(b.data, daysSinceJ2000);
                 b.localPos = new THREE.Vector3(pos.x, pos.y, pos.z);
+                b.globalPos = b.localPos.clone();
             }
         });
     }
@@ -65,19 +67,28 @@ export class PhysicsEngine {
             const d = b.data;
             if (b.isCulled || d.parent === d.name) return;
 
-            let parentPos = new THREE.Vector3(0,0,0);
+            let parentPos = new THREE.Vector3(0, 0, 0);
             let parentQuat = new THREE.Quaternion(); 
 
             if (b.isMoon) {
                 const pBody = celestialBodies.find(x => x.data.name === d.parent);
                 if (pBody) {
                     parentPos = pBody.globalPos.clone();
-                    parentQuat = b.poleQuaternion.clone();
-                    b.localPos.applyQuaternion(parentQuat);
+                    
+                    // Analytical models (like MEEUS) are already in Ecliptic space:
+                    // DO NOT rotate Meeus coordinates using the parent's pole quaternion.
+                    if (!d.orbit_model || d.orbit_model === 'KEPLER') {
+                        parentQuat = pBody.poleQuaternion ? pBody.poleQuaternion.clone() : new THREE.Quaternion();
+                        const rotatedLocal = b.localPos.clone().applyQuaternion(parentQuat);
+                        b.globalPos = rotatedLocal.add(parentPos);
+                        b.parentPos = parentPos;
+                        b.parentQuat = parentQuat;
+                        return;
+                    }
                 }
             }
             
-            b.globalPos = b.localPos.add(parentPos);
+            b.globalPos = b.localPos.clone().add(parentPos);
             b.parentPos = parentPos;
             b.parentQuat = parentQuat;
         });

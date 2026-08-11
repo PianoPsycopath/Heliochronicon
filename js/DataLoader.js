@@ -45,6 +45,7 @@ export class DataLoader {
             const parent = (row.parent || "SUN").toString().toUpperCase();
 
             // --- Orbital Elements ---
+            const orbit_model = row.orbit_model || "KEPLER";
             let a = 0;
             if (isMoon && row.a_km) {
                 a = kmToAU(parseF(row.a_km));
@@ -84,9 +85,10 @@ export class DataLoader {
             const pole_dec_rate = parseF(row.pole_dec_rate_deg_per_cy);
             const pm_w = parseF(row.pm_w_deg);
             const pm_w_rate = parseF(row.pm_w_rate_deg_per_day);
+            
 
             return { 
-                name, category, parent, a, e, i, w, Node, M0, period, n, mass, radius_km, symbol, 
+                name, category, parent, orbit_model, a, e, i, w, Node, M0, period, n, mass, radius_km, symbol, 
                 pole_ra, pole_dec, pole_ra_rate, pole_dec_rate, pm_w, pm_w_rate, isTargetable: true,
                 datasetName, datasetCategory: category
             };

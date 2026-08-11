@@ -13,17 +13,27 @@ export class SystemBuilder {
         return (isMoon && data.a > 1000) ? kmToAU(data.a) : data.a;
     }
 
-    createOrbitPath(scaledA, e, i, w, Node, category) {
+    createOrbitPath(data, scaledA) {
         const points = [];
-        const resolution = 4096;
-        for(let j = 0; j <= resolution; j++) {
-            const pos = OrbitalMath.calcPosFromM(scaledA, e, i, w, Node, (j / resolution) * Math.PI * 2);
-            points.push(new THREE.Vector3(pos.x, pos.y, pos.z));
+        const resolution = 720; // Unified resolution
+        
+        if (data.orbit_model === 'MEEUS' || data.orbit_model === 'VSOP87') {
+            const period = data.period; // Pull dynamically from DataLoader
+            for(let j = 0; j <= resolution; j++) {
+                const days = (j / resolution) * period;
+                const pos = OrbitalMath.calculatePosition(data, days);
+                points.push(new THREE.Vector3(pos.x, pos.y, pos.z));
+            }
+        } else {
+            for(let j = 0; j <= resolution; j++) {
+                const pos = OrbitalMath.calcPosFromM(scaledA, data.e, data.i, data.w, data.Node, (j / resolution) * Math.PI * 2);
+                points.push(new THREE.Vector3(pos.x, pos.y, pos.z));
+            }
         }
         
         let lw = 1;
-        if (category === 'PLANET') lw = 3;
-        else if (category === 'MOON') lw = 2;
+        if (data.datasetCategory === 'PLANET') lw = 3;
+        else if (data.datasetCategory === 'MOON') lw = 2;
 
         const mat = new THREE.LineBasicMaterial({ color: 0xff1111, transparent: true, opacity: 0.5, depthTest: false, linewidth: lw });
         const line = new THREE.Line(new THREE.BufferGeometry().setFromPoints(points), mat);
@@ -175,7 +185,9 @@ export class SystemBuilder {
                     physicalRadius = 1.0 / AU_IN_KM; 
                 }
                 
-                const mesh = new THREE.Mesh(new THREE.SphereGeometry(physicalRadius, 32, 32), tacticalMaterial);
+                const geometry = new THREE.SphereGeometry(physicalRadius, 32, 32);
+                geometry.rotateY(Math.PI / 2); 
+                const mesh = new THREE.Mesh(geometry, tacticalMaterial);
                 mesh.userData = d;
                 
                 let rOrder = 500; 
@@ -231,7 +243,7 @@ export class SystemBuilder {
 
                 if (!isSun) {
                     mesh.visible = false; 
-                    bodyObj.orbitLine = this.createOrbitPath(scaledA, d.e, d.i, d.w, d.Node, d.datasetCategory);
+                    bodyObj.orbitLine = this.createOrbitPath(d, scaledA);
                     scene.add(bodyObj.orbitLine);
                     
                     bodyObj.orbitCurtain = this.createOrbitCurtain();
@@ -295,7 +307,9 @@ export class SystemBuilder {
         
         const physicalRadius = (promotedData.radius_km > 0) ? (promotedData.radius_km / AU_IN_KM) : (1.0 / AU_IN_KM);
 
-        const mesh = new THREE.Mesh(new THREE.SphereGeometry(physicalRadius, 32, 32), tacticalMaterial);
+        const geometry = new THREE.SphereGeometry(physicalRadius, 32, 32);
+        geometry.rotateY(Math.PI / 2); 
+        const mesh = new THREE.Mesh(geometry, tacticalMaterial);
         mesh.userData = promotedData;
         mesh.renderOrder = 1500; 
 
@@ -326,7 +340,7 @@ export class SystemBuilder {
         scene.add(sprite);
         pickableObjects.push(sprite);
 
-        const orbitLine = this.createOrbitPath(scaledA, promotedData.e, promotedData.i, promotedData.w, promotedData.Node, 'PLANET');
+        const orbitLine = this.createOrbitPath(promotedData, scaledA);
         orbitLine.material.color.set(datasetColor);
         scene.add(orbitLine);
         

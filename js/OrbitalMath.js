@@ -1,10 +1,44 @@
 // js/OrbitalMath.js
+import { MeeusMoon } from './MeeusMoon.js';
+import { VSOP87 } from './vsop87.js';
+
 export const AU_IN_KM = 149597870.7;
 
 export function kmToAU(km) {
     return km / AU_IN_KM;
 }
 export class OrbitalMath {
+    static calculatePosition(bodyData, daysSinceJ2000) {
+        if (bodyData.orbit_model === "MEEUS") {
+            return MeeusMoon.getPosition(daysSinceJ2000);
+        } 
+        
+        if (bodyData.orbit_model === "VSOP87") {
+            const pos = VSOP87.getPosition(bodyData.name, daysSinceJ2000);
+            
+            // --- DYNAMIC BARYCENTER CORRECTION ---
+            if (bodyData.barycenter_model === "MEEUS") {
+                const moonGeo = MeeusMoon.getPosition(daysSinceJ2000);
+                const massRatio = bodyData.barycenter_mass_ratio || (1.0 / 82.30059); 
+                
+                return {
+                    x: pos.x - (moonGeo.x * massRatio),
+                    y: pos.y - (moonGeo.y * massRatio),
+                    z: pos.z - (moonGeo.z * massRatio)
+                };
+            }
+            return pos;
+        }
+        
+        const current_w = bodyData.w + (bodyData.w_rate || 0) * daysSinceJ2000;
+        const current_Node = bodyData.Node + (bodyData.node_rate || 0) * daysSinceJ2000;
+        const M_current = bodyData.M0 + bodyData.n * daysSinceJ2000;
+        
+        return this.calcPosFromM(
+            bodyData.a, bodyData.e, bodyData.i, 
+            current_w, current_Node, M_current
+        );
+    }
     static solveKepler(M, e) {
         const M_norm = M % (2 * Math.PI);
         const e_capped = Math.min(e, 0.9999);
