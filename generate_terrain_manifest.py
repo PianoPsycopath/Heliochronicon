@@ -1,4 +1,5 @@
-# generate_terrain_manifest.py — run from repo root after adding/updating any body's heightmap folder
+# generate_terrain_manifest.py — run from repo root after
+# adding/updating any body's heightmap folder
 import json
 from pathlib import Path
 
@@ -27,7 +28,7 @@ for folder in sorted(HEIGHTMAPS_DIR.iterdir()):
     manifest[body_name] = {
         "url": f"data/heightmaps/{folder.name}/global_rg.png",
         "elevMin": meta["elevMin"],
-        "elevMax": meta["elevMax"]
+        "elevMax": meta["elevMax"],
     }
 
 OUTPUT_FILE.write_text(json.dumps(manifest, indent=2))

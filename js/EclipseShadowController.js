@@ -51,33 +51,49 @@ export class EclipseShadowController {
         const starBody = this._findStarBody(bodyObj);
         if (!starBody) return;
         
-        let best = null;
+        const validCandidates = [];
+        
         for (const occ of this._candidates(bodyObj)) {
             if (!occ.renderPos || !bodyObj.renderPos || !starBody.renderPos) continue;
+            
             const result = EclipseEngine._shadowTest(
                 bodyObj.renderPos, occ.renderPos, occ.physicalRadius,
                 starBody.renderPos, 696340 / this.ctx.AU_IN_KM
             );
+            
             if (result && result.perpDist < (result.rPenumbra + bodyObj.physicalRadius)) {
                 const margin = (result.rPenumbra + bodyObj.physicalRadius) - result.perpDist;
-                if (!best || margin > best.margin) best = { ...result, margin, occ };
+                validCandidates.push({ occ, margin });
             }
         }
     
         const entry = this._ensureOverlay(bodyObj);
-        if (!best) { entry.mesh.visible = false; return; }
+        
+        if (validCandidates.length === 0) { 
+            entry.mesh.visible = false; 
+            return; 
+        }
     
+        // Sort by how deep the shadow cuts into the planet, take the top 8
+        validCandidates.sort((a, b) => b.margin - a.margin);
+        const activeCount = Math.min(validCandidates.length, 8); // MAX_SHADOWS = 8
+        
         entry.mesh.visible = true;
         entry.mesh.position.copy(bodyObj.renderPos);
         entry.mesh.scale.setScalar(bodyObj.physicalRadius * OVERLAY_SCALE_PAD);
         
         entry.material.uniforms.uStarPos.value.copy(starBody.renderPos);
         entry.material.uniforms.uStarRadius.value = 696340 / this.ctx.AU_IN_KM;
-        entry.material.uniforms.uOccPos.value.copy(best.occ.renderPos);
-        entry.material.uniforms.uOccRadius.value = best.occ.physicalRadius;
-        
-        // NEW: Pass the center of the occulted body to the shader
         entry.material.uniforms.uPlanetCenter.value.copy(bodyObj.renderPos);
+        
+        // Populate the Multi-Shadow Arrays
+        for (let i = 0; i < activeCount; i++) {
+            entry.material.uniforms.uOccPositions.value[i].copy(validCandidates[i].occ.renderPos);
+            entry.material.uniforms.uOccRadii.value[i] = validCandidates[i].occ.physicalRadius;
+        }
+        
+        // Tell the shader exactly how many array indices to process
+        entry.material.uniforms.uShadowCount.value = activeCount;
     }
 
     removeBody(name) {

@@ -585,19 +585,24 @@ export class Shaders {
             side: THREE.FrontSide
         });
     }
-    static createEclipseShadowMat() {
+    static createEclipseShadowMat(maxShadows = 8) {
+        const defaultPositions = new Array(maxShadows).fill(null).map(() => new THREE.Vector3());
+        const defaultRadii = new Array(maxShadows).fill(0.0001);
+
         return new THREE.ShaderMaterial({
             uniforms: {
                 uStarPos: { value: new THREE.Vector3() },
                 uStarRadius: { value: 0.00465 },
-                uOccPos: { value: new THREE.Vector3() },
-                uOccRadius: { value: 0.0001 },
+                
+                // MULTI-SHADOW ARRAYS
+                uOccPositions: { value: defaultPositions },
+                uOccRadii: { value: defaultRadii },
+                uShadowCount: { value: 0 },
                 
                 uPlanetCenter: { value: new THREE.Vector3() },
                 
-                // SWAPPED COLORS
-                uUmbraColor: { value: new THREE.Color(0xff0000) },     // Now Bright Red
-                uPenumbraColor: { value: new THREE.Color(0x8a185d) },  // Now Dark Magenta
+                uUmbraColor: { value: new THREE.Color(0xff0000) },     
+                uPenumbraColor: { value: new THREE.Color(0x8a185d) },  
                 
                 uBarScale: { value: 0.05 },
                 uOpacity: { value: 0.85 } 
@@ -613,8 +618,10 @@ export class Shaders {
             fragmentShader: `
                 uniform vec3 uStarPos; 
                 uniform float uStarRadius;
-                uniform vec3 uOccPos;  
-                uniform float uOccRadius;
+                
+                uniform vec3 uOccPositions[${maxShadows}];
+                uniform float uOccRadii[${maxShadows}];
+                uniform int uShadowCount;
                 
                 uniform vec3 uPlanetCenter; 
                 
@@ -627,34 +634,55 @@ export class Shaders {
                 varying vec3 vWorldPos;
                 
                 void main() {
-                    // CULL THE BACK SIDE: Prevent the shadow from piercing through the night side
+                    // CULL THE BACK SIDE
                     vec3 sphereNormal = normalize(vWorldPos - uPlanetCenter);
                     vec3 sunDir = normalize(uStarPos - uPlanetCenter);
                     if (dot(sphereNormal, sunDir) < 0.0) discard;
                     
-                    vec3 axisVec = uOccPos - uStarPos;
-                    float D = length(axisVec);
-                    vec3 axisDir = axisVec / D;
+                    bool inAnyShadow = false;
+                    bool inUmbra = false;
+
+                    // LOOP THROUGH ALL ACTIVE SHADOWS
+                    for(int i = 0; i < ${maxShadows}; i++) {
+                        if (i >= uShadowCount) break;
+
+                        vec3 occPos = uOccPositions[i];
+                        float occRadius = uOccRadii[i];
+
+                        vec3 axisVec = occPos - uStarPos;
+                        float D = length(axisVec);
+                        vec3 axisDir = axisVec / D;
+                        
+                        vec3 rel = vWorldPos - occPos;
+                        float t = dot(rel, axisDir); 
+                        
+                        // If surface is behind the star or beyond the shadow cone
+                        if (t <= 0.0 || t > D * 0.10) continue; 
+                        
+                        float perpDist = length(rel - axisDir * t);
+                        
+                        float rUmbra = occRadius - t * (uStarRadius - occRadius) / D;
+                        float rPenumbra = occRadius + t * (uStarRadius + occRadius) / D;
+                        
+                        // Outside this specific moon's penumbra
+                        if (perpDist > rPenumbra) continue;
+                        
+                        inAnyShadow = true;
+                        
+                        float coreRadius = abs(rUmbra);
+                        float insideCore = step(perpDist, coreRadius); 
+                        float isTotal = step(0.0, rUmbra); 
+                        
+                        // If it enters ANY umbra, flag it to render the core color
+                        if (insideCore * isTotal > 0.5) {
+                            inUmbra = true;
+                        }
+                    }
                     
-                    vec3 rel = vWorldPos - uOccPos;
-                    float t = dot(rel, axisDir); 
+                    if (!inAnyShadow) discard;
                     
-                    if (t <= 0.0 || t > D * 0.10) discard;
-                    
-                    float perpDist = length(rel - axisDir * t);
-                    
-                    float rUmbra = uOccRadius - t * (uStarRadius - uOccRadius) / D;
-                    float rPenumbra = uOccRadius + t * (uStarRadius + uOccRadius) / D;
-                    
-                    if (perpDist > rPenumbra) discard;
-                    
-                    float coreRadius = abs(rUmbra);
-                    
-                    float insideCore = step(perpDist, coreRadius); 
-                    float isTotal = step(0.0, rUmbra); 
-                    float isUmbra = insideCore * isTotal;
-                    
-                    vec3 finalColor = mix(uPenumbraColor, uUmbraColor, isUmbra);
+                    // Umbra overwrites Penumbra if the fragments overlap
+                    vec3 finalColor = inUmbra ? uUmbraColor : uPenumbraColor;
                     
                     float diag = (gl_FragCoord.x + gl_FragCoord.y) * uBarScale;
                     float bar = step(0.5, fract(diag));
