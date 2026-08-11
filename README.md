@@ -42,13 +42,26 @@ Shows real-time information about selected targets.
 - **Custom Planetary Systems**
 Bring your own orbital elements via CSV and load them in place of the default dataset (see Custom Solar Systems below).
 
+
 <img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/6dac736d-15cf-4d30-ae1e-957eb1a621bc" />
+
+*Search for Nearby Asteroids*
 
 <img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/c02dfabb-d88f-4b09-b9a0-44a221133f3a" />
 
+*Satellite orbit viewer*
+
 <img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/7c6beea1-2a8f-4b1f-aa75-1d1a725f9386" />
 
+*Stellar motion with measurements*
 
+<img width="1920" height="1080" alt="lunareclipse" src="https://github.com/user-attachments/assets/224c7048-7ab3-43d1-886d-3039352dd6ff" />
+
+*Lunar Eclipse with umbra and penumbra*
+
+<img width="1920" height="1080" alt="solareclipse" src="https://github.com/user-attachments/assets/cc0258dd-4dc5-4002-b3fd-381eea9dbb2b" />
+
+*Annular Solar Eclipse*
 
 ## Technical Highlights
 
