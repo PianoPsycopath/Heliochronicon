@@ -150,15 +150,12 @@ See `CONTRIBUTING.md` for local setup, conventions, and where `ARCHITECTURE.md` 
 
 - Finalize CSS Flexbox/Grid layout architecture.
 - Add tactical hover previews with raycast tooltips.
-- Implement dynamic distance markers on ecliptic/equatorial grids.
 - Add NASA credits and performance monitor (GPU/CPU/FPS) to telemetry.
-- Decouple Sun data into separate `stars.json` pipeline.
 
 ### Phase 2: Next Big Features (Astrodynamics & Advanced Graphics)
 
 - Delta-V heatmaps for flight planning.
 - Torchship continuous acceleration travel simulator.
-- Planetary day/night cycles and eclipse visualization.
 - Topographic surface maps with heightmap-based outline rendering.
 - Predictive close encounters and impact calculations.
 - Dynamic geospatial notes engine linked to moving bodies.
