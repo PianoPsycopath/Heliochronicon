@@ -7,6 +7,11 @@
 
 Heliochronicon is an interactive solar system simulator and world-building tool. It renders a physically-grounded model of our solar system; Sun, planets, moons, and millions of asteroids; that you can scrub through time, scan, and annotate.
 
+<p align="center">
+  <a href="https://heliochronicon.vercel.app/">
+    <img src="./doc/assets/LIVEDEMOBUTTON.svg" alt="Live Demo">
+  </a>
+</p>
 
 <img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/52db9637-814d-4f48-87cc-2405fcd34db9" />
 
