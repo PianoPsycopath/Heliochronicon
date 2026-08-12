@@ -42,18 +42,29 @@ Shows real-time information about selected targets.
 - **Custom Planetary Systems**
 Bring your own orbital elements via CSV and load them in place of the default dataset (see Custom Solar Systems below).
 
+<table width="100%">
+  <tr>
+    <td width="50%" align="center">
+      <img src="https://github.com/user-attachments/assets/b1511ac0-c2ff-494d-92cb-7c22c82a7e72" width="100%" alt="Scale 1"><br>
+      <em>Asteroid Distances from Earth</em>
+    </td>
+    <td width="50%" align="center">
+      <img src="https://github.com/user-attachments/assets/419cf94f-7fff-43f0-8076-5acaae7b1a68" width="100%" alt="Scale 2"><br>
+      <em>Stellar motion with measurements</em>
+    </td>
+  </tr>
+  <tr>
+    <td width="50%" align="center">
+      <img src="https://github.com/user-attachments/assets/1b54c1e7-8950-4680-b602-3e436086c68e" width="100%" alt="Scale 3"><br>
+      <em>Surface of Moon</em>
+    </td>
+    <td width="50%" align="center">
+      <img src="https://github.com/user-attachments/assets/8ba513be-15fa-424d-adcd-739e89b24adc" width="100%" alt="Scale 4"><br>
+      <em>Scale of Simulation</em>
+    </td>
+  </tr>
+</table>
 
-<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/6dac736d-15cf-4d30-ae1e-957eb1a621bc" />
-
-*Search for Nearby Asteroids*
-
-<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/c02dfabb-d88f-4b09-b9a0-44a221133f3a" />
-
-*Satellite orbit viewer*
-
-<img width="1920" height="1080" alt="stellarmotion" src="https://github.com/user-attachments/assets/419cf94f-7fff-43f0-8076-5acaae7b1a68" />
-
-*Stellar motion with measurements*
 
 **Eclipses**
 <table width="100%">
