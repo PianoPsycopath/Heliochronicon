@@ -7,15 +7,10 @@
 
 Heliochronicon is an interactive solar system simulator and world-building tool. It renders a physically-grounded model of our solar system; Sun, planets, moons, and millions of asteroids; that you can scrub through time, scan, and annotate.
 
-**Live Demo:** [heliochronicon.vercel.app](https://heliochronicon.vercel.app/)
 
 <img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/52db9637-814d-4f48-87cc-2405fcd34db9" />
 
-
-
 https://github.com/user-attachments/assets/f6e6d0fc-b183-43d4-a857-f2065daeb7be
-
-
 
 ## Purpose
 
@@ -144,6 +139,7 @@ Two example CSVs (`atira.csv`, `kerbin_system.csv`) are provided in `raw/` as a 
 
 <img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/2cb56069-4974-42db-b590-2ecb46e2c640" />
 
+*KERBOL PLANETARY SYSTEM*
 
 ## Known Limitations
 
@@ -176,7 +172,8 @@ See `docs/` for sequence and flow diagrams for a visual understanding.
 
 - Deep Space Network (DSN) line-of-sight communication simulation.
 - Magnetic fields, gravity profiles, and weather/fluid dynamics modeling or historical weather viewing for Earth.
-- Procedural generation of neighboring star systems.
+- Procedural generation of neighbor![Uploading captions.svg…]()
+ing star systems.
 
 ## Credits and Data Sources
 
