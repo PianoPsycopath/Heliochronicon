@@ -13,10 +13,6 @@ Heliochronicon is an interactive solar system simulator and world-building tool.
   </a>
 </p>
 
-<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/52db9637-814d-4f48-87cc-2405fcd34db9" />
-
-https://github.com/user-attachments/assets/f6e6d0fc-b183-43d4-a857-f2065daeb7be
-
 ## Purpose
 
 This project started as a world builder tool. It creates realistic simulations of our solar system for creative and technical use. It supports detailed note-taking linked to moving celestial objects.
