@@ -154,6 +154,7 @@ element epoch, and degrades noticeably outside that window.
 
 ## Contributing
 See `CONTRIBUTING.md` for local setup, conventions, and where `ARCHITECTURE.md` fits into the workflow.
+See `docs/` for sequence and flow diagrams for a visual understanding.
 
 ## Roadmap
 
