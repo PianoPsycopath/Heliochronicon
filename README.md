@@ -74,7 +74,7 @@ Bring your own orbital elements via CSV and load them in place of the default da
     </td>
     <td width="50%" align="center">
       <img src="https://github.com/user-attachments/assets/ccee5a3e-74bd-45a6-b3fc-2bd4875eb000"><br>
-      <em>Solar Eclipse August 12th 2026 [Saros 126 (48 of 72)]</em>
+      <em>Solar Eclipse August 12th 2026</em>
     </td>
   </tr>
 </table>
@@ -112,7 +112,7 @@ Core orbital mechanics (`solveKepler`, `calcPosFromM`) and the data parsing laye
 npm test
 ```
 
-##Custom Solar Systems
+## Custom Solar Systems
 
 You can swap in your own dataset instead of the default solar system:
 
@@ -141,7 +141,7 @@ single fixed-epoch element set per body (no continuous N-body integration
 at runtime). This is accurate to within roughly ±40 years around the 
 element epoch, and degrades noticeably outside that window.
 
-##Contributing
+## Contributing
 See `CONTRIBUTING.md` for local setup, conventions, and where `ARCHITECTURE.md` fits into the workflow.
 
 ## Roadmap
