@@ -2,6 +2,7 @@
 # Heliochronicon
 ![CI](https://github.com/PianoPsycopath/Heliochronicon/actions/workflows/ci.yml/badge.svg)
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
+<img width="1211" height="437" alt="image" src="https://github.com/user-attachments/assets/37bb8018-6d48-438b-aeec-968910b896a9" />
 
 **A 3D temporal celestial note-taking platform scaled ad infinitum**
 
