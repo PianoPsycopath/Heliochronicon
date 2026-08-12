@@ -9,7 +9,7 @@ Heliochronicon is an interactive solar system simulator and world-building tool.
 
 <p align="center">
   <a href="https://heliochronicon.vercel.app/">
-    <img src="./doc/assets/LIVEDEMOBUTTON.svg" alt="Live Demo">
+    <img src="./docs/assets/LIVEDEMOBUTTON.svg" alt="Live Demo">
   </a>
 </p>
 
