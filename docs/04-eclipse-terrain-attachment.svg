@@ -1,0 +1,394 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1705pt" height="525pt" viewBox="0.00 0.00 1705.00 525.00">
+<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 521)">
+<polygon fill="white" stroke="none" points="-4,4 -4,-521 1700.64,-521 1700.64,4 -4,4" />
+<g id="clust1" class="cluster">
+<title>cluster_pipeline</title>
+<polygon fill="#dceaf7" stroke="#b3b3b3" points="8,-435 8,-509 1634.34,-509 1634.34,-435 8,-435" />
+<text xml:space="preserve" text-anchor="middle" x="56.12" y="-494.55" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="11.00">RenderPipeline</text>
+</g>
+<g id="clust2" class="cluster">
+<title>cluster_terrain</title>
+<polygon fill="#e0f3e0" stroke="#b3b3b3" points="84.43,-289 84.43,-383 1634.34,-383 1634.34,-289 84.43,-289" />
+<text xml:space="preserve" text-anchor="middle" x="137.43" y="-368.55" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="11.00">TerrainController</text>
+</g>
+<g id="clust3" class="cluster">
+<title>cluster_eclipse</title>
+<polygon fill="#ffe6c7" stroke="#b3b3b3" points="84.43,-134 84.43,-228 1688.64,-228 1688.64,-134 84.43,-134" />
+<text xml:space="preserve" text-anchor="middle" x="159.18" y="-213.55" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="11.00">EclipseShadowController</text>
+</g>
+<g id="clust4" class="cluster">
+<title>cluster_eclipse_engine</title>
+<polygon fill="#fbe1ee" stroke="#b3b3b3" points="84.43,-8 84.43,-82 1634.34,-82 1634.34,-8 84.43,-8" />
+<text xml:space="preserve" text-anchor="middle" x="129.93" y="-67.55" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="11.00">EclipseEngine</text>
+</g>
+
+<g id="edge37" class="edge">
+<title>hook_trigger-&gt;tc_onvis</title>
+<path fill="none" stroke="black" d="M169.88,-451.5C204.47,-451.5 237.64,-451.5 237.64,-451.5 237.64,-451.5 237.64,-349.91 237.64,-349.91" />
+<polygon fill="black" stroke="black" points="239.39,-349.91 237.64,-344.91 235.89,-349.91 239.39,-349.91" />
+<text xml:space="preserve" text-anchor="middle" x="218.51" y="-427.93" font-family="Helvetica,sans-Serif" font-size="7.00">Terrain hook</text>
+</g>
+
+<g id="edge38" class="edge">
+<title>hook_trigger-&gt;ec_onvis</title>
+<path fill="none" stroke="black" stroke-dasharray="5,2" d="M131.64,-442.53C131.64,-379.9 131.64,-179.5 131.64,-179.5 131.64,-179.5 194.93,-179.5 194.93,-179.5" />
+<polygon fill="black" stroke="black" points="194.93,-181.25 199.93,-179.5 194.93,-177.75 194.93,-181.25" />
+<text xml:space="preserve" text-anchor="middle" x="111.76" y="-272.72" font-family="Helvetica,sans-Serif" font-size="7.00">Eclipse hook</text>
+</g>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<g id="edge39" class="edge">
+<title>tc_onvis-&gt;tc_visible</title>
+<path fill="none" stroke="black" d="M347.89,-319C347.89,-319 436.49,-319 436.49,-319" />
+<polygon fill="black" stroke="black" points="436.49,-320.75 441.49,-319 436.49,-317.25 436.49,-320.75" />
+</g>
+
+<g id="edge41" class="edge">
+<title>tc_visible-&gt;tc_registry</title>
+<path fill="none" stroke="black" d="M483.83,-319C483.83,-319 583.05,-319 583.05,-319" />
+<polygon fill="black" stroke="black" points="583.05,-320.75 588.05,-319 583.05,-317.25 583.05,-320.75" />
+<text xml:space="preserve" text-anchor="middle" x="527.82" y="-312.35" font-family="Helvetica,sans-Serif" font-size="7.00">Yes</text>
+</g>
+
+<g id="edge40" class="edge">
+<title>tc_visible-&gt;tc_visible_no</title>
+<path fill="none" stroke="black" d="M463.64,-306.72C463.64,-285.68 463.64,-254 463.64,-254 463.64,-254 596.83,-254 596.83,-254" />
+<polygon fill="black" stroke="black" points="596.83,-255.75 601.83,-254 596.83,-252.25 596.83,-255.75" />
+<text xml:space="preserve" text-anchor="middle" x="499.38" y="-247.35" font-family="Helvetica,sans-Serif" font-size="7.00">No</text>
+</g>
+
+<g id="edge43" class="edge">
+<title>tc_registry-&gt;tc_cache</title>
+<path fill="none" stroke="black" d="M675.06,-319C675.06,-319 727.95,-319 727.95,-319" />
+<polygon fill="black" stroke="black" points="727.95,-320.75 732.95,-319 727.95,-317.25 727.95,-320.75" />
+<text xml:space="preserve" text-anchor="middle" x="695.88" y="-312.35" font-family="Helvetica,sans-Serif" font-size="7.00">Yes</text>
+</g>
+
+<g id="edge42" class="edge">
+<title>tc_registry-&gt;tc_registry_no</title>
+<path fill="none" stroke="black" d="M641.99,-348.54C673.69,-348.54 772.64,-348.54 772.64,-348.54 772.64,-348.54 772.64,-384.02 772.64,-384.02" />
+<polygon fill="black" stroke="black" points="770.89,-384.02 772.64,-389.02 774.39,-384.02 770.89,-384.02" />
+<text xml:space="preserve" text-anchor="middle" x="720.55" y="-341.89" font-family="Helvetica,sans-Serif" font-size="7.00">No</text>
+</g>
+
+<g id="edge45" class="edge">
+<title>tc_cache-&gt;tc_pending</title>
+<path fill="none" stroke="black" d="M810.16,-331C810.16,-331 873.96,-331 873.96,-331" />
+<polygon fill="black" stroke="black" points="873.96,-332.75 878.96,-331 873.96,-329.25 873.96,-332.75" />
+<text xml:space="preserve" text-anchor="middle" x="837.56" y="-324.35" font-family="Helvetica,sans-Serif" font-size="7.00">No</text>
+</g>
+
+<g id="edge44" class="edge">
+<title>tc_cache-&gt;tc_apply_cached</title>
+<path fill="none" stroke="black" d="M814.64,-329.52C814.64,-346.96 814.64,-409 814.64,-409 814.64,-409 885.43,-409 885.43,-409" />
+<polygon fill="black" stroke="black" points="885.43,-410.75 890.43,-409 885.43,-407.25 885.43,-410.75" />
+<text xml:space="preserve" text-anchor="middle" x="809.01" y="-398" font-family="Helvetica,sans-Serif" font-size="7.00">Yes</text>
+</g>
+
+<g id="edge47" class="edge">
+<title>tc_pending-&gt;tc_load</title>
+<path fill="none" stroke="black" d="M977.66,-319C977.66,-319 1024.45,-319 1024.45,-319" />
+<polygon fill="black" stroke="black" points="1024.45,-320.75 1029.45,-319 1024.45,-317.25 1024.45,-320.75" />
+<text xml:space="preserve" text-anchor="middle" x="996.56" y="-312.35" font-family="Helvetica,sans-Serif" font-size="7.00">No</text>
+</g>
+
+<g id="edge46" class="edge">
+<title>tc_pending-&gt;tc_pending_yes</title>
+<path fill="none" stroke="black" d="M982.64,-329.52C982.64,-346.96 982.64,-409 982.64,-409 982.64,-409 1038.3,-409 1038.3,-409" />
+<polygon fill="black" stroke="black" points="1038.3,-410.75 1043.3,-409 1038.3,-407.25 1038.3,-410.75" />
+<text xml:space="preserve" text-anchor="middle" x="977.01" y="-390.44" font-family="Helvetica,sans-Serif" font-size="7.00">Yes</text>
+</g>
+
+<g id="edge48" class="edge">
+<title>tc_load-&gt;tc_apply_loaded</title>
+<path fill="none" stroke="black" d="M1128.88,-319C1128.88,-319 1153.91,-319 1153.91,-319" />
+<polygon fill="black" stroke="black" points="1153.91,-320.75 1158.91,-319 1153.91,-317.25 1153.91,-320.75" />
+<text xml:space="preserve" text-anchor="middle" x="1117.77" y="-312.35" font-family="Helvetica,sans-Serif" font-size="7.00">Async callback</text>
+</g>
+
+
+
+
+
+
+
+<g id="edge49" class="edge">
+<title>ec_onvis-&gt;ec_visible</title>
+<path fill="none" stroke="black" d="M347.89,-164C347.89,-164 389.57,-164 389.57,-164" />
+<polygon fill="black" stroke="black" points="389.57,-165.75 394.57,-164 389.57,-162.25 389.57,-165.75" />
+</g>
+
+<g id="edge51" class="edge">
+<title>ec_visible-&gt;ec_update</title>
+<path fill="none" stroke="black" d="M530.7,-176C530.7,-176 579.09,-176 579.09,-176" />
+<polygon fill="black" stroke="black" points="579.09,-177.75 584.09,-176 579.09,-174.25 579.09,-177.75" />
+<text xml:space="preserve" text-anchor="middle" x="549.27" y="-169.35" font-family="Helvetica,sans-Serif" font-size="7.00">Yes</text>
+</g>
+
+<g id="edge50" class="edge">
+<title>ec_visible-&gt;ec_hide_vis</title>
+<path fill="none" stroke="black" d="M479.99,-146.93C522.56,-146.93 632.64,-146.93 632.64,-146.93 632.64,-146.93 632.64,-132.61 632.64,-132.61" />
+<polygon fill="black" stroke="black" points="634.39,-132.61 632.64,-127.61 630.89,-132.61 634.39,-132.61" />
+<text xml:space="preserve" text-anchor="middle" x="558.97" y="-140.28" font-family="Helvetica,sans-Serif" font-size="7.00">No</text>
+</g>
+
+<g id="edge52" class="edge">
+<title>ec_update-&gt;ec_find</title>
+<path fill="none" stroke="black" d="M678.91,-164C678.91,-164 735.98,-164 735.98,-164" />
+<polygon fill="black" stroke="black" points="735.98,-165.75 740.98,-164 735.98,-162.25 735.98,-165.75" />
+</g>
+
+<g id="edge53" class="edge">
+<title>ec_find-&gt;ec_star</title>
+<path fill="none" stroke="black" d="M802.06,-176C802.06,-176 887.33,-176 887.33,-176" />
+<polygon fill="black" stroke="black" points="887.33,-177.75 892.33,-176 887.33,-174.25 887.33,-177.75" />
+</g>
+
+<g id="edge54" class="edge">
+<title>ec_star-&gt;ec_star_no</title>
+<path fill="none" stroke="black" d="M956.08,-179C956.08,-179 1045.94,-179 1045.94,-179" />
+<polygon fill="black" stroke="black" points="1045.94,-180.75 1050.94,-179 1045.94,-177.25 1045.94,-180.75" />
+<text xml:space="preserve" text-anchor="middle" x="996.51" y="-172.35" font-family="Helvetica,sans-Serif" font-size="7.00">No</text>
+</g>
+
+<g id="edge55" class="edge">
+<title>ec_star-&gt;ee_test</title>
+<path fill="none" stroke="black" d="M956,-161C990.97,-161 1047.64,-161 1047.64,-161 1047.64,-161 1047.64,-58.98 1047.64,-58.98" />
+<polygon fill="black" stroke="black" points="1049.39,-58.98 1047.64,-53.98 1045.89,-58.98 1049.39,-58.98" />
+<text xml:space="preserve" text-anchor="middle" x="1007.51" y="-149.16" font-family="Helvetica,sans-Serif" font-size="7.00">Yes - evaluate candidates</text>
+</g>
+
+<g id="edge57" class="edge">
+<title>ec_overlay-&gt;ec_validate</title>
+<path fill="none" stroke="black" d="M1256.44,-176C1256.44,-176 1315.52,-176 1315.52,-176" />
+<polygon fill="black" stroke="black" points="1315.52,-177.75 1320.52,-176 1315.52,-174.25 1315.52,-177.75" />
+</g>
+
+<g id="edge59" class="edge">
+<title>ec_validate-&gt;ec_uniforms</title>
+<path fill="none" stroke="black" d="M1515.69,-176C1515.69,-176 1564.4,-176 1564.4,-176" />
+<polygon fill="black" stroke="black" points="1564.4,-177.75 1569.4,-176 1564.4,-174.25 1564.4,-177.75" />
+<text xml:space="preserve" text-anchor="middle" x="1534.42" y="-169.35" font-family="Helvetica,sans-Serif" font-size="7.00">Yes</text>
+</g>
+
+<g id="edge58" class="edge">
+<title>ec_validate-&gt;ec_hide</title>
+<path fill="none" stroke="black" d="M1442.48,-193.07C1496.82,-193.07 1625.64,-193.07 1625.64,-193.07 1625.64,-193.07 1625.64,-229.21 1625.64,-229.21" />
+<polygon fill="black" stroke="black" points="1623.89,-229.21 1625.64,-234.21 1627.39,-229.21 1623.89,-229.21" />
+<text xml:space="preserve" text-anchor="middle" x="1547.63" y="-186.42" font-family="Helvetica,sans-Serif" font-size="7.00">No</text>
+</g>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<g id="edge56" class="edge">
+<title>ee_test-&gt;ec_overlay</title>
+<path fill="none" stroke="black" d="M1111.64,-52.35C1111.64,-88.18 1111.64,-164 1111.64,-164 1111.64,-164 1163.72,-164 1163.72,-164" />
+<polygon fill="black" stroke="black" points="1163.72,-165.75 1168.72,-164 1163.72,-162.25 1163.72,-165.75" />
+</g>
+
+
+
+
+
+
+<g id="node1" class="node">
+<title>hook_trigger</title>
+<polygon fill="white" stroke="black" points="169.57,-479 16,-479 16,-443 169.57,-443 169.57,-479" />
+<text xml:space="preserve" text-anchor="middle" x="92.79" y="-463.62" font-family="Helvetica,sans-Serif" font-size="7.50">isMeshBigger = (meshVisSize &gt;= baseSize)</text>
+<text xml:space="preserve" text-anchor="middle" x="92.79" y="-453.88" font-family="Helvetica,sans-Serif" font-size="7.50">b.mesh.visible = isMeshBigger</text>
+</g>
+
+
+
+<g id="node12" class="node">
+<title>tc_onvis</title>
+<polygon fill="white" stroke="black" points="347.64,-343 201.57,-343 201.57,-307 347.64,-307 347.64,-343" />
+<text xml:space="preserve" text-anchor="middle" x="274.61" y="-322.75" font-family="Helvetica,sans-Serif" font-size="7.50">onMeshVisibilityChange(b, isMeshBigger)</text>
+</g>
+
+<g id="node22" class="node">
+<title>ec_onvis</title>
+<polygon fill="white" stroke="black" points="347.64,-188 201.57,-188 201.57,-152 347.64,-152 347.64,-188" />
+<text xml:space="preserve" text-anchor="middle" x="274.61" y="-167.75" font-family="Helvetica,sans-Serif" font-size="7.50">onMeshVisibilityChange(b, isMeshBigger)</text>
+</g>
+
+<g id="node13" class="node">
+<title>tc_visible</title>
+<polygon fill="#ffd54a" stroke="black" points="463.46,-343 434,-325 463.46,-307 492.92,-325 463.46,-343" />
+<text xml:space="preserve" text-anchor="middle" x="463.46" y="-322.75" font-family="Helvetica,sans-Serif" font-size="7.50">isVisible?</text>
+</g>
+
+
+<g id="node14" class="node">
+<title>tc_registry</title>
+<polygon fill="#ffd54a" stroke="black" points="632.35,-353.14 579.28,-325 632.35,-296.86 685.42,-325 632.35,-353.14" />
+<text xml:space="preserve" text-anchor="middle" x="632.35" y="-327.62" font-family="Helvetica,sans-Serif" font-size="7.50">registry[name]</text>
+<text xml:space="preserve" text-anchor="middle" x="632.35" y="-317.88" font-family="Helvetica,sans-Serif" font-size="7.50">has config?</text>
+</g>
+
+
+<g id="node41" class="node">
+<title>tc_visible_no</title>
+<ellipse fill="lightgrey" stroke="black" cx="632.35" cy="-254" rx="28.69" ry="18" />
+<text xml:space="preserve" text-anchor="middle" x="632.35" y="-251.75" font-family="Helvetica,sans-Serif" font-size="7.50">tc_visible_no</text>
+</g>
+
+<g id="node15" class="node">
+<title>tc_cache</title>
+<polygon fill="#ffd54a" stroke="black" points="772.18,-343 717.42,-325 772.18,-307 826.93,-325 772.18,-343" />
+<text xml:space="preserve" text-anchor="middle" x="772.18" y="-322.75" font-family="Helvetica,sans-Serif" font-size="7.50">Already in cache?</text>
+</g>
+
+
+<g id="node42" class="node">
+<title>tc_registry_no</title>
+<ellipse fill="lightgrey" stroke="black" cx="772.18" cy="-409" rx="30.87" ry="18" />
+<text xml:space="preserve" text-anchor="middle" x="772.18" y="-406.75" font-family="Helvetica,sans-Serif" font-size="7.50">tc_registry_no</text>
+</g>
+
+<g id="node16" class="node">
+<title>tc_pending</title>
+<polygon fill="#ffd54a" stroke="black" points="929.11,-343 858.93,-325 929.11,-307 999.29,-325 929.11,-343" />
+<text xml:space="preserve" text-anchor="middle" x="929.11" y="-322.75" font-family="Helvetica,sans-Serif" font-size="7.50">Load already pending?</text>
+</g>
+
+
+<g id="node43" class="node">
+<title>tc_apply_cached</title>
+<ellipse fill="lightgrey" stroke="black" cx="929.11" cy="-409" rx="36.97" ry="18" />
+<text xml:space="preserve" text-anchor="middle" x="929.11" y="-406.75" font-family="Helvetica,sans-Serif" font-size="7.50">tc_apply_cached</text>
+</g>
+
+<g id="node17" class="node">
+<title>tc_load</title>
+<polygon fill="white" stroke="black" points="1128.61,-343 1031.29,-343 1031.29,-307 1128.61,-307 1128.61,-343" />
+<text xml:space="preserve" text-anchor="middle" x="1079.95" y="-327.62" font-family="Helvetica,sans-Serif" font-size="7.50">TextureLoader.load(cfg.url)</text>
+<text xml:space="preserve" text-anchor="middle" x="1079.95" y="-317.88" font-family="Helvetica,sans-Serif" font-size="7.50">createTerrainContourMat()</text>
+</g>
+
+
+<g id="node44" class="node">
+<title>tc_pending_yes</title>
+<ellipse fill="lightgrey" stroke="black" cx="1079.95" cy="-409" rx="34.79" ry="18" />
+<text xml:space="preserve" text-anchor="middle" x="1079.95" y="-406.75" font-family="Helvetica,sans-Serif" font-size="7.50">tc_pending_yes</text>
+</g>
+
+<g id="node18" class="node">
+<title>tc_apply_loaded</title>
+<polygon fill="white" stroke="black" points="1266.18,-343.94 1160.61,-343.94 1160.61,-306.06 1266.18,-306.06 1266.18,-343.94" />
+<text xml:space="preserve" text-anchor="middle" x="1213.39" y="-332.5" font-family="Helvetica,sans-Serif" font-size="7.50">Cache material</text>
+<text xml:space="preserve" text-anchor="middle" x="1213.39" y="-322.75" font-family="Helvetica,sans-Serif" font-size="7.50">Swap bodyObj.mesh.material</text>
+<text xml:space="preserve" text-anchor="middle" x="1213.39" y="-313" font-family="Helvetica,sans-Serif" font-size="7.50">(async callback)</text>
+</g>
+
+
+<g id="node23" class="node">
+<title>ec_visible</title>
+<polygon fill="#ffd54a" stroke="black" points="463.46,-198.14 379.64,-170 463.46,-141.86 547.28,-170 463.46,-198.14" />
+<text xml:space="preserve" text-anchor="middle" x="463.46" y="-172.62" font-family="Helvetica,sans-Serif" font-size="7.50">isVisible?</text>
+<text xml:space="preserve" text-anchor="middle" x="463.46" y="-162.88" font-family="Helvetica,sans-Serif" font-size="7.50">(and not the star body)</text>
+</g>
+
+
+<g id="node24" class="node">
+<title>ec_update</title>
+<polygon fill="white" stroke="black" points="678.76,-188 585.94,-188 585.94,-152 678.76,-152 678.76,-188" />
+<text xml:space="preserve" text-anchor="middle" x="632.35" y="-172.62" font-family="Helvetica,sans-Serif" font-size="7.50">updateForBody(b)</text>
+<text xml:space="preserve" text-anchor="middle" x="632.35" y="-162.88" font-family="Helvetica,sans-Serif" font-size="7.50">(only when isMeshBigger)</text>
+</g>
+
+
+<g id="node45" class="node">
+<title>ec_hide_vis</title>
+<ellipse fill="lightgrey" stroke="black" cx="632.35" cy="-108" rx="27" ry="18" />
+<text xml:space="preserve" text-anchor="middle" x="632.35" y="-105.75" font-family="Helvetica,sans-Serif" font-size="7.50">ec_hide_vis</text>
+</g>
+
+<g id="node25" class="node">
+<title>ec_find</title>
+<polygon fill="white" stroke="black" points="801.71,-188 742.64,-188 742.64,-152 801.71,-152 801.71,-188" />
+<text xml:space="preserve" text-anchor="middle" x="772.18" y="-172.62" font-family="Helvetica,sans-Serif" font-size="7.50">_findStarBody()</text>
+<text xml:space="preserve" text-anchor="middle" x="772.18" y="-162.88" font-family="Helvetica,sans-Serif" font-size="7.50">&amp; _candidates()</text>
+</g>
+
+
+<g id="node26" class="node">
+<title>ec_star</title>
+<polygon fill="#ffd54a" stroke="black" points="929.11,-188 878.05,-170 929.11,-152 980.16,-170 929.11,-188" />
+<text xml:space="preserve" text-anchor="middle" x="929.11" y="-167.75" font-family="Helvetica,sans-Serif" font-size="7.50">starBody found?</text>
+</g>
+
+
+<g id="node27" class="node">
+<title>ec_star_no</title>
+<polygon fill="white" stroke="black" points="1106.95,-188 1052.95,-188 1052.95,-152 1106.95,-152 1106.95,-188" />
+<text xml:space="preserve" text-anchor="middle" x="1079.95" y="-167.75" font-family="Helvetica,sans-Serif" font-size="7.50">return</text>
+</g>
+
+
+<g id="node37" class="node">
+<title>ee_test</title>
+<polygon fill="white" stroke="black" points="1116.98,-52 1042.91,-52 1042.91,-16 1116.98,-16 1116.98,-52" />
+<text xml:space="preserve" text-anchor="middle" x="1079.95" y="-36.62" font-family="Helvetica,sans-Serif" font-size="7.50">For each candidate:</text>
+<text xml:space="preserve" text-anchor="middle" x="1079.95" y="-26.88" font-family="Helvetica,sans-Serif" font-size="7.50">_shadowTest()</text>
+</g>
+
+<g id="node28" class="node">
+<title>ec_overlay</title>
+<polygon fill="white" stroke="black" points="1256.05,-188 1170.73,-188 1170.73,-152 1256.05,-152 1256.05,-188" />
+<text xml:space="preserve" text-anchor="middle" x="1213.39" y="-172.62" font-family="Helvetica,sans-Serif" font-size="7.50">_ensureOverlay()</text>
+<text xml:space="preserve" text-anchor="middle" x="1213.39" y="-162.88" font-family="Helvetica,sans-Serif" font-size="7.50">(create mesh if missing)</text>
+</g>
+
+
+<g id="node29" class="node">
+<title>ec_validate</title>
+<polygon fill="#ffd54a" stroke="black" points="1418.75,-198.14 1298.18,-170 1418.75,-141.86 1539.32,-170 1418.75,-198.14" />
+<text xml:space="preserve" text-anchor="middle" x="1418.75" y="-172.62" font-family="Helvetica,sans-Serif" font-size="7.50">Any valid candidates</text>
+<text xml:space="preserve" text-anchor="middle" x="1418.75" y="-162.88" font-family="Helvetica,sans-Serif" font-size="7.50">(perpDist &lt; rPenumbra + bodyR)?</text>
+</g>
+
+
+<g id="node30" class="node">
+<title>ec_uniforms</title>
+<polygon fill="white" stroke="black" points="1680.64,-188 1571.32,-188 1571.32,-152 1680.64,-152 1680.64,-188" />
+<text xml:space="preserve" text-anchor="middle" x="1625.98" y="-172.62" font-family="Helvetica,sans-Serif" font-size="7.50">Sort by margin, top 8</text>
+<text xml:space="preserve" text-anchor="middle" x="1625.98" y="-162.88" font-family="Helvetica,sans-Serif" font-size="7.50">Update uniforms + visible=true</text>
+</g>
+
+
+<g id="node46" class="node">
+<title>ec_hide</title>
+<ellipse fill="lightgrey" stroke="black" cx="1625.98" cy="-254" rx="27" ry="18" />
+<text xml:space="preserve" text-anchor="middle" x="1625.98" y="-251.75" font-family="Helvetica,sans-Serif" font-size="7.50">ec_hide</text>
+</g>
+
+</g>
+</svg>

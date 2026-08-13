@@ -1,0 +1,1024 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="3951pt" height="990pt" viewBox="0.00 0.00 3951.00 990.00">
+<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 986)">
+<polygon fill="white" stroke="none" points="-4,4 -4,-986 3947.24,-986 3947.24,4 -4,4" />
+<g id="clust1" class="cluster">
+<title>cluster_main</title>
+<polygon fill="#dceaf7" stroke="#b3b3b3" points="8,-880 8,-974 3935.24,-974 3935.24,-880 8,-880" />
+<text xml:space="preserve" text-anchor="middle" x="50.5" y="-959.55" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="11.00">Main animate</text>
+</g>
+<g id="clust2" class="cluster">
+<title>cluster_physics</title>
+<polygon fill="#e0f3e0" stroke="#b3b3b3" points="51.05,-238 51.05,-313 3867.07,-313 3867.07,-238 51.05,-238" />
+<text xml:space="preserve" text-anchor="middle" x="98.05" y="-298.55" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="11.00">PhysicsEngine</text>
+</g>
+<g id="clust3" class="cluster">
+<title>cluster_orbital</title>
+<polygon fill="#fff3cd" stroke="#b3b3b3" points="51.05,-105 51.05,-218 3867.07,-218 3867.07,-105 51.05,-105" />
+<text xml:space="preserve" text-anchor="middle" x="115.3" y="-203.55" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="11.00">OrbitalMath / Analytic</text>
+</g>
+<g id="clust4" class="cluster">
+<title>cluster_interaction</title>
+<polygon fill="#fbe1ee" stroke="#b3b3b3" points="51.05,-796 51.05,-870 3867.07,-870 3867.07,-796 51.05,-796" />
+<text xml:space="preserve" text-anchor="middle" x="113.8" y="-855.55" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="11.00">InteractionController</text>
+</g>
+<g id="clust5" class="cluster">
+<title>cluster_ui</title>
+<polygon fill="#ffe6c7" stroke="#b3b3b3" points="51.05,-714 51.05,-788 3867.07,-788 3867.07,-714 51.05,-714" />
+<text xml:space="preserve" text-anchor="middle" x="91.3" y="-773.55" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="11.00">UIController</text>
+</g>
+<g id="clust6" class="cluster">
+<title>cluster_render</title>
+<polygon fill="#ececec" stroke="#b3b3b3" points="51.05,-631 51.05,-706 3867.07,-706 3867.07,-631 51.05,-631" />
+<text xml:space="preserve" text-anchor="middle" x="99.17" y="-691.55" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="11.00">RenderPipeline</text>
+</g>
+<g id="clust7" class="cluster">
+<title>cluster_grids</title>
+<polygon fill="#e8e0f0" stroke="#b3b3b3" points="51.05,-485 51.05,-579 3867.07,-579 3867.07,-485 51.05,-485" />
+<text xml:space="preserve" text-anchor="middle" x="86.05" y="-564.55" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="11.00">Dual grids</text>
+</g>
+<g id="clust8" class="cluster">
+<title>cluster_measure</title>
+<polygon fill="#d4edda" stroke="#b3b3b3" points="51.05,-403 51.05,-477 3867.07,-477 3867.07,-403 51.05,-403" />
+<text xml:space="preserve" text-anchor="middle" x="116.8" y="-462.55" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="11.00">MeasurementManager</text>
+</g>
+<g id="clust9" class="cluster">
+<title>cluster_stars</title>
+<polygon fill="#d1ecf1" stroke="#b3b3b3" points="51.05,-321 51.05,-395 3867.07,-395 3867.07,-321 51.05,-321" />
+<text xml:space="preserve" text-anchor="middle" x="110.8" y="-380.55" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="11.00">PinnedStarManager</text>
+</g>
+
+<g id="edge253" class="edge">
+<title>raf-&gt;stage1_time</title>
+<path fill="none" stroke="black" d="M103.25,-922C103.25,-922 128.1,-922 128.1,-922" />
+<polygon fill="black" stroke="black" points="128.1,-923.75 133.1,-922 128.1,-920.25 128.1,-923.75" />
+</g>
+
+<g id="edge254" class="edge">
+<title>stage1_time-&gt;physics_time</title>
+<path fill="none" stroke="black" d="M161.24,-897.57C161.24,-897.57 161.24,-290.73 161.24,-290.73" />
+<polygon fill="black" stroke="black" points="162.99,-290.73 161.24,-285.73 159.49,-290.73 162.99,-290.73" />
+<text xml:space="preserve" text-anchor="middle" x="137.99" y="-587.5" font-family="Helvetica,sans-Serif" font-size="7.00">UI date + delta</text>
+</g>
+
+<g id="edge256" class="edge">
+<title>time_result-&gt;stage2_physics</title>
+<path fill="none" stroke="black" d="M335.63,-922C335.63,-922 384.2,-922 384.2,-922" />
+<polygon fill="black" stroke="black" points="384.2,-923.75 389.2,-922 384.2,-920.25 384.2,-923.75" />
+</g>
+
+
+
+<g id="edge257" class="edge">
+<title>stage2_physics-&gt;kepler_kin</title>
+<path fill="none" stroke="black" d="M438.24,-897.57C438.24,-897.57 438.24,-290.73 438.24,-290.73" />
+<polygon fill="black" stroke="black" points="439.99,-290.73 438.24,-285.73 436.49,-290.73 439.99,-290.73" />
+<text xml:space="preserve" text-anchor="middle" x="414.62" y="-587.5" font-family="Helvetica,sans-Serif" font-size="7.00">bodies + epoch</text>
+</g>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<g id="edge270" class="edge">
+<title>stage3_hw-&gt;has_target</title>
+<path fill="none" stroke="black" d="M1747.35,-922C1747.35,-922 1782.63,-922 1782.63,-922" />
+<polygon fill="black" stroke="black" points="1782.63,-923.75 1787.63,-922 1782.63,-920.25 1782.63,-923.75" />
+</g>
+
+
+
+<g id="edge272" class="edge">
+<title>has_target-&gt;camera_track</title>
+<path fill="none" stroke="black" d="M1838.51,-891.24C1862.22,-891.24 1936.24,-891.24 1936.24,-891.24 1936.24,-891.24 1936.24,-846.71 1936.24,-846.71" />
+<polygon fill="black" stroke="black" points="1937.99,-846.71 1936.24,-841.71 1934.49,-846.71 1937.99,-846.71" />
+<text xml:space="preserve" text-anchor="middle" x="1904.02" y="-884.59" font-family="Helvetica,sans-Serif" font-size="7.00">Yes</text>
+</g>
+
+<g id="edge273" class="edge">
+<title>has_target-&gt;controls</title>
+<path fill="none" stroke="black" stroke-dasharray="5,2" d="M1844.87,-894.62C1892.36,-894.62 2048.24,-894.62 2048.24,-894.62 2048.24,-894.62 2048.24,-846.84 2048.24,-846.84" />
+<polygon fill="black" stroke="black" points="2049.99,-846.84 2048.24,-841.84 2046.49,-846.84 2049.99,-846.84" />
+<text xml:space="preserve" text-anchor="middle" x="1965.95" y="-887.97" font-family="Helvetica,sans-Serif" font-size="7.00">No</text>
+</g>
+
+<g id="edge271" class="edge">
+<title>has_target-&gt;telemetry</title>
+<path fill="none" stroke="black" d="M1858.24,-901.8C1858.24,-861.54 1858.24,-749.5 1858.24,-749.5 1858.24,-749.5 1908.68,-749.5 1908.68,-749.5" />
+<polygon fill="black" stroke="black" points="1908.68,-751.25 1913.68,-749.5 1908.68,-747.75 1908.68,-751.25" />
+<text xml:space="preserve" text-anchor="middle" x="1852.62" y="-793.78" font-family="Helvetica,sans-Serif" font-size="7.00">Yes</text>
+</g>
+
+
+
+<g id="edge277" class="edge">
+<title>stage4_prepass-&gt;prepass</title>
+<path fill="none" stroke="black" d="M2226.24,-897.73C2226.24,-840.34 2226.24,-667.5 2226.24,-667.5 2226.24,-667.5 2273.35,-667.5 2273.35,-667.5" />
+<polygon fill="black" stroke="black" points="2273.35,-669.25 2278.35,-667.5 2273.35,-665.75 2273.35,-669.25" />
+</g>
+
+<g id="edge279" class="edge">
+<title>stage5_grids-&gt;ecliptic</title>
+<path fill="none" stroke="black" d="M2532.88,-903.67C2554.89,-903.67 2577.24,-903.67 2577.24,-903.67 2577.24,-903.67 2577.24,-545.97 2577.24,-545.97" />
+<polygon fill="black" stroke="black" points="2578.99,-545.97 2577.24,-540.97 2575.49,-545.97 2578.99,-545.97" />
+</g>
+
+
+
+
+
+<g id="edge285" class="edge">
+<title>stage5b_measure-&gt;measure</title>
+<path fill="none" stroke="black" d="M3011.03,-903.67C3036.93,-903.67 3062.24,-903.67 3062.24,-903.67 3062.24,-903.67 3062.24,-453.83 3062.24,-453.83" />
+<polygon fill="black" stroke="black" points="3063.99,-453.83 3062.24,-448.83 3060.49,-453.83 3063.99,-453.83" />
+</g>
+
+<g id="edge287" class="edge">
+<title>stage5b_stars-&gt;pinned</title>
+<path fill="none" stroke="black" d="M3254.83,-903.67C3280.88,-903.67 3307.24,-903.67 3307.24,-903.67 3307.24,-903.67 3307.24,-371.72 3307.24,-371.72" />
+<polygon fill="black" stroke="black" points="3308.99,-371.72 3307.24,-366.72 3305.49,-371.72 3308.99,-371.72" />
+</g>
+
+<g id="edge289" class="edge">
+<title>stage6_final-&gt;gpu_update</title>
+<path fill="none" stroke="black" d="M3500.74,-909.33C3526.19,-909.33 3552.24,-909.33 3552.24,-909.33 3552.24,-909.33 3552.24,-682.99 3552.24,-682.99" />
+<polygon fill="black" stroke="black" points="3553.99,-682.99 3552.24,-677.99 3550.49,-682.99 3553.99,-682.99" />
+</g>
+
+
+
+<g id="edge255" class="edge">
+<title>physics_time-&gt;time_result</title>
+<path fill="none" stroke="black" d="M218.95,-274.97C245.89,-274.97 277.24,-274.97 277.24,-274.97 277.24,-274.97 277.24,-890.99 277.24,-890.99" />
+<polygon fill="black" stroke="black" points="275.49,-890.99 277.24,-895.99 278.99,-890.99 275.49,-890.99" />
+</g>
+
+
+
+
+
+
+<g id="edge258" class="edge">
+<title>kepler_kin-&gt;orbit_model</title>
+<path fill="none" stroke="black" d="M450.24,-245.83C450.24,-216.94 450.24,-165.57 450.24,-165.57 450.24,-165.57 557.42,-165.57 557.42,-165.57" />
+<polygon fill="black" stroke="black" points="557.42,-167.32 562.42,-165.57 557.42,-163.82 557.42,-167.32" />
+<text xml:space="preserve" text-anchor="middle" x="436.33" y="-158.92" font-family="Helvetica,sans-Serif" font-size="7.00">per non-Sun body</text>
+</g>
+
+
+
+
+
+<g id="edge266" class="edge">
+<title>set_local_pos-&gt;moon_offsets</title>
+<path fill="none" stroke="black" d="M1214.24,-259C1214.24,-259 1239.06,-259 1239.06,-259" />
+<polygon fill="black" stroke="black" points="1239.06,-260.75 1244.06,-259 1239.06,-257.25 1239.06,-260.75" />
+</g>
+
+
+
+<g id="edge267" class="edge">
+<title>moon_offsets-&gt;floating_origin</title>
+<path fill="none" stroke="black" d="M1384.15,-274.5C1413.15,-274.5 1440.24,-274.5 1440.24,-274.5 1440.24,-274.5 1440.24,-632.99 1440.24,-632.99" />
+<polygon fill="black" stroke="black" points="1438.49,-632.99 1440.24,-637.99 1441.99,-632.99 1438.49,-632.99" />
+</g>
+
+<g id="edge269" class="edge">
+<title>zsort-&gt;stage3_hw</title>
+<path fill="none" stroke="black" d="M1611.24,-283.17C1611.24,-387.56 1611.24,-906.5 1611.24,-906.5 1611.24,-906.5 1657.06,-906.5 1657.06,-906.5" />
+<polygon fill="black" stroke="black" points="1657.06,-908.25 1662.06,-906.5 1657.06,-904.75 1657.06,-908.25" />
+</g>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<g id="edge261" class="edge">
+<title>orbit_model-&gt;model_kepler</title>
+<path fill="none" stroke="black" d="M705.16,-144.69C705.16,-144.69 753.16,-144.69 753.16,-144.69" />
+<polygon fill="black" stroke="black" points="753.16,-146.44 758.16,-144.69 753.16,-142.94 753.16,-146.44" />
+<text xml:space="preserve" text-anchor="middle" x="701.78" y="-138.03" font-family="Helvetica,sans-Serif" font-size="7.00">KEPLER / default</text>
+</g>
+
+<g id="edge259" class="edge">
+<title>orbit_model-&gt;model_meeus</title>
+<path fill="none" stroke="black" d="M618.24,-122.47C618.24,-83.39 618.24,-18 618.24,-18 618.24,-18 773.37,-18 773.37,-18" />
+<polygon fill="black" stroke="black" points="773.37,-19.75 778.37,-18 773.37,-16.25 773.37,-19.75" />
+<text xml:space="preserve" text-anchor="middle" x="631.2" y="-11.35" font-family="Helvetica,sans-Serif" font-size="7.00">MEEUS</text>
+</g>
+
+<g id="edge260" class="edge">
+<title>orbit_model-&gt;model_vsop</title>
+<path fill="none" stroke="black" d="M638.25,-127.46C685.63,-127.46 802.24,-127.46 802.24,-127.46 802.24,-127.46 802.24,-103.01 802.24,-103.01" />
+<polygon fill="black" stroke="black" points="803.99,-103.01 802.24,-98.01 800.49,-103.01 803.99,-103.01" />
+<text xml:space="preserve" text-anchor="middle" x="719.35" y="-120.81" font-family="Helvetica,sans-Serif" font-size="7.00">VSOP87</text>
+</g>
+
+<g id="edge265" class="edge">
+<title>model_kepler-&gt;set_local_pos</title>
+<path fill="none" stroke="black" d="M837.24,-170.17C837.24,-200.34 837.24,-255.5 837.24,-255.5 837.24,-255.5 1118.1,-255.5 1118.1,-255.5" />
+<polygon fill="black" stroke="black" points="1118.1,-257.25 1123.1,-255.5 1118.1,-253.75 1118.1,-257.25" />
+</g>
+
+<g id="edge263" class="edge">
+<title>barycenter-&gt;set_local_pos</title>
+<path fill="none" stroke="black" d="M1043.12,-170.44C1085.4,-170.44 1139.24,-170.44 1139.24,-170.44 1139.24,-170.44 1139.24,-240.26 1139.24,-240.26" />
+<polygon fill="black" stroke="black" points="1137.49,-240.26 1139.24,-245.26 1140.99,-240.26 1137.49,-240.26" />
+<text xml:space="preserve" text-anchor="middle" x="1103.96" y="-163.79" font-family="Helvetica,sans-Serif" font-size="7.00">Yes or No</text>
+<text xml:space="preserve" text-anchor="middle" x="1103.96" y="-155.54" font-family="Helvetica,sans-Serif" font-size="7.00">(apply or skip)</text>
+</g>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<g id="edge275" class="edge">
+<title>camera_track-&gt;controls</title>
+<path fill="none" stroke="black" d="M1987.72,-828C1987.72,-828 2017.15,-828 2017.15,-828" />
+<polygon fill="black" stroke="black" points="2017.15,-829.75 2022.15,-828 2017.15,-826.25 2017.15,-829.75" />
+</g>
+
+<g id="edge276" class="edge">
+<title>controls-&gt;stage4_prepass</title>
+<path fill="none" stroke="black" d="M2125.32,-831.5C2152.02,-831.5 2179.24,-831.5 2179.24,-831.5 2179.24,-831.5 2179.24,-891.15 2179.24,-891.15" />
+<polygon fill="black" stroke="black" points="2177.49,-891.15 2179.24,-896.15 2180.99,-891.15 2177.49,-891.15" />
+</g>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<g id="edge274" class="edge">
+<title>telemetry-&gt;controls</title>
+<path fill="none" stroke="black" d="M1992.2,-749.5C2018.35,-749.5 2048.24,-749.5 2048.24,-749.5 2048.24,-749.5 2048.24,-797.19 2048.24,-797.19" />
+<polygon fill="black" stroke="black" points="2046.49,-797.19 2048.24,-802.19 2049.99,-797.19 2046.49,-797.19" />
+</g>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<g id="edge268" class="edge">
+<title>floating_origin-&gt;zsort</title>
+<path fill="none" stroke="black" d="M1516.49,-648.5C1542.26,-648.5 1568.24,-648.5 1568.24,-648.5 1568.24,-648.5 1568.24,-290.01 1568.24,-290.01" />
+<polygon fill="black" stroke="black" points="1569.99,-290.01 1568.24,-285.01 1566.49,-290.01 1569.99,-290.01" />
+</g>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<g id="edge278" class="edge">
+<title>prepass-&gt;stage5_grids</title>
+<path fill="none" stroke="black" d="M2416.98,-667.5C2444.23,-667.5 2469.24,-667.5 2469.24,-667.5 2469.24,-667.5 2469.24,-891.21 2469.24,-891.21" />
+<polygon fill="black" stroke="black" points="2467.49,-891.21 2469.24,-896.21 2470.99,-891.21 2467.49,-891.21" />
+</g>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<g id="edge290" class="edge">
+<title>gpu_update-&gt;star_far</title>
+<path fill="none" stroke="black" d="M3595.24,-639.59C3595.24,-574.13 3595.24,-356.5 3595.24,-356.5 3595.24,-356.5 3641.09,-356.5 3641.09,-356.5" />
+<polygon fill="black" stroke="black" points="3641.09,-358.25 3646.09,-356.5 3641.09,-354.75 3641.09,-358.25" />
+</g>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<g id="edge280" class="edge">
+<title>ecliptic-&gt;eq_decision</title>
+<path fill="none" stroke="black" d="M2618.8,-527C2618.8,-527 2655.21,-527 2655.21,-527" />
+<polygon fill="black" stroke="black" points="2655.21,-528.75 2660.21,-527 2655.21,-525.25 2655.21,-528.75" />
+</g>
+
+<g id="edge282" class="edge">
+<title>eq_decision-&gt;equatorial_hide</title>
+<path fill="none" stroke="black" d="M2754.41,-527C2754.41,-527 2790.63,-527 2790.63,-527" />
+<polygon fill="black" stroke="black" points="2790.63,-528.75 2795.63,-527 2790.63,-525.25 2790.63,-528.75" />
+<text xml:space="preserve" text-anchor="middle" x="2768.02" y="-520.35" font-family="Helvetica,sans-Serif" font-size="7.00">No</text>
+</g>
+
+<g id="edge281" class="edge">
+<title>eq_decision-&gt;equatorial_show</title>
+<path fill="none" stroke="black" d="M2719.15,-544.07C2749.79,-544.07 2833.24,-544.07 2833.24,-544.07 2833.24,-544.07 2833.24,-580.21 2833.24,-580.21" />
+<polygon fill="black" stroke="black" points="2831.49,-580.21 2833.24,-585.21 2834.99,-580.21 2831.49,-580.21" />
+<text xml:space="preserve" text-anchor="middle" x="2788.64" y="-537.42" font-family="Helvetica,sans-Serif" font-size="7.00">Yes</text>
+</g>
+
+<g id="edge284" class="edge">
+<title>equatorial_hide-&gt;stage5b_measure</title>
+<path fill="none" stroke="black" d="M2869.87,-530.5C2896.58,-530.5 2928.24,-530.5 2928.24,-530.5 2928.24,-530.5 2928.24,-891.15 2928.24,-891.15" />
+<polygon fill="black" stroke="black" points="2926.49,-891.15 2928.24,-896.15 2929.99,-891.15 2926.49,-891.15" />
+</g>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<g id="edge286" class="edge">
+<title>measure-&gt;stage5b_stars</title>
+<path fill="none" stroke="black" d="M3102.24,-447.24C3102.24,-534.98 3102.24,-909.33 3102.24,-909.33 3102.24,-909.33 3147.32,-909.33 3147.32,-909.33" />
+<polygon fill="black" stroke="black" points="3147.32,-911.08 3152.32,-909.33 3147.32,-907.58 3147.32,-911.08" />
+</g>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<g id="edge288" class="edge">
+<title>pinned-&gt;stage6_final</title>
+<path fill="none" stroke="black" d="M3352.24,-365.39C3352.24,-462.3 3352.24,-909.33 3352.24,-909.33 3352.24,-909.33 3398.33,-909.33 3398.33,-909.33" />
+<polygon fill="black" stroke="black" points="3398.33,-911.08 3403.33,-909.33 3398.33,-907.58 3398.33,-911.08" />
+</g>
+
+
+
+
+
+
+<g id="edge291" class="edge">
+<title>star_far-&gt;webgl_render</title>
+<path fill="none" stroke="black" d="M3731.24,-365.2C3731.24,-461.14 3731.24,-903.67 3731.24,-903.67 3731.24,-903.67 3783.24,-903.67 3783.24,-903.67" />
+<polygon fill="black" stroke="black" points="3783.24,-905.42 3788.24,-903.67 3783.24,-901.92 3783.24,-905.42" />
+</g>
+
+
+
+<g id="edge264" class="edge">
+<title>model_meeus-&gt;set_local_pos</title>
+<path fill="none" stroke="black" d="M841.91,-18C926.44,-18 1154.24,-18 1154.24,-18 1154.24,-18 1154.24,-240.32 1154.24,-240.32" />
+<polygon fill="black" stroke="black" points="1152.49,-240.32 1154.24,-245.32 1155.99,-240.32 1152.49,-240.32" />
+</g>
+
+<g id="edge262" class="edge">
+<title>model_vsop-&gt;barycenter</title>
+<path fill="none" stroke="black" d="M820.24,-96.21C820.24,-106.66 820.24,-117.98 820.24,-117.98 820.24,-117.98 972.63,-117.98 972.63,-117.98" />
+<polygon fill="black" stroke="black" points="972.63,-119.74 977.63,-117.99 972.63,-116.24 972.63,-119.74" />
+</g>
+
+<g id="edge283" class="edge">
+<title>equatorial_show-&gt;stage5b_measure</title>
+<path fill="none" stroke="black" d="M2852.24,-620.51C2852.24,-682.53 2852.24,-909.33 2852.24,-909.33 2852.24,-909.33 2894.61,-909.33 2894.61,-909.33" />
+<polygon fill="black" stroke="black" points="2894.61,-911.08 2899.61,-909.33 2894.61,-907.58 2894.61,-911.08" />
+</g>
+<g id="node1" class="node">
+<title>raf</title>
+<polygon fill="white" stroke="black" points="102.82,-934 16,-934 16,-898 102.82,-898 102.82,-934" />
+<text xml:space="preserve" text-anchor="middle" x="59.41" y="-918.62" font-family="Helvetica,sans-Serif" font-size="7.50">requestAnimationFrame</text>
+<text xml:space="preserve" text-anchor="middle" x="59.41" y="-908.88" font-family="Helvetica,sans-Serif" font-size="7.50">Compute deltaSec</text>
+</g>
+
+<g id="node2" class="node">
+<title>stage1_time</title>
+<polygon fill="white" stroke="black" points="226.89,-934 134.82,-934 134.82,-898 226.89,-898 226.89,-934" />
+<text xml:space="preserve" text-anchor="middle" x="180.86" y="-918.62" font-family="Helvetica,sans-Serif" font-size="7.50">Stage 1</text>
+<text xml:space="preserve" text-anchor="middle" x="180.86" y="-908.88" font-family="Helvetica,sans-Serif" font-size="7.50">updateSystemTimeStage</text>
+</g>
+
+
+<g id="node3" class="node">
+<title>time_result</title>
+<polygon fill="white" stroke="black" points="335.21,-934 258.89,-934 258.89,-898 335.21,-898 335.21,-934" />
+<text xml:space="preserve" text-anchor="middle" x="297.05" y="-918.62" font-family="Helvetica,sans-Serif" font-size="7.50">Set systemDate</text>
+<text xml:space="preserve" text-anchor="middle" x="297.05" y="-908.88" font-family="Helvetica,sans-Serif" font-size="7.50">Set daysSinceJ2000</text>
+</g>
+
+
+<g id="node31" class="node">
+<title>physics_time</title>
+<polygon fill="white" stroke="black" points="218.64,-283.94 143.07,-283.94 143.07,-246.06 218.64,-246.06 218.64,-283.94" />
+<text xml:space="preserve" text-anchor="middle" x="180.86" y="-272.5" font-family="Helvetica,sans-Serif" font-size="7.50">updateSystemTime()</text>
+<text xml:space="preserve" text-anchor="middle" x="180.86" y="-262.75" font-family="Helvetica,sans-Serif" font-size="7.50">live clock or sim date</text>
+<text xml:space="preserve" text-anchor="middle" x="180.86" y="-253" font-family="Helvetica,sans-Serif" font-size="7.50">-&gt; daysSinceJ2000</text>
+</g>
+
+<g id="node4" class="node">
+<title>stage2_physics</title>
+<polygon fill="white" stroke="black" points="453.66,-934 390.84,-934 390.84,-898 453.66,-898 453.66,-934" />
+<text xml:space="preserve" text-anchor="middle" x="422.25" y="-918.62" font-family="Helvetica,sans-Serif" font-size="7.50">Stage 2</text>
+<text xml:space="preserve" text-anchor="middle" x="422.25" y="-908.88" font-family="Helvetica,sans-Serif" font-size="7.50">runPhysicsStage</text>
+</g>
+
+
+<g id="node33" class="node">
+<title>kepler_kin</title>
+<polygon fill="white" stroke="black" points="477.28,-283.94 367.21,-283.94 367.21,-246.06 477.28,-246.06 477.28,-283.94" />
+<text xml:space="preserve" text-anchor="middle" x="422.25" y="-272.5" font-family="Helvetica,sans-Serif" font-size="7.50">calculateKeplerianKinematics()</text>
+<text xml:space="preserve" text-anchor="middle" x="422.25" y="-262.75" font-family="Helvetica,sans-Serif" font-size="7.50">poles, W, RA/DEC</text>
+<text xml:space="preserve" text-anchor="middle" x="422.25" y="-253" font-family="Helvetica,sans-Serif" font-size="7.50">for each body</text>
+</g>
+
+<g id="node12" class="node">
+<title>stage3_hw</title>
+<polygon fill="white" stroke="black" points="1746.98,-934 1663.91,-934 1663.91,-898 1746.98,-898 1746.98,-934" />
+<text xml:space="preserve" text-anchor="middle" x="1705.45" y="-918.62" font-family="Helvetica,sans-Serif" font-size="7.50">Stage 3</text>
+<text xml:space="preserve" text-anchor="middle" x="1705.45" y="-908.88" font-family="Helvetica,sans-Serif" font-size="7.50">updateHardwareStage</text>
+</g>
+
+
+<g id="node13" class="node">
+<title>has_target</title>
+<polygon fill="#ffd54a" stroke="black" points="1831.3,-944.14 1778.98,-916 1831.3,-887.86 1883.62,-916 1831.3,-944.14" />
+<text xml:space="preserve" text-anchor="middle" x="1831.3" y="-918.62" font-family="Helvetica,sans-Serif" font-size="7.50">Current target</text>
+<text xml:space="preserve" text-anchor="middle" x="1831.3" y="-908.88" font-family="Helvetica,sans-Serif" font-size="7.50">in body list?</text>
+</g>
+
+
+<g id="node101" class="node">
+<title>camera_track</title>
+<polygon fill="white" stroke="black" points="1987.44,-840 1920.12,-840 1920.12,-804 1987.44,-804 1987.44,-840" />
+<text xml:space="preserve" text-anchor="middle" x="1953.78" y="-824.62" font-family="Helvetica,sans-Serif" font-size="7.50">updateCamera()</text>
+<text xml:space="preserve" text-anchor="middle" x="1953.78" y="-814.88" font-family="Helvetica,sans-Serif" font-size="7.50">follow target mesh</text>
+</g>
+
+<g id="node102" class="node">
+<title>controls</title>
+<polygon fill="white" stroke="black" points="2125.01,-840 2023.94,-840 2023.94,-804 2125.01,-804 2125.01,-840" />
+<text xml:space="preserve" text-anchor="middle" x="2074.48" y="-824.62" font-family="Helvetica,sans-Serif" font-size="7.50">controls.update()</text>
+<text xml:space="preserve" text-anchor="middle" x="2074.48" y="-814.88" font-family="Helvetica,sans-Serif" font-size="7.50">camera.updateMatrixWorld()</text>
+</g>
+
+<g id="node130" class="node">
+<title>telemetry</title>
+<polygon fill="white" stroke="black" points="1991.94,-758 1915.62,-758 1915.62,-722 1991.94,-722 1991.94,-758" />
+<text xml:space="preserve" text-anchor="middle" x="1953.78" y="-742.62" font-family="Helvetica,sans-Serif" font-size="7.50">updateLiveTelemetry</text>
+<text xml:space="preserve" text-anchor="middle" x="1953.78" y="-732.88" font-family="Helvetica,sans-Serif" font-size="7.50">(W, RA, DEC)</text>
+</g>
+
+<g id="node16" class="node">
+<title>stage4_prepass</title>
+<polygon fill="white" stroke="black" points="2248.33,-934 2157.01,-934 2157.01,-898 2248.33,-898 2248.33,-934" />
+<text xml:space="preserve" text-anchor="middle" x="2202.67" y="-918.62" font-family="Helvetica,sans-Serif" font-size="7.50">Stage 4</text>
+<text xml:space="preserve" text-anchor="middle" x="2202.67" y="-908.88" font-family="Helvetica,sans-Serif" font-size="7.50">runRenderPrePassStage</text>
+</g>
+
+
+
+
+<g id="node162" class="node">
+<title>prepass</title>
+<polygon fill="white" stroke="black" points="2416.65,-676.95 2280.33,-676.95 2280.33,-639.05 2416.65,-639.05 2416.65,-676.95" />
+<text xml:space="preserve" text-anchor="middle" x="2348.49" y="-665.5" font-family="Helvetica,sans-Serif" font-size="7.50">processScreenProjectionsAndCulling()</text>
+<text xml:space="preserve" text-anchor="middle" x="2348.49" y="-655.75" font-family="Helvetica,sans-Serif" font-size="7.50">renderPos, cull, LOD, occlusion</text>
+<text xml:space="preserve" text-anchor="middle" x="2348.49" y="-646" font-family="Helvetica,sans-Serif" font-size="7.50">terrain/daylight/eclipse hooks</text>
+</g>
+
+<g id="node18" class="node">
+<title>stage5_grids</title>
+<polygon fill="white" stroke="black" points="2532.47,-934 2448.65,-934 2448.65,-898 2532.47,-898 2532.47,-934" />
+<text xml:space="preserve" text-anchor="middle" x="2490.56" y="-918.62" font-family="Helvetica,sans-Serif" font-size="7.50">Stage 5</text>
+<text xml:space="preserve" text-anchor="middle" x="2490.56" y="-908.88" font-family="Helvetica,sans-Serif" font-size="7.50">updateDualGridsStage</text>
+</g>
+
+
+
+
+<g id="node193" class="node">
+<title>ecliptic</title>
+<polygon fill="white" stroke="black" points="2618.47,-539 2564.47,-539 2564.47,-503 2618.47,-503 2618.47,-539" />
+<text xml:space="preserve" text-anchor="middle" x="2591.47" y="-523.62" font-family="Helvetica,sans-Serif" font-size="7.50">Ecliptic grid</text>
+<text xml:space="preserve" text-anchor="middle" x="2591.47" y="-513.88" font-family="Helvetica,sans-Serif" font-size="7.50">flat at Y=0</text>
+</g>
+
+<g id="node22" class="node">
+<title>stage5b_measure</title>
+<polygon fill="white" stroke="black" points="3010.75,-934 2901.43,-934 2901.43,-898 3010.75,-898 3010.75,-934" />
+<text xml:space="preserve" text-anchor="middle" x="2956.09" y="-918.62" font-family="Helvetica,sans-Serif" font-size="7.50">Stage 5b</text>
+<text xml:space="preserve" text-anchor="middle" x="2956.09" y="-908.88" font-family="Helvetica,sans-Serif" font-size="7.50">measurementManager.update</text>
+</g>
+
+
+
+
+<g id="node226" class="node">
+<title>measure</title>
+<polygon fill="white" stroke="black" points="3122.07,-447 3042.75,-447 3042.75,-411 3122.07,-411 3122.07,-447" />
+<text xml:space="preserve" text-anchor="middle" x="3082.41" y="-431.62" font-family="Helvetica,sans-Serif" font-size="7.50">Update measurement</text>
+<text xml:space="preserve" text-anchor="middle" x="3082.41" y="-421.88" font-family="Helvetica,sans-Serif" font-size="7.50">overlays / rulers</text>
+</g>
+
+<g id="node24" class="node">
+<title>stage5b_stars</title>
+<polygon fill="white" stroke="black" points="3254.39,-934 3154.07,-934 3154.07,-898 3254.39,-898 3254.39,-934" />
+<text xml:space="preserve" text-anchor="middle" x="3204.23" y="-918.62" font-family="Helvetica,sans-Serif" font-size="7.50">Stage 5b</text>
+<text xml:space="preserve" text-anchor="middle" x="3204.23" y="-908.88" font-family="Helvetica,sans-Serif" font-size="7.50">pinnedStarManager.update</text>
+</g>
+
+
+
+
+<g id="node257" class="node">
+<title>pinned</title>
+<polygon fill="white" stroke="black" points="3373.21,-365 3286.39,-365 3286.39,-329 3373.21,-329 3373.21,-365" />
+<text xml:space="preserve" text-anchor="middle" x="3329.8" y="-349.62" font-family="Helvetica,sans-Serif" font-size="7.50">Update pinned star</text>
+<text xml:space="preserve" text-anchor="middle" x="3329.8" y="-339.88" font-family="Helvetica,sans-Serif" font-size="7.50">labels (persist on hover)</text>
+</g>
+
+<g id="node26" class="node">
+<title>stage6_final</title>
+<polygon fill="white" stroke="black" points="3500.28,-934 3405.21,-934 3405.21,-898 3500.28,-898 3500.28,-934" />
+<text xml:space="preserve" text-anchor="middle" x="3452.75" y="-918.62" font-family="Helvetica,sans-Serif" font-size="7.50">Stage 6</text>
+<text xml:space="preserve" text-anchor="middle" x="3452.75" y="-908.88" font-family="Helvetica,sans-Serif" font-size="7.50">executeFinalRenderStage</text>
+</g>
+
+
+
+
+<g id="node172" class="node">
+<title>gpu_update</title>
+<polygon fill="white" stroke="black" points="3616.1,-676 3532.28,-676 3532.28,-640 3616.1,-640 3616.1,-676" />
+<text xml:space="preserve" text-anchor="middle" x="3574.19" y="-660.62" font-family="Helvetica,sans-Serif" font-size="7.50">pipeline.updateGPU()</text>
+<text xml:space="preserve" text-anchor="middle" x="3574.19" y="-650.88" font-family="Helvetica,sans-Serif" font-size="7.50">particle uniforms / wells</text>
+</g>
+
+<g id="node29" class="node">
+<title>webgl_render</title>
+<polygon fill="white" stroke="black" points="3927.24,-934 3790.17,-934 3790.17,-898 3927.24,-898 3927.24,-934" />
+<text xml:space="preserve" text-anchor="middle" x="3858.71" y="-913.75" font-family="Helvetica,sans-Serif" font-size="7.50">webglRenderer.render(scene, camera)</text>
+</g>
+
+
+
+
+<g id="node63" class="node">
+<title>orbit_model</title>
+<polygon fill="#ffd54a" stroke="black" points="618.6,-179.14 509.28,-151 618.6,-122.86 727.92,-151 618.6,-179.14" />
+<text xml:space="preserve" text-anchor="middle" x="618.6" y="-153.62" font-family="Helvetica,sans-Serif" font-size="7.50">OrbitalMath.calculatePosition()</text>
+<text xml:space="preserve" text-anchor="middle" x="618.6" y="-143.88" font-family="Helvetica,sans-Serif" font-size="7.50">orbit_model?</text>
+</g>
+
+<g id="node37" class="node">
+<title>set_local_pos</title>
+<polygon fill="white" stroke="black" points="1213.95,-283 1124.88,-283 1124.88,-247 1213.95,-247 1213.95,-283" />
+<text xml:space="preserve" text-anchor="middle" x="1169.42" y="-267.62" font-family="Helvetica,sans-Serif" font-size="7.50">Set localPos / globalPos</text>
+<text xml:space="preserve" text-anchor="middle" x="1169.42" y="-257.88" font-family="Helvetica,sans-Serif" font-size="7.50">(Sun at origin)</text>
+</g>
+
+
+<g id="node38" class="node">
+<title>moon_offsets</title>
+<polygon fill="white" stroke="black" points="1383.77,-283.94 1245.95,-283.94 1245.95,-246.06 1383.77,-246.06 1383.77,-283.94" />
+<text xml:space="preserve" text-anchor="middle" x="1314.86" y="-272.5" font-family="Helvetica,sans-Serif" font-size="7.50">applyMoonParentOffsets()</text>
+<text xml:space="preserve" text-anchor="middle" x="1314.86" y="-262.75" font-family="Helvetica,sans-Serif" font-size="7.50">KEPLER moons: rotate by parent pole</text>
+<text xml:space="preserve" text-anchor="middle" x="1314.86" y="-253" font-family="Helvetica,sans-Serif" font-size="7.50">MEEUS/VSOP: ecliptic, no pole twist</text>
+</g>
+
+
+<g id="node155" class="node">
+<title>floating_origin</title>
+<polygon fill="white" stroke="black" points="1516.09,-676 1415.77,-676 1415.77,-640 1516.09,-640 1516.09,-676" />
+<text xml:space="preserve" text-anchor="middle" x="1465.93" y="-660.62" font-family="Helvetica,sans-Serif" font-size="7.50">processFloatingOrigin()</text>
+<text xml:space="preserve" text-anchor="middle" x="1465.93" y="-650.88" font-family="Helvetica,sans-Serif" font-size="7.50">shift origin to tracking target</text>
+</g>
+
+<g id="node40" class="node">
+<title>zsort</title>
+<polygon fill="white" stroke="black" points="1631.91,-283 1548.09,-283 1548.09,-247 1631.91,-247 1631.91,-283" />
+<text xml:space="preserve" text-anchor="middle" x="1590" y="-267.62" font-family="Helvetica,sans-Serif" font-size="7.50">zSortCelestialBodies()</text>
+<text xml:space="preserve" text-anchor="middle" x="1590" y="-257.88" font-family="Helvetica,sans-Serif" font-size="7.50">size then distToCamSq</text>
+</g>
+
+
+<g id="node64" class="node">
+<title>model_kepler</title>
+<polygon fill="white" stroke="black" points="861.74,-169.94 759.92,-169.94 759.92,-132.06 861.74,-132.06 861.74,-169.94" />
+<text xml:space="preserve" text-anchor="middle" x="810.83" y="-158.5" font-family="Helvetica,sans-Serif" font-size="7.50">KEPLER (default)</text>
+<text xml:space="preserve" text-anchor="middle" x="810.83" y="-148.75" font-family="Helvetica,sans-Serif" font-size="7.50">w/Node rates -&gt; M</text>
+<text xml:space="preserve" text-anchor="middle" x="810.83" y="-139" font-family="Helvetica,sans-Serif" font-size="7.50">calcPosFromM / solveKepler</text>
+</g>
+
+
+<g id="node262" class="node">
+<title>model_meeus</title>
+<ellipse fill="lightgrey" stroke="black" cx="810.83" cy="-18" rx="30.87" ry="18" />
+<text xml:space="preserve" text-anchor="middle" x="810.83" y="-15.75" font-family="Helvetica,sans-Serif" font-size="7.50">model_meeus</text>
+</g>
+
+<g id="node263" class="node">
+<title>model_vsop</title>
+<ellipse fill="lightgrey" stroke="black" cx="810.83" cy="-79" rx="27" ry="18" />
+<text xml:space="preserve" text-anchor="middle" x="810.83" y="-76.75" font-family="Helvetica,sans-Serif" font-size="7.50">model_vsop</text>
+</g>
+
+<g id="node65" class="node">
+<title>barycenter</title>
+<polygon fill="#ffd54a" stroke="black" points="993.31,-188.89 893.74,-151 993.31,-113.11 1092.88,-151 993.31,-188.89" />
+<text xml:space="preserve" text-anchor="middle" x="993.31" y="-158.5" font-family="Helvetica,sans-Serif" font-size="7.50">barycenter_model</text>
+<text xml:space="preserve" text-anchor="middle" x="993.31" y="-148.75" font-family="Helvetica,sans-Serif" font-size="7.50">=== MEEUS?</text>
+<text xml:space="preserve" text-anchor="middle" x="993.31" y="-139" font-family="Helvetica,sans-Serif" font-size="7.50">Subtract moon x massRatio</text>
+</g>
+
+
+<g id="node260" class="node">
+<title>star_far</title>
+<polygon fill="white" stroke="black" points="3758.17,-365 3648.1,-365 3648.1,-329 3758.17,-329 3758.17,-365" />
+<text xml:space="preserve" text-anchor="middle" x="3703.14" y="-349.62" font-family="Helvetica,sans-Serif" font-size="7.50">updateStarFieldFarProjection()</text>
+<text xml:space="preserve" text-anchor="middle" x="3703.14" y="-339.88" font-family="Helvetica,sans-Serif" font-size="7.50">temp expand camera.far</text>
+</g>
+
+<g id="node194" class="node">
+<title>eq_decision</title>
+<polygon fill="#ffd54a" stroke="black" points="2708.04,-549.14 2650.47,-521 2708.04,-492.86 2765.61,-521 2708.04,-549.14" />
+<text xml:space="preserve" text-anchor="middle" x="2708.04" y="-523.62" font-family="Helvetica,sans-Serif" font-size="7.50">Target is planet</text>
+<text xml:space="preserve" text-anchor="middle" x="2708.04" y="-513.88" font-family="Helvetica,sans-Serif" font-size="7.50">or moon?</text>
+</g>
+
+
+<g id="node195" class="node">
+<title>equatorial_hide</title>
+<polygon fill="white" stroke="black" points="2869.43,-539 2797.61,-539 2797.61,-503 2869.43,-503 2869.43,-539" />
+<text xml:space="preserve" text-anchor="middle" x="2833.52" y="-518.75" font-family="Helvetica,sans-Serif" font-size="7.50">Hide equatorial grid</text>
+</g>
+
+
+<g id="node264" class="node">
+<title>equatorial_show</title>
+<ellipse fill="lightgrey" stroke="black" cx="2833.52" cy="-605" rx="35.66" ry="18" />
+<text xml:space="preserve" text-anchor="middle" x="2833.52" y="-602.75" font-family="Helvetica,sans-Serif" font-size="7.50">equatorial_show</text>
+</g>
+
+</g>
+</svg>

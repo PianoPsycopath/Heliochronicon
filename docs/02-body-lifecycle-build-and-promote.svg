@@ -1,0 +1,570 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="3124pt" height="491pt" viewBox="0.00 0.00 3124.00 491.00">
+<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 487)">
+<polygon fill="white" stroke="none" points="-4,4 -4,-487 3119.82,-487 3119.82,4 -4,4" />
+<g id="clust1" class="cluster">
+<title>cluster_systembuilder</title>
+<polygon fill="#e0f3e0" stroke="#b3b3b3" points="8,-354 8,-475 3065.89,-475 3065.89,-354 8,-354" />
+<text xml:space="preserve" text-anchor="middle" x="54.62" y="-460.55" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="11.00">SystemBuilder</text>
+</g>
+<g id="clust2" class="cluster">
+<title>cluster_shaders</title>
+<polygon fill="#dceaf7" stroke="#b3b3b3" points="66.42,-101 66.42,-175 3065.89,-175 3065.89,-101 66.42,-101" />
+<text xml:space="preserve" text-anchor="middle" x="96.17" y="-160.55" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="11.00">Shaders</text>
+</g>
+<g id="clust3" class="cluster">
+<title>cluster_math</title>
+<polygon fill="#ffe6c7" stroke="#b3b3b3" points="66.42,-8 66.42,-93 3065.89,-93 3065.89,-8 66.42,-8" />
+<text xml:space="preserve" text-anchor="middle" x="104.8" y="-78.55" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="11.00">OrbitalMath</text>
+</g>
+<g id="clust4" class="cluster">
+<title>cluster_context</title>
+<polygon fill="#fbe1ee" stroke="#b3b3b3" points="66.42,-227 66.42,-302 3107.82,-302 3107.82,-227 66.42,-227" />
+<text xml:space="preserve" text-anchor="middle" x="118.3" y="-287.55" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="11.00">Scene &amp; Context</text>
+</g>
+
+<g id="edge85" class="edge">
+<title>build_start-&gt;cat_check</title>
+<path fill="none" stroke="black" d="M133.83,-396C133.83,-396 172.22,-396 172.22,-396" />
+<polygon fill="black" stroke="black" points="172.22,-397.75 177.22,-396 172.22,-394.25 172.22,-397.75" />
+</g>
+
+<g id="edge87" class="edge">
+<title>cat_check-&gt;cpu_chunk</title>
+<path fill="none" stroke="black" d="M285.58,-384C285.58,-384 323.85,-384 323.85,-384" />
+<polygon fill="black" stroke="black" points="323.85,-385.75 328.85,-384 323.85,-382.25 323.85,-385.75" />
+<text xml:space="preserve" text-anchor="middle" x="262.34" y="-377.35" font-family="Helvetica,sans-Serif" font-size="7.00">No (PLANET / MOON / ...)</text>
+</g>
+
+<g id="edge86" class="edge">
+<title>cat_check-&gt;gpu_arrays</title>
+<path fill="none" stroke="black" d="M245.01,-366.93C276.87,-366.93 356.82,-366.93 356.82,-366.93 356.82,-366.93 356.82,-223.42 356.82,-223.42" />
+<polygon fill="black" stroke="black" points="358.57,-223.42 356.82,-218.42 355.07,-223.42 358.57,-223.42" />
+<text xml:space="preserve" text-anchor="middle" x="329.82" y="-344.43" font-family="Helvetica,sans-Serif" font-size="7.00">Yes (ASTEROID)</text>
+</g>
+
+<g id="edge93" class="edge">
+<title>cpu_chunk-&gt;cpu_exist</title>
+<path fill="none" stroke="black" d="M410.4,-396C410.4,-396 447.32,-396 447.32,-396" />
+<polygon fill="black" stroke="black" points="447.32,-397.75 452.32,-396 447.32,-394.25 447.32,-397.75" />
+<text xml:space="preserve" text-anchor="middle" x="399.24" y="-389.35" font-family="Helvetica,sans-Serif" font-size="7.00">next body in chunk</text>
+</g>
+
+<g id="edge96" class="edge">
+<title>cpu_exist-&gt;cpu_geom</title>
+<path fill="none" stroke="black" d="M550.55,-383.69C550.55,-383.69 588.35,-383.69 588.35,-383.69" />
+<polygon fill="black" stroke="black" points="588.35,-385.44 593.35,-383.69 588.35,-381.94 588.35,-385.44" />
+<text xml:space="preserve" text-anchor="middle" x="564.95" y="-377.04" font-family="Helvetica,sans-Serif" font-size="7.00">No</text>
+</g>
+
+<g id="edge94" class="edge">
+<title>cpu_exist-&gt;cpu_skip</title>
+<path fill="none" stroke="black" d="M557.82,-386.99C557.82,-375.36 557.82,-334 557.82,-334 557.82,-334 610.99,-334 610.99,-334" />
+<polygon fill="black" stroke="black" points="610.99,-335.75 615.99,-334 610.99,-332.25 610.99,-335.75" />
+<text xml:space="preserve" text-anchor="middle" x="552.28" y="-327.35" font-family="Helvetica,sans-Serif" font-size="7.00">Yes</text>
+</g>
+
+
+
+<g id="edge97" class="edge">
+<title>cpu_geom-&gt;cpu_mesh_add</title>
+<path fill="none" stroke="black" d="M676.82,-370.79C676.82,-335.4 676.82,-263.5 676.82,-263.5 676.82,-263.5 716,-263.5 716,-263.5" />
+<polygon fill="black" stroke="black" points="716,-265.25 721,-263.5 716,-261.75 716,-265.25" />
+</g>
+
+<g id="edge92" class="edge">
+<title>gpu_group_label-&gt;gpu_group_add</title>
+<path fill="none" stroke="black" d="M971.74,-380.5C1004.61,-380.5 1039.82,-380.5 1039.82,-380.5 1039.82,-380.5 1039.82,-350.27 1039.82,-350.27" />
+<polygon fill="black" stroke="black" points="1041.57,-350.27 1039.82,-345.27 1038.07,-350.27 1041.57,-350.27" />
+</g>
+
+
+
+
+
+
+
+<g id="edge104" class="edge">
+<title>cpu_loop:s-&gt;cpu_chunk:sw</title>
+<path fill="none" stroke="#737373" stroke-dasharray="5,2" d="M1553.82,-361.63C1553.82,-361.63 1553.82,-353.93 1553.82,-353.93 1553.82,-353.93 405.82,-353.93 405.82,-353.93 405.82,-353.93 405.82,-365.49 405.82,-365.49" />
+<polygon fill="#737373" stroke="#737373" points="404.07,-365.49 405.82,-370.49 407.57,-365.49 404.07,-365.49" />
+<text xml:space="preserve" text-anchor="middle" x="944.89" y="-347.28" font-family="Helvetica,sans-Serif" font-size="7.00" fill="#595959">Yes - rAF next chunk</text>
+</g>
+
+<g id="edge105" class="edge">
+<title>promo_start-&gt;promo_exist</title>
+<path fill="none" stroke="black" d="M1859.06,-396C1859.06,-396 1903.1,-396 1903.1,-396" />
+<polygon fill="black" stroke="black" points="1903.1,-397.75 1908.1,-396 1903.1,-394.25 1903.1,-397.75" />
+</g>
+
+<g id="edge106" class="edge">
+<title>promo_exist-&gt;promo_return</title>
+<path fill="none" stroke="black" stroke-dasharray="5,2" d="M2063.6,-396C2063.6,-396 2128.26,-396 2128.26,-396" />
+<polygon fill="black" stroke="black" points="2128.26,-397.75 2133.26,-396 2128.26,-394.25 2128.26,-397.75" />
+<text xml:space="preserve" text-anchor="middle" x="2090.3" y="-389.35" font-family="Helvetica,sans-Serif" font-size="7.00">Yes</text>
+</g>
+
+<g id="edge107" class="edge">
+<title>promo_exist-&gt;promo_radar</title>
+<path fill="none" stroke="black" d="M2003.9,-366.46C2040.93,-366.46 2124.82,-366.46 2124.82,-366.46 2124.82,-366.46 2124.82,-279.85 2124.82,-279.85" />
+<polygon fill="black" stroke="black" points="2126.57,-279.85 2124.82,-274.85 2123.07,-279.85 2126.57,-279.85" />
+<text xml:space="preserve" text-anchor="middle" x="2103.17" y="-359.81" font-family="Helvetica,sans-Serif" font-size="7.00">No</text>
+</g>
+
+<g id="edge109" class="edge">
+<title>promo_geom-&gt;promo_mesh_add</title>
+<path fill="none" stroke="black" d="M2356.51,-380.5C2384.77,-380.5 2412.82,-380.5 2412.82,-380.5 2412.82,-380.5 2412.82,-278.91 2412.82,-278.91" />
+<polygon fill="black" stroke="black" points="2414.57,-278.91 2412.82,-273.91 2411.07,-278.91 2414.57,-278.91" />
+</g>
+
+<g id="edge111" class="edge">
+<title>promo_ui-&gt;promo_sprite_add</title>
+<path fill="none" stroke="black" d="M2596.82,-371.75C2596.82,-337.35 2596.82,-266.33 2596.82,-266.33 2596.82,-266.33 2646.64,-266.33 2646.64,-266.33" />
+<polygon fill="black" stroke="black" points="2646.64,-268.08 2651.64,-266.33 2646.64,-264.58 2646.64,-268.08" />
+</g>
+
+
+
+
+
+
+
+
+
+
+
+
+<g id="edge89" class="edge">
+<title>gpu_mat-&gt;gpu_mesh</title>
+<path fill="none" stroke="black" d="M553.57,-139.33C588.61,-139.33 628.82,-139.33 628.82,-139.33 628.82,-139.33 628.82,-178.93 628.82,-178.93" />
+<polygon fill="black" stroke="black" points="627.07,-178.93 628.82,-183.93 630.57,-178.93 627.07,-178.93" />
+</g>
+
+
+
+<g id="edge99" class="edge">
+<title>cpu_sprite-&gt;cpu_sprite_add</title>
+<path fill="none" stroke="black" d="M975.59,-136.5C1003.98,-136.5 1031.82,-136.5 1031.82,-136.5 1031.82,-136.5 1031.82,-229.13 1031.82,-229.13" />
+<polygon fill="black" stroke="black" points="1030.07,-229.13 1031.82,-234.13 1033.57,-229.13 1030.07,-229.13" />
+</g>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<g id="edge101" class="edge">
+<title>cpu_orbit-&gt;cpu_orbit_add</title>
+<path fill="none" stroke="black" d="M1202.82,-64.19C1202.82,-118.88 1202.82,-247.33 1202.82,-247.33 1202.82,-247.33 1247.63,-247.33 1247.63,-247.33" />
+<polygon fill="black" stroke="black" points="1247.63,-249.08 1252.63,-247.33 1247.63,-245.58 1247.63,-249.08" />
+</g>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<g id="edge113" class="edge">
+<title>promo_orbit-&gt;promo_orbit_add</title>
+<path fill="none" stroke="black" d="M2846.82,-58.4C2846.82,-109.14 2846.82,-247.33 2846.82,-247.33 2846.82,-247.33 2891.03,-247.33 2891.03,-247.33" />
+<polygon fill="black" stroke="black" points="2891.03,-249.08 2896.03,-247.33 2891.03,-245.58 2891.03,-249.08" />
+</g>
+
+
+
+
+
+
+
+
+
+
+
+
+
+<g id="edge98" class="edge">
+<title>cpu_mesh_add-&gt;cpu_sprite</title>
+<path fill="none" stroke="black" d="M799.82,-235.72C799.82,-202.06 799.82,-133.67 799.82,-133.67 799.82,-133.67 850.02,-133.67 850.02,-133.67" />
+<polygon fill="black" stroke="black" points="850.02,-135.42 855.02,-133.67 850.02,-131.92 850.02,-135.42" />
+</g>
+
+
+
+
+<g id="edge100" class="edge">
+<title>cpu_sprite_add-&gt;cpu_orbit</title>
+<path fill="none" stroke="black" d="M1109.43,-241.67C1135.13,-241.67 1160.82,-241.67 1160.82,-241.67 1160.82,-241.67 1160.82,-70.44 1160.82,-70.44" />
+<polygon fill="black" stroke="black" points="1162.57,-70.44 1160.82,-65.44 1159.07,-70.44 1162.57,-70.44" />
+</g>
+
+
+
+
+<g id="edge102" class="edge">
+<title>cpu_orbit_add-&gt;cpu_add</title>
+<path fill="none" stroke="black" d="M1340.14,-260C1340.14,-260 1365.11,-260 1365.11,-260" />
+<polygon fill="black" stroke="black" points="1365.11,-261.75 1370.11,-260 1365.11,-258.25 1365.11,-261.75" />
+</g>
+
+<g id="edge103" class="edge">
+<title>cpu_add-&gt;cpu_loop</title>
+<path fill="none" stroke="black" d="M1439.82,-273.33C1439.82,-305.49 1439.82,-366.46 1439.82,-366.46 1439.82,-366.46 1585.67,-366.46 1585.67,-366.46" />
+<polygon fill="black" stroke="black" points="1585.67,-368.21 1590.67,-366.46 1585.67,-364.71 1585.67,-368.21" />
+</g>
+
+
+
+
+
+
+
+
+<g id="edge108" class="edge">
+<title>promo_radar-&gt;promo_geom</title>
+<path fill="none" stroke="black" d="M2198.82,-273.18C2198.82,-309.34 2198.82,-384 2198.82,-384 2198.82,-384 2234.73,-384 2234.73,-384" />
+<polygon fill="black" stroke="black" points="2234.73,-385.75 2239.73,-384 2234.73,-382.25 2234.73,-385.75" />
+</g>
+
+
+
+
+<g id="edge110" class="edge">
+<title>promo_mesh_add-&gt;promo_ui</title>
+<path fill="none" stroke="black" d="M2490.42,-260.67C2518.17,-260.67 2546.82,-260.67 2546.82,-260.67 2546.82,-260.67 2546.82,-365.23 2546.82,-365.23" />
+<polygon fill="black" stroke="black" points="2545.07,-365.23 2546.82,-370.23 2548.57,-365.23 2545.07,-365.23" />
+</g>
+
+
+
+
+<g id="edge112" class="edge">
+<title>promo_sprite_add-&gt;promo_orbit</title>
+<path fill="none" stroke="black" d="M2755.64,-241.67C2781.23,-241.67 2806.82,-241.67 2806.82,-241.67 2806.82,-241.67 2806.82,-64.77 2806.82,-64.77" />
+<polygon fill="black" stroke="black" points="2808.57,-64.77 2806.82,-59.77 2805.07,-64.77 2808.57,-64.77" />
+</g>
+
+
+
+
+<g id="edge114" class="edge">
+<title>promo_orbit_add-&gt;promo_add</title>
+<path fill="none" stroke="black" d="M2983.47,-260C2983.47,-260 3008.54,-260 3008.54,-260" />
+<polygon fill="black" stroke="black" points="3008.54,-261.75 3013.54,-260 3008.54,-258.25 3008.54,-261.75" />
+</g>
+
+<g id="edge88" class="edge">
+<title>gpu_arrays-&gt;gpu_mat</title>
+<path fill="none" stroke="black" d="M384.82,-185.39C384.82,-166.3 384.82,-136.5 384.82,-136.5 384.82,-136.5 445.11,-136.5 445.11,-136.5" />
+<polygon fill="black" stroke="black" points="445.11,-138.25 450.11,-136.5 445.11,-134.75 445.11,-138.25" />
+</g>
+
+<g id="edge90" class="edge">
+<title>gpu_mesh-&gt;gpu_add</title>
+<path fill="none" stroke="black" d="M670.48,-201C677.85,-201 683.82,-201 683.82,-201 683.82,-201 683.82,-328 683.82,-328 683.82,-328 740.36,-328 740.36,-328" />
+<polygon fill="black" stroke="black" points="740.36,-329.75 745.36,-328 740.36,-326.25 740.36,-329.75" />
+</g>
+
+<g id="edge91" class="edge">
+<title>gpu_add-&gt;gpu_group_label</title>
+<path fill="none" stroke="black" d="M787.82,-343.75C787.82,-359.22 787.82,-380.5 787.82,-380.5 787.82,-380.5 853.62,-380.5 853.62,-380.5" />
+<polygon fill="black" stroke="black" points="853.62,-382.25 858.62,-380.5 853.62,-378.75 853.62,-382.25" />
+</g>
+
+<g id="edge95" class="edge">
+<title>cpu_skip:s-&gt;cpu_chunk:s</title>
+<path fill="none" stroke="#737373" stroke-dasharray="5,2" d="M643.08,-322C643.08,-322 401.82,-322 401.82,-322 401.82,-322 401.82,-365.49 401.82,-365.49" />
+<polygon fill="#737373" stroke="#737373" points="400.07,-365.49 401.82,-370.49 403.57,-365.49 400.07,-365.49" />
+<text xml:space="preserve" text-anchor="middle" x="494.33" y="-315.35" font-family="Helvetica,sans-Serif" font-size="7.00" fill="#595959">loop</text>
+</g>
+<g id="node1" class="node">
+<title>build_start</title>
+<polygon fill="white" stroke="black" points="133.57,-408 16,-408 16,-372 133.57,-372 133.57,-408" />
+<text xml:space="preserve" text-anchor="middle" x="74.78" y="-392.62" font-family="Helvetica,sans-Serif" font-size="7.50">buildSolarSystem(planetaryData)</text>
+<text xml:space="preserve" text-anchor="middle" x="74.78" y="-382.88" font-family="Helvetica,sans-Serif" font-size="7.50">empty? -&gt; return</text>
+</g>
+
+<g id="node2" class="node">
+<title>cat_check</title>
+<polygon fill="#ffd54a" stroke="black" points="232.14,-418.14 165.57,-390 232.14,-361.86 298.71,-390 232.14,-418.14" />
+<text xml:space="preserve" text-anchor="middle" x="232.14" y="-392.62" font-family="Helvetica,sans-Serif" font-size="7.50">datasetCategory</text>
+<text xml:space="preserve" text-anchor="middle" x="232.14" y="-382.88" font-family="Helvetica,sans-Serif" font-size="7.50">=== 'ASTEROID'?</text>
+</g>
+
+
+<g id="node3" class="node">
+<title>cpu_chunk</title>
+<polygon fill="white" stroke="black" points="410.03,-408 330.71,-408 330.71,-372 410.03,-372 410.03,-408" />
+<text xml:space="preserve" text-anchor="middle" x="370.37" y="-392.62" font-family="Helvetica,sans-Serif" font-size="7.50">buildChunk() loop</text>
+<text xml:space="preserve" text-anchor="middle" x="370.37" y="-382.88" font-family="Helvetica,sans-Serif" font-size="7.50">(CHUNK_SIZE = 150)</text>
+</g>
+
+
+<g id="node89" class="node">
+<title>gpu_arrays</title>
+<ellipse fill="lightgrey" stroke="black" cx="370.37" cy="-201" rx="27" ry="18" />
+<text xml:space="preserve" text-anchor="middle" x="370.37" y="-198.75" font-family="Helvetica,sans-Serif" font-size="7.50">gpu_arrays</text>
+</g>
+
+<g id="node4" class="node">
+<title>cpu_exist</title>
+<polygon fill="#ffd54a" stroke="black" points="502.6,-418.14 442.03,-390 502.6,-361.86 563.17,-390 502.6,-418.14" />
+<text xml:space="preserve" text-anchor="middle" x="502.6" y="-392.62" font-family="Helvetica,sans-Serif" font-size="7.50">Body already in</text>
+<text xml:space="preserve" text-anchor="middle" x="502.6" y="-382.88" font-family="Helvetica,sans-Serif" font-size="7.50">celestialBodies?</text>
+</g>
+
+
+<g id="node5" class="node">
+<title>cpu_geom</title>
+<polygon fill="white" stroke="black" points="690.99,-408.94 595.17,-408.94 595.17,-371.06 690.99,-371.06 690.99,-408.94" />
+<text xml:space="preserve" text-anchor="middle" x="643.08" y="-397.5" font-family="Helvetica,sans-Serif" font-size="7.50">SphereGeometry + Mesh</text>
+<text xml:space="preserve" text-anchor="middle" x="643.08" y="-387.75" font-family="Helvetica,sans-Serif" font-size="7.50">wireframe; pole line if !Sun</text>
+<text xml:space="preserve" text-anchor="middle" x="643.08" y="-378" font-family="Helvetica,sans-Serif" font-size="7.50">HTML tactical label</text>
+</g>
+
+
+<g id="node93" class="node">
+<title>cpu_skip</title>
+<ellipse fill="lightgrey" stroke="black" cx="643.08" cy="-328" rx="27" ry="18" />
+<text xml:space="preserve" text-anchor="middle" x="643.08" y="-325.75" font-family="Helvetica,sans-Serif" font-size="7.50">cpu_skip</text>
+</g>
+
+<g id="node72" class="node">
+<title>cpu_mesh_add</title>
+<polygon fill="white" stroke="black" points="824.81,-272 722.99,-272 722.99,-236 824.81,-236 824.81,-272" />
+<text xml:space="preserve" text-anchor="middle" x="773.9" y="-256.62" font-family="Helvetica,sans-Serif" font-size="7.50">scene.add(mesh)</text>
+<text xml:space="preserve" text-anchor="middle" x="773.9" y="-246.88" font-family="Helvetica,sans-Serif" font-size="7.50">pickableObjects.push(mesh)</text>
+</g>
+
+<g id="node7" class="node">
+<title>gpu_group_label</title>
+<polygon fill="white" stroke="black" points="971.38,-408 860.56,-408 860.56,-372 971.38,-372 971.38,-408" />
+<text xml:space="preserve" text-anchor="middle" x="915.97" y="-392.62" font-family="Helvetica,sans-Serif" font-size="7.50">createGroupLabel()</text>
+<text xml:space="preserve" text-anchor="middle" x="915.97" y="-382.88" font-family="Helvetica,sans-Serif" font-size="7.50">attach to userData.groupLabel</text>
+</g>
+
+
+
+
+<g id="node92" class="node">
+<title>gpu_group_add</title>
+<ellipse fill="lightgrey" stroke="black" cx="1058.04" cy="-328" rx="35.23" ry="18" />
+<text xml:space="preserve" text-anchor="middle" x="1058.04" y="-325.75" font-family="Helvetica,sans-Serif" font-size="7.50">gpu_group_add</text>
+</g>
+
+<g id="node12" class="node">
+<title>cpu_loop</title>
+<polygon fill="#ffd54a" stroke="black" points="1613.48,-418.14 1494.41,-390 1613.48,-361.86 1732.55,-390 1613.48,-418.14" />
+<text xml:space="preserve" text-anchor="middle" x="1613.48" y="-392.62" font-family="Helvetica,sans-Serif" font-size="7.50">More bodies?</text>
+<text xml:space="preserve" text-anchor="middle" x="1613.48" y="-382.88" font-family="Helvetica,sans-Serif" font-size="7.50">rAF(buildChunk) : renderBodyList</text>
+</g>
+
+
+<g id="node13" class="node">
+<title>promo_start</title>
+<polygon fill="white" stroke="black" points="1858.87,-408 1764.55,-408 1764.55,-372 1858.87,-372 1858.87,-408" />
+<text xml:space="preserve" text-anchor="middle" x="1811.71" y="-387.75" font-family="Helvetica,sans-Serif" font-size="7.50">promoteAsteroidToCPU(d)</text>
+</g>
+
+
+<g id="node14" class="node">
+<title>promo_exist</title>
+<polygon fill="#ffd54a" stroke="black" points="1986.69,-418.14 1890.87,-390 1986.69,-361.86 2082.51,-390 1986.69,-418.14" />
+<text xml:space="preserve" text-anchor="middle" x="1986.69" y="-392.62" font-family="Helvetica,sans-Serif" font-size="7.50">Already</text>
+<text xml:space="preserve" text-anchor="middle" x="1986.69" y="-382.88" font-family="Helvetica,sans-Serif" font-size="7.50">PROMOTED_ASTEROID?</text>
+</g>
+
+
+<g id="node15" class="node">
+<title>promo_return</title>
+<polygon fill="white" stroke="black" points="2189.05,-408 2135.05,-408 2135.05,-372 2189.05,-372 2189.05,-408" />
+<text xml:space="preserve" text-anchor="middle" x="2162.05" y="-387.75" font-family="Helvetica,sans-Serif" font-size="7.50">Return early</text>
+</g>
+
+
+<g id="node81" class="node">
+<title>promo_radar</title>
+<polygon fill="white" stroke="black" points="2209.58,-272.94 2114.51,-272.94 2114.51,-235.06 2209.58,-235.06 2209.58,-272.94" />
+<text xml:space="preserve" text-anchor="middle" x="2162.05" y="-261.5" font-family="Helvetica,sans-Serif" font-size="7.50">Find &amp; remove old</text>
+<text xml:space="preserve" text-anchor="middle" x="2162.05" y="-251.75" font-family="Helvetica,sans-Serif" font-size="7.50">RADAR_CONTACT clones</text>
+<text xml:space="preserve" text-anchor="middle" x="2162.05" y="-242" font-family="Helvetica,sans-Serif" font-size="7.50">(scene, pickables, label)</text>
+</g>
+
+<g id="node16" class="node">
+<title>promo_geom</title>
+<polygon fill="white" stroke="black" points="2356.15,-408.94 2241.58,-408.94 2241.58,-371.06 2356.15,-371.06 2356.15,-408.94" />
+<text xml:space="preserve" text-anchor="middle" x="2298.87" y="-397.5" font-family="Helvetica,sans-Serif" font-size="7.50">SphereGeometry + Mesh</text>
+<text xml:space="preserve" text-anchor="middle" x="2298.87" y="-387.75" font-family="Helvetica,sans-Serif" font-size="7.50">wireframe + pole line</text>
+<text xml:space="preserve" text-anchor="middle" x="2298.87" y="-378" font-family="Helvetica,sans-Serif" font-size="7.50">(datasetCategory=PROMOTED)</text>
+</g>
+
+
+
+
+<g id="node83" class="node">
+<title>promo_mesh_add</title>
+<polygon fill="white" stroke="black" points="2489.97,-272 2388.15,-272 2388.15,-236 2489.97,-236 2489.97,-272" />
+<text xml:space="preserve" text-anchor="middle" x="2439.06" y="-256.62" font-family="Helvetica,sans-Serif" font-size="7.50">scene.add(mesh)</text>
+<text xml:space="preserve" text-anchor="middle" x="2439.06" y="-246.88" font-family="Helvetica,sans-Serif" font-size="7.50">pickableObjects.push(mesh)</text>
+</g>
+
+<g id="node18" class="node">
+<title>promo_ui</title>
+<polygon fill="white" stroke="black" points="2621.54,-408 2521.97,-408 2521.97,-372 2621.54,-372 2621.54,-408" />
+<text xml:space="preserve" text-anchor="middle" x="2571.76" y="-392.62" font-family="Helvetica,sans-Serif" font-size="7.50">HTML label</text>
+<text xml:space="preserve" text-anchor="middle" x="2571.76" y="-382.88" font-family="Helvetica,sans-Serif" font-size="7.50">+ SpriteMaterial(dotTexture)</text>
+</g>
+
+
+
+
+<g id="node85" class="node">
+<title>promo_sprite_add</title>
+<polygon fill="white" stroke="black" points="2755.36,-272 2653.54,-272 2653.54,-236 2755.36,-236 2755.36,-272" />
+<text xml:space="preserve" text-anchor="middle" x="2704.45" y="-256.62" font-family="Helvetica,sans-Serif" font-size="7.50">scene.add(sprite)</text>
+<text xml:space="preserve" text-anchor="middle" x="2704.45" y="-246.88" font-family="Helvetica,sans-Serif" font-size="7.50">pickableObjects.push(sprite)</text>
+</g>
+
+<g id="node26" class="node">
+<title>gpu_mat</title>
+<polygon fill="white" stroke="black" points="553.13,-145 452.06,-145 452.06,-109 553.13,-109 553.13,-145" />
+<text xml:space="preserve" text-anchor="middle" x="502.6" y="-129.62" font-family="Helvetica,sans-Serif" font-size="7.50">getAsteroidParticleMaterial()</text>
+<text xml:space="preserve" text-anchor="middle" x="502.6" y="-119.88" font-family="Helvetica,sans-Serif" font-size="7.50">store in datasetMaterials</text>
+</g>
+
+
+
+
+<g id="node90" class="node">
+<title>gpu_mesh</title>
+<ellipse fill="lightgrey" stroke="black" cx="643.08" cy="-201" rx="27" ry="18" />
+<text xml:space="preserve" text-anchor="middle" x="643.08" y="-198.75" font-family="Helvetica,sans-Serif" font-size="7.50">gpu_mesh</text>
+</g>
+
+<g id="node29" class="node">
+<title>cpu_sprite</title>
+<polygon fill="white" stroke="black" points="975.13,-145 856.81,-145 856.81,-109 975.13,-109 975.13,-145" />
+<text xml:space="preserve" text-anchor="middle" x="915.97" y="-129.62" font-family="Helvetica,sans-Serif" font-size="7.50">createStarSpriteMat() OR</text>
+<text xml:space="preserve" text-anchor="middle" x="915.97" y="-119.88" font-family="Helvetica,sans-Serif" font-size="7.50">createDiamondSpriteMat(symbol)</text>
+</g>
+
+
+
+
+<g id="node74" class="node">
+<title>cpu_sprite_add</title>
+<polygon fill="white" stroke="black" points="1108.95,-272 1007.13,-272 1007.13,-236 1108.95,-236 1108.95,-272" />
+<text xml:space="preserve" text-anchor="middle" x="1058.04" y="-256.62" font-family="Helvetica,sans-Serif" font-size="7.50">scene.add(sprite)</text>
+<text xml:space="preserve" text-anchor="middle" x="1058.04" y="-246.88" font-family="Helvetica,sans-Serif" font-size="7.50">pickableObjects.push(sprite)</text>
+</g>
+
+<g id="node53" class="node">
+<title>cpu_orbit</title>
+<polygon fill="white" stroke="black" points="1222.52,-63.82 1140.95,-63.82 1140.95,-16.18 1222.52,-16.18 1222.52,-63.82" />
+<text xml:space="preserve" text-anchor="middle" x="1181.74" y="-52.38" font-family="Helvetica,sans-Serif" font-size="7.50">createOrbitPath()</text>
+<text xml:space="preserve" text-anchor="middle" x="1181.74" y="-42.62" font-family="Helvetica,sans-Serif" font-size="7.50">(OrbitalMath positions)</text>
+<text xml:space="preserve" text-anchor="middle" x="1181.74" y="-32.88" font-family="Helvetica,sans-Serif" font-size="7.50">+ createOrbitCurtain()</text>
+<text xml:space="preserve" text-anchor="middle" x="1181.74" y="-23.12" font-family="Helvetica,sans-Serif" font-size="7.50">(skip if Sun)</text>
+</g>
+
+
+
+
+<g id="node76" class="node">
+<title>cpu_orbit_add</title>
+<polygon fill="white" stroke="black" points="1339.84,-272 1254.52,-272 1254.52,-236 1339.84,-236 1339.84,-272" />
+<text xml:space="preserve" text-anchor="middle" x="1297.18" y="-256.62" font-family="Helvetica,sans-Serif" font-size="7.50">scene.add(orbitLine)</text>
+<text xml:space="preserve" text-anchor="middle" x="1297.18" y="-246.88" font-family="Helvetica,sans-Serif" font-size="7.50">scene.add(orbitCurtain)</text>
+</g>
+
+<g id="node64" class="node">
+<title>promo_orbit</title>
+<polygon fill="white" stroke="black" points="2865.93,-58 2787.36,-58 2787.36,-22 2865.93,-22 2865.93,-58" />
+<text xml:space="preserve" text-anchor="middle" x="2826.65" y="-42.62" font-family="Helvetica,sans-Serif" font-size="7.50">createOrbitPath()</text>
+<text xml:space="preserve" text-anchor="middle" x="2826.65" y="-32.88" font-family="Helvetica,sans-Serif" font-size="7.50">+ createOrbitCurtain()</text>
+</g>
+
+
+
+
+<g id="node87" class="node">
+<title>promo_orbit_add</title>
+<polygon fill="white" stroke="black" points="2983.25,-272 2897.93,-272 2897.93,-236 2983.25,-236 2983.25,-272" />
+<text xml:space="preserve" text-anchor="middle" x="2940.59" y="-256.62" font-family="Helvetica,sans-Serif" font-size="7.50">scene.add(orbitLine)</text>
+<text xml:space="preserve" text-anchor="middle" x="2940.59" y="-246.88" font-family="Helvetica,sans-Serif" font-size="7.50">scene.add(orbitCurtain)</text>
+</g>
+
+<g id="node77" class="node">
+<title>cpu_add</title>
+<polygon fill="white" stroke="black" points="1462.41,-272.94 1371.84,-272.94 1371.84,-235.06 1462.41,-235.06 1462.41,-272.94" />
+<text xml:space="preserve" text-anchor="middle" x="1417.13" y="-261.5" font-family="Helvetica,sans-Serif" font-size="7.50">push plain bodyObj</text>
+<text xml:space="preserve" text-anchor="middle" x="1417.13" y="-251.75" font-family="Helvetica,sans-Serif" font-size="7.50">(NOT new CelestialBody)</text>
+<text xml:space="preserve" text-anchor="middle" x="1417.13" y="-242" font-family="Helvetica,sans-Serif" font-size="7.50">to celestialBodies</text>
+</g>
+
+
+<g id="node88" class="node">
+<title>promo_add</title>
+<polygon fill="white" stroke="black" points="3099.82,-272 3015.25,-272 3015.25,-236 3099.82,-236 3099.82,-272" />
+<text xml:space="preserve" text-anchor="middle" x="3057.54" y="-256.62" font-family="Helvetica,sans-Serif" font-size="7.50">new CelestialBody({...})</text>
+<text xml:space="preserve" text-anchor="middle" x="3057.54" y="-246.88" font-family="Helvetica,sans-Serif" font-size="7.50">push to celestialBodies</text>
+</g>
+
+
+<g id="node91" class="node">
+<title>gpu_add</title>
+<ellipse fill="lightgrey" stroke="black" cx="773.9" cy="-328" rx="27" ry="18" />
+<text xml:space="preserve" text-anchor="middle" x="773.9" y="-325.75" font-family="Helvetica,sans-Serif" font-size="7.50">gpu_add</text>
+</g>
+
+</g>
+</svg>

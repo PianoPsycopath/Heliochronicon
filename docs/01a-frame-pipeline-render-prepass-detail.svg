@@ -1,0 +1,288 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1727pt" height="457pt" viewBox="0.00 0.00 1727.00 457.00">
+<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 453)">
+<polygon fill="white" stroke="none" points="-4,4 -4,-453 1723.36,-453 1723.36,4 -4,4" />
+<g id="clust1" class="cluster">
+<title>cluster_main</title>
+<polygon fill="#dceaf7" stroke="#b3b3b3" points="8,-367 8,-441 1711.36,-441 1711.36,-367 8,-367" />
+<text xml:space="preserve" text-anchor="middle" x="34.75" y="-426.55" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="11.00">main.js</text>
+</g>
+<g id="clust2" class="cluster">
+<title>cluster_pipeline</title>
+<polygon fill="#e0f3e0" stroke="#b3b3b3" points="55.55,-133 55.55,-254 1670.94,-254 1670.94,-133 55.55,-133" />
+<text xml:space="preserve" text-anchor="middle" x="103.68" y="-239.55" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="11.00">RenderPipeline</text>
+</g>
+<g id="clust3" class="cluster">
+<title>cluster_controllers</title>
+<polygon fill="#fbe1ee" stroke="#b3b3b3" points="55.55,-8 55.55,-82 1670.94,-82 1670.94,-8 55.55,-8" />
+<text xml:space="preserve" text-anchor="middle" x="160.68" y="-67.55" font-family="Helvetica,sans-Serif" font-weight="bold" font-size="11.00">Controllers (Terrain/Daylight/Eclipse)</text>
+</g>
+
+<g id="edge37" class="edge">
+<title>call_prepass-&gt;call_process</title>
+<path fill="none" stroke="black" d="M88.36,-374.71C88.36,-322.84 88.36,-178.5 88.36,-178.5 88.36,-178.5 137.15,-178.5 137.15,-178.5" />
+<polygon fill="black" stroke="black" points="137.15,-180.25 142.15,-178.5 137.15,-176.75 137.15,-180.25" />
+</g>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<g id="edge38" class="edge">
+<title>call_process-&gt;loop_renderpos</title>
+<path fill="none" stroke="black" d="M280.29,-163C280.29,-163 305.24,-163 305.24,-163" />
+<polygon fill="black" stroke="black" points="305.24,-164.75 310.24,-163 305.24,-161.25 305.24,-164.75" />
+</g>
+
+<g id="edge39" class="edge">
+<title>loop_renderpos-&gt;loop_bodies</title>
+<path fill="none" stroke="black" d="M406.12,-175C406.12,-175 431.15,-175 431.15,-175" />
+<polygon fill="black" stroke="black" points="431.15,-176.75 436.15,-175 431.15,-173.25 431.15,-176.75" />
+</g>
+
+<g id="edge40" class="edge">
+<title>loop_bodies-&gt;check_cull</title>
+<path fill="none" stroke="black" d="M550.39,-163C550.39,-163 586.14,-163 586.14,-163" />
+<polygon fill="black" stroke="black" points="586.14,-164.75 591.14,-163 586.14,-161.25 586.14,-164.75" />
+<text xml:space="preserve" text-anchor="middle" x="551.76" y="-156.35" font-family="Helvetica,sans-Serif" font-size="7.00">Next Body</text>
+</g>
+
+<g id="edge43" class="edge">
+<title>check_cull-&gt;screen_occ</title>
+<path fill="none" stroke="black" d="M679.03,-175C679.03,-175 714.71,-175 714.71,-175" />
+<polygon fill="black" stroke="black" points="714.71,-176.75 719.71,-175 714.71,-173.25 714.71,-176.75" />
+<text xml:space="preserve" text-anchor="middle" x="701.37" y="-168.35" font-family="Helvetica,sans-Serif" font-size="7.00">No</text>
+</g>
+
+<g id="edge41" class="edge">
+<title>check_cull-&gt;hide_obj</title>
+<path fill="none" stroke="black" d="M663.36,-183.06C663.36,-212.93 663.36,-280 663.36,-280 663.36,-280 1373.14,-280 1373.14,-280" />
+<polygon fill="black" stroke="black" points="1373.14,-281.75 1378.14,-280 1373.14,-278.25 1373.14,-281.75" />
+<text xml:space="preserve" text-anchor="middle" x="964.15" y="-273.35" font-family="Helvetica,sans-Serif" font-size="7.00">Yes</text>
+</g>
+
+<g id="edge44" class="edge">
+<title>screen_occ-&gt;check_sun</title>
+<path fill="none" stroke="black" d="M795.26,-175C795.26,-175 836.5,-175 836.5,-175" />
+<polygon fill="black" stroke="black" points="836.5,-176.75 841.5,-175 836.5,-173.25 836.5,-176.75" />
+</g>
+
+<g id="edge47" class="edge">
+<title>check_sun-&gt;lod_calc</title>
+<path fill="none" stroke="black" d="M975.58,-175C975.58,-175 1016.82,-175 1016.82,-175" />
+<polygon fill="black" stroke="black" points="1016.82,-176.75 1021.82,-175 1016.82,-173.25 1016.82,-176.75" />
+<text xml:space="preserve" text-anchor="middle" x="1000.7" y="-168.35" font-family="Helvetica,sans-Serif" font-size="7.00">No</text>
+</g>
+
+<g id="edge45" class="edge">
+<title>check_sun-&gt;sun_update</title>
+<path fill="none" stroke="black" d="M951.36,-183.08C951.36,-224.15 951.36,-341 951.36,-341 951.36,-341 1373.01,-341 1373.01,-341" />
+<polygon fill="black" stroke="black" points="1373.01,-342.75 1378.01,-341 1373.01,-339.25 1373.01,-342.75" />
+<text xml:space="preserve" text-anchor="middle" x="1077.6" y="-334.35" font-family="Helvetica,sans-Serif" font-size="7.00">Yes</text>
+</g>
+
+
+
+<g id="edge48" class="edge">
+<title>lod_calc-&gt;trigger_hooks</title>
+<path fill="none" stroke="black" d="M1080.36,-150.75C1080.36,-115.94 1080.36,-43.5 1080.36,-43.5 1080.36,-43.5 1124.22,-43.5 1124.22,-43.5" />
+<polygon fill="black" stroke="black" points="1124.22,-45.25 1129.22,-43.5 1124.22,-41.75 1124.22,-45.25" />
+</g>
+
+<g id="edge50" class="edge">
+<title>orbit_logic-&gt;labels_matrices</title>
+<path fill="none" stroke="black" d="M1343.99,-163C1343.99,-163 1368.77,-163 1368.77,-163" />
+<polygon fill="black" stroke="black" points="1368.77,-164.75 1373.77,-163 1368.77,-161.25 1368.77,-164.75" />
+</g>
+
+<g id="edge51" class="edge">
+<title>labels_matrices-&gt;loop_end</title>
+<path fill="none" stroke="black" d="M1438.7,-163C1438.7,-163 1482.24,-163 1482.24,-163" />
+<polygon fill="black" stroke="black" points="1482.24,-164.75 1487.24,-163 1482.24,-161.25 1482.24,-164.75" />
+</g>
+
+<g id="edge53" class="edge">
+<title>loop_end-&gt;return_pos</title>
+<path fill="none" stroke="black" d="M1559.92,-178.5C1592.87,-178.5 1641.36,-178.5 1641.36,-178.5 1641.36,-178.5 1641.36,-368.2 1641.36,-368.2" />
+<polygon fill="black" stroke="black" points="1639.61,-368.2 1641.36,-373.2 1643.11,-368.2 1639.61,-368.2" />
+<text xml:space="preserve" text-anchor="middle" x="1635.74" y="-225.98" font-family="Helvetica,sans-Serif" font-size="7.00">Yes</text>
+</g>
+
+<g id="edge52" class="edge">
+<title>loop_end:s-&gt;loop_bodies:s</title>
+<path fill="none" stroke="#737373" stroke-dasharray="5,2" d="M1485.36,-150.66C1485.36,-150.66 1485.36,-229.57 1485.36,-229.57 1485.36,-229.57 522.36,-229.57 522.36,-229.57 522.36,-229.57 522.36,-157.51 522.36,-157.51" />
+<polygon fill="#737373" stroke="#737373" points="524.11,-157.51 522.36,-152.51 520.61,-157.51 524.11,-157.51" />
+<text xml:space="preserve" text-anchor="middle" x="1002.79" y="-222.92" font-family="Helvetica,sans-Serif" font-size="7.00" fill="#595959">No</text>
+</g>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<g id="edge49" class="edge">
+<title>trigger_hooks-&gt;orbit_logic</title>
+<path fill="none" stroke="black" d="M1193.36,-52.25C1193.36,-87.06 1193.36,-159.5 1193.36,-159.5 1193.36,-159.5 1237.85,-159.5 1237.85,-159.5" />
+<polygon fill="black" stroke="black" points="1237.85,-161.25 1242.85,-159.5 1237.85,-157.75 1237.85,-161.25" />
+</g>
+
+
+
+
+
+
+
+
+
+<g id="edge42" class="edge">
+<title>hide_obj-&gt;loop_end</title>
+<path fill="none" stroke="black" d="M1434.46,-280C1461.69,-280 1499.36,-280 1499.36,-280 1499.36,-280 1499.36,-184.6 1499.36,-184.6" />
+<polygon fill="black" stroke="black" points="1501.11,-184.6 1499.36,-179.6 1497.61,-184.6 1501.11,-184.6" />
+</g>
+
+<g id="edge46" class="edge">
+<title>sun_update-&gt;loop_end</title>
+<path fill="none" stroke="black" d="M1434.37,-341C1466.18,-341 1514.36,-341 1514.36,-341 1514.36,-341 1514.36,-189.01 1514.36,-189.01" />
+<polygon fill="black" stroke="black" points="1516.11,-189.01 1514.36,-184.01 1512.61,-189.01 1516.11,-189.01" />
+</g>
+<g id="node1" class="node">
+<title>call_prepass</title>
+<polygon fill="white" stroke="black" points="111.82,-411 16,-411 16,-375 111.82,-375 111.82,-411" />
+<text xml:space="preserve" text-anchor="middle" x="63.91" y="-390.75" font-family="Helvetica,sans-Serif" font-size="7.50">runRenderPrePassStage()</text>
+</g>
+
+
+
+<g id="node15" class="node">
+<title>call_process</title>
+<polygon fill="white" stroke="black" points="280.14,-187 143.82,-187 143.82,-151 280.14,-151 280.14,-187" />
+<text xml:space="preserve" text-anchor="middle" x="211.98" y="-166.75" font-family="Helvetica,sans-Serif" font-size="7.50">processScreenProjectionsAndCulling()</text>
+</g>
+
+<g id="node13" class="node">
+<title>return_pos</title>
+<polygon fill="white" stroke="black" points="1703.36,-411 1621.79,-411 1621.79,-375 1703.36,-375 1703.36,-411" />
+<text xml:space="preserve" text-anchor="middle" x="1662.58" y="-390.75" font-family="Helvetica,sans-Serif" font-size="7.50">Return trackTargetPos</text>
+</g>
+
+
+
+
+<g id="node16" class="node">
+<title>loop_renderpos</title>
+<polygon fill="white" stroke="black" points="405.71,-187 312.14,-187 312.14,-151 405.71,-151 405.71,-187" />
+<text xml:space="preserve" text-anchor="middle" x="358.92" y="-166.75" font-family="Helvetica,sans-Serif" font-size="7.50">Loop 1: Calc b.renderPos</text>
+</g>
+
+
+<g id="node17" class="node">
+<title>loop_bodies</title>
+<polygon fill="white" stroke="black" points="550.03,-187 437.71,-187 437.71,-151 550.03,-151 550.03,-187" />
+<text xml:space="preserve" text-anchor="middle" x="493.87" y="-166.75" font-family="Helvetica,sans-Serif" font-size="7.50">Loop 2: For each celestialBody</text>
+</g>
+
+
+<g id="node18" class="node">
+<title>check_cull</title>
+<polygon fill="#ffd54a" stroke="black" points="635.85,-197.14 582.03,-169 635.85,-140.86 689.67,-169 635.85,-197.14" />
+<text xml:space="preserve" text-anchor="middle" x="635.85" y="-171.62" font-family="Helvetica,sans-Serif" font-size="7.50">isCulled or</text>
+<text xml:space="preserve" text-anchor="middle" x="635.85" y="-161.88" font-family="Helvetica,sans-Serif" font-size="7.50">filtered Moon?</text>
+</g>
+
+
+<g id="node19" class="node">
+<title>screen_occ</title>
+<polygon fill="white" stroke="black" points="794.99,-187 721.67,-187 721.67,-151 794.99,-151 794.99,-187" />
+<text xml:space="preserve" text-anchor="middle" x="758.33" y="-171.62" font-family="Helvetica,sans-Serif" font-size="7.50">Screen Projection &amp;</text>
+<text xml:space="preserve" text-anchor="middle" x="758.33" y="-161.88" font-family="Helvetica,sans-Serif" font-size="7.50">Occlusion Check</text>
+</g>
+
+
+<g id="node40" class="node">
+<title>hide_obj</title>
+<ellipse fill="lightgrey" stroke="black" cx="1407" cy="-280" rx="27" ry="18" />
+<text xml:space="preserve" text-anchor="middle" x="1407" y="-277.75" font-family="Helvetica,sans-Serif" font-size="7.50">hide_obj</text>
+</g>
+
+<g id="node20" class="node">
+<title>check_sun</title>
+<polygon fill="#ffd54a" stroke="black" points="909.31,-197.14 826.99,-169 909.31,-140.86 991.63,-169 909.31,-197.14" />
+<text xml:space="preserve" text-anchor="middle" x="909.31" y="-171.62" font-family="Helvetica,sans-Serif" font-size="7.50">d.parent === d.name?</text>
+<text xml:space="preserve" text-anchor="middle" x="909.31" y="-161.88" font-family="Helvetica,sans-Serif" font-size="7.50">(Is Sun?)</text>
+</g>
+
+
+<g id="node21" class="node">
+<title>lod_calc</title>
+<polygon fill="white" stroke="black" points="1099.2,-187 1023.63,-187 1023.63,-151 1099.2,-151 1099.2,-187" />
+<text xml:space="preserve" text-anchor="middle" x="1061.41" y="-171.62" font-family="Helvetica,sans-Serif" font-size="7.50">LOD: Mesh vs Sprite</text>
+<text xml:space="preserve" text-anchor="middle" x="1061.41" y="-161.88" font-family="Helvetica,sans-Serif" font-size="7.50">Visibility</text>
+</g>
+
+
+<g id="node41" class="node">
+<title>sun_update</title>
+<ellipse fill="lightgrey" stroke="black" cx="1407" cy="-341" rx="27" ry="18" />
+<text xml:space="preserve" text-anchor="middle" x="1407" y="-338.75" font-family="Helvetica,sans-Serif" font-size="7.50">sun_update</text>
+</g>
+
+<g id="node35" class="node">
+<title>trigger_hooks</title>
+<polygon fill="white" stroke="black" points="1212.77,-52 1131.2,-52 1131.2,-16 1212.77,-16 1212.77,-52" />
+<text xml:space="preserve" text-anchor="middle" x="1171.98" y="-36.62" font-family="Helvetica,sans-Serif" font-size="7.50">Terrain, Daylight, &amp;</text>
+<text xml:space="preserve" text-anchor="middle" x="1171.98" y="-26.88" font-family="Helvetica,sans-Serif" font-size="7.50">Eclipse Visibility Hooks</text>
+</g>
+
+<g id="node23" class="node">
+<title>orbit_logic</title>
+<polygon fill="white" stroke="black" points="1343.59,-187 1244.77,-187 1244.77,-151 1343.59,-151 1343.59,-187" />
+<text xml:space="preserve" text-anchor="middle" x="1294.18" y="-171.62" font-family="Helvetica,sans-Serif" font-size="7.50">Update Orbit Lines,</text>
+<text xml:space="preserve" text-anchor="middle" x="1294.18" y="-161.88" font-family="Helvetica,sans-Serif" font-size="7.50">Gravity Wells, Target Colors</text>
+</g>
+
+
+<g id="node24" class="node">
+<title>labels_matrices</title>
+<polygon fill="white" stroke="black" points="1438.41,-187 1375.59,-187 1375.59,-151 1438.41,-151 1438.41,-187" />
+<text xml:space="preserve" text-anchor="middle" x="1407" y="-171.62" font-family="Helvetica,sans-Serif" font-size="7.50">Update Labels &amp;</text>
+<text xml:space="preserve" text-anchor="middle" x="1407" y="-161.88" font-family="Helvetica,sans-Serif" font-size="7.50">World Matrices</text>
+</g>
+
+
+<g id="node25" class="node">
+<title>loop_end</title>
+<polygon fill="#ffd54a" stroke="black" points="1530.1,-187 1470.41,-169 1530.1,-151 1589.79,-169 1530.1,-187" />
+<text xml:space="preserve" text-anchor="middle" x="1530.1" y="-166.75" font-family="Helvetica,sans-Serif" font-size="7.50">Bodies Exhausted?</text>
+</g>
+
+
+</g>
+</svg>
