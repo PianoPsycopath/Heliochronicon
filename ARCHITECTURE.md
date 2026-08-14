@@ -7,7 +7,9 @@ changes have a documented baseline to check against.
 
 **Last verified against the main branch: August 14 2026** (Phase C: `Shaders.js` split into
 per-feature modules — see §7 Rendering table. Star-field magnitude LOD was attempted and
-reverted, see §8 item 2).
+reverted. Phase D: Vitest coverage for EclipseEngine pure helpers, TerrainController
+decision logic, `orbit_model` / barycenter dispatch, and the Aug 12 2026 eclipse suite —
+see §8 item 3).
 
 ## 1. What the system does
 
@@ -304,38 +306,14 @@ Missing manifest is non-fatal (terrain simply stays off).
    store/reducer for the rest of `main.js`'s top-level state (`currentTargetData`,
    `activeDatasets`, `systemDate`, etc.).
 
-2. **Body lifecycle / dispose duplication — resolved.** `BodyRegistry.js` now owns
-   add/remove/dispose for `CelestialBody` scene-graph, GPU, and DOM resources.
-   `SystemBuilder` (`buildSolarSystem`, `promoteAsteroidToCPU`, `clearSolarSystem`),
-   `TacticalScanner` (`performTacticalScan`, `purgeTacticalClones`), and `main.js`
-   (`onDatasetVisibilityChanged`'s purge branch, `onPurgeRequested`) all register/remove
-   bodies through it instead of duplicating `scene.remove()` / `dispose()` / splice
-   sequences. Two distinct purge semantics that existed at different call sites were kept
-   distinct rather than force-unified: `purgeTacticalClones()` (unconditional full sweep,
-   used when scanning is toggled off) and `sweepForRescan(protectedTargetData)` (radar
-   contacts always cleared, but an unpinned promoted-asteroid clone is spared if it's the
-   currently targeted body, used immediately before a scan repopulates radar hits). The
-   underlying match/purge decisions are pure functions in `bodyRegistryPredicates.js`,
-   unit-tested independently of THREE/DOM. One intentional behavior change from this pass:
-   the old inline purge code in `main.js` never disposed geometry/material for purged
-   bodies (a leak); `BodyRegistry.disposeBody` always does.
-
-3. **Test coverage lag** — pure orbital math, DataLoader, TimeThrottle, storage, and parts of
-   Physics/Render are covered, as are the new `bodyRegistryPredicates.js` helpers. Newer
-   systems (EclipseEngine pure helpers, TerrainController decisions, StarLoader parsing,
-   MeasurementManager) still have little or no automated coverage, and `BodyRegistry` itself
-   is only covered indirectly (its pure predicates are tested; the THREE/DOM-touching
-   dispose/register methods are not — they'd need a headless THREE + jsdom harness). An
-   eclipse unit test exists locally but is not yet in the repo.
-
-4. **Large static data in Git** — `public/data` is ~836 MB (asteroid chunks + heightmaps) plus
+2. **Large static data in Git** — `public/data` is ~836 MB (asteroid chunks + heightmaps) plus
    `public/star_data` (~27 MB). Currently required for Vercel-from-GitHub deploys; external
    object storage remains a future option once notes / full-feature release constraints allow.
 
-5. **`DataLoader` lookup cost** — there is a TODO to move a hot designation-normalization /
+3. **`DataLoader` lookup cost** — there is a TODO to move a hot designation-normalization /
    lookup path into a cheaper structure.
 
-6. **ARCHITECTURE.md / docs lag risk** — this file must be updated whenever the frame
+4. **ARCHITECTURE.md / docs lag risk** — this file must be updated whenever the frame
    pipeline, body schema, or module inventory changes.
 
 ---
