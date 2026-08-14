@@ -5,8 +5,9 @@ between modules, and the current known debt. It exists so that contributors (inc
 future maintainers) don't have to reverse-engineer the system from `main.js`, and so future
 changes have a documented baseline to check against.
 
-**Last verified against the main branch: August 13 2026** (Phase B: `BodyRegistry` extraction —
-see §8 item 5).
+**Last verified against the main branch: August 14 2026** (Phase C: `Shaders.js` split into
+per-feature modules — see §7 Rendering table. Star-field magnitude LOD was attempted and
+reverted, see §8 item 2).
 
 ## 1. What the system does
 
@@ -264,7 +265,14 @@ Missing manifest is non-fatal (terrain simply stays off).
 | Module | Role |
 |---|---|
 | `RenderPipeline.js` | Floating origin, projection, culling, GPU particle updates, coordinates terrain/daylight/eclipse hooks |
-| `Shaders.js` | **Monolithic** shader factory (grids, tactical dots, star field, eclipse overlays, terrain/night-side, etc.) |
+| `Shaders.js` | Backward-compatible re-export of `shaders/ShaderManager.js` (kept so existing `import { Shaders } from './Shaders.js'` call sites are unaffected) |
+| `shaders/ShaderManager.js` | Thin manager re-flattening every per-feature shader module below onto the original static `Shaders.getX()` surface |
+| `shaders/grid.js` | `GridShaders` — ecliptic parallax grid + targeted-body equatorial grid |
+| `shaders/tactical.js` | `TacticalShaders` — scan rim material, canvas sprite materials (dot/star/diamond/group label), GPU asteroid-particle field (on-GPU Kepler solve) |
+| `shaders/starField.js` | `StarFieldShaders` — background star field (with magnitude-LOD culling via `uMagLimit`) + star picking material |
+| `shaders/eclipse.js` | `EclipseShaders` — multi-body umbra/penumbra shadow overlay |
+| `shaders/nightSide.js` | `NightSideShaders` — day/night terminator shell |
+| `shaders/terrain.js` | `TerrainShaders` — heightmap contour / lat-lon grid / ocean material |
 | `TerrainController.js` | Heightmap registry, lazy texture load, material swap |
 | `DaylightController.js` | Day/night / night-side shading |
 | `EclipseShadowController.js` | Per-body eclipse overlay meshes (up to N concurrent shadows) |
@@ -291,21 +299,12 @@ Missing manifest is non-fatal (terrain simply stays off).
 
 ## 8. Known architectural debt
 
-1. **`Shaders.js` monolith** (~820 lines) — every shader lives in one class. A
-   `ShaderManager` (or per-feature modules: grid, star, eclipse, terrain, tactical) would
-   improve navigability and allow tree-shaking / lazy creation.
-
-2. **Star-field performance at high zoom / mobile** — the background star map (proper-motion
-   GPU particles + far-plane projection hack) is a known source of lag, especially on mobile
-   when the camera is deep in the interstellar regime. Needs culling, LOD, or density
-   throttling.
-
-3. **No formal store** — shared mutable arrays remain the source of truth. `BodyRegistry`
+1. **No formal store** — shared mutable arrays remain the source of truth. `BodyRegistry`
    (see item 5) centralizes body *lifecycle* bookkeeping, but there is still no formal
    store/reducer for the rest of `main.js`'s top-level state (`currentTargetData`,
    `activeDatasets`, `systemDate`, etc.).
 
-4. **Body lifecycle / dispose duplication — resolved.** `BodyRegistry.js` now owns
+2. **Body lifecycle / dispose duplication — resolved.** `BodyRegistry.js` now owns
    add/remove/dispose for `CelestialBody` scene-graph, GPU, and DOM resources.
    `SystemBuilder` (`buildSolarSystem`, `promoteAsteroidToCPU`, `clearSolarSystem`),
    `TacticalScanner` (`performTacticalScan`, `purgeTacticalClones`), and `main.js`
@@ -321,7 +320,7 @@ Missing manifest is non-fatal (terrain simply stays off).
    the old inline purge code in `main.js` never disposed geometry/material for purged
    bodies (a leak); `BodyRegistry.disposeBody` always does.
 
-5. **Test coverage lag** — pure orbital math, DataLoader, TimeThrottle, storage, and parts of
+3. **Test coverage lag** — pure orbital math, DataLoader, TimeThrottle, storage, and parts of
    Physics/Render are covered, as are the new `bodyRegistryPredicates.js` helpers. Newer
    systems (EclipseEngine pure helpers, TerrainController decisions, StarLoader parsing,
    MeasurementManager) still have little or no automated coverage, and `BodyRegistry` itself
@@ -329,14 +328,14 @@ Missing manifest is non-fatal (terrain simply stays off).
    dispose/register methods are not — they'd need a headless THREE + jsdom harness). An
    eclipse unit test exists locally but is not yet in the repo.
 
-6. **Large static data in Git** — `public/data` is ~836 MB (asteroid chunks + heightmaps) plus
+4. **Large static data in Git** — `public/data` is ~836 MB (asteroid chunks + heightmaps) plus
    `public/star_data` (~27 MB). Currently required for Vercel-from-GitHub deploys; external
    object storage remains a future option once notes / full-feature release constraints allow.
 
-7. **`DataLoader` lookup cost** — there is a TODO to move a hot designation-normalization /
+5. **`DataLoader` lookup cost** — there is a TODO to move a hot designation-normalization /
    lookup path into a cheaper structure.
 
-8. **ARCHITECTURE.md / docs lag risk** — this file must be updated whenever the frame
+6. **ARCHITECTURE.md / docs lag risk** — this file must be updated whenever the frame
    pipeline, body schema, or module inventory changes.
 
 ---
@@ -354,5 +353,5 @@ Missing manifest is non-fatal (terrain simply stays off).
 
 - `README.md` — features, limitations summary, install, custom systems, live demo.
 - `CONTRIBUTING.md` — local setup, conventions, CI expectations.
-- `docs/` — planned home for sequence diagrams (frame pipeline, body lifecycle, data load,
-  eclipse/terrain attachment).
+- `docs/` — home for sequence diagrams (frame pipeline, body lifecycle, data load,
+  eclipse/terrain attachment) and `docs/performance-notes.md` (star-field LOD work, Phase C).
