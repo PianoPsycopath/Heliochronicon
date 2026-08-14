@@ -4,14 +4,19 @@
     "elevMin": -450,
     "elevMax": 6800
   },
-  "MOON": {
-    "url": "data/heightmaps/moon/global_rg.png",
-    "elevMin": -9200,
-    "elevMax": 10900
-  },
   "JUPITER": {
     "url": "data/heightmaps/jupiter/global_rg.png",
     "elevMin": 0,
     "elevMax": 255
+  },
+  "MARS": {
+    "url": "data/heightmaps/mars/global_rg.png",
+    "elevMin": -9200,
+    "elevMax": 10900
+  },
+  "MOON": {
+    "url": "data/heightmaps/moon/global_rg.png",
+    "elevMin": -9200,
+    "elevMax": 10900
   }
 }
