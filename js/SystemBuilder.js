@@ -205,13 +205,6 @@ export class SystemBuilder {
                 label.style.color = isMoon ? '#aaa' : '#ffcc00'; 
                 document.body.appendChild(label);
 
-                const bodyObj = { 
-                    data: d, mesh, label, isMoon, scaledA, physicalRadius, 
-                    datasetVisible: true, isCulled: false, hideLabel: false, 
-                    baseRenderOrder: rOrder,
-                    distToCamSq: 0
-                };
-
                 let spriteMat;
                 if (isSun) {
                     spriteMat = Shaders.createStarSpriteMat();
@@ -223,23 +216,30 @@ export class SystemBuilder {
                 sprite.userData = d;
                 sprite.renderOrder = rOrder; 
                 scene.add(sprite);
-                bodyObj.sprite = sprite;
 
+                let orbitLine = null;
+                let orbitCurtain = null;
                 if (!isSun) {
                     mesh.visible = false; 
-                    bodyObj.orbitLine = this.createOrbitPath(d, scaledA);
-                    scene.add(bodyObj.orbitLine);
+                    orbitLine = this.createOrbitPath(d, scaledA);
+                    scene.add(orbitLine);
                     
-                    bodyObj.orbitCurtain = this.createOrbitCurtain();
-                    scene.add(bodyObj.orbitCurtain);
+                    orbitCurtain = this.createOrbitCurtain();
+                    scene.add(orbitCurtain);
                 }
 
                 mesh.matrixAutoUpdate = false;
                 sprite.matrixAutoUpdate = false;
-                if (bodyObj.orbitLine) bodyObj.orbitLine.matrixAutoUpdate = false;
-                if (bodyObj.orbitCurtain) bodyObj.orbitCurtain.matrixAutoUpdate = false;
+                if (orbitLine) orbitLine.matrixAutoUpdate = false;
+                if (orbitCurtain) orbitCurtain.matrixAutoUpdate = false;
 
-                bodyRegistry.registerBody(bodyObj);
+                bodyRegistry.registerBody(new CelestialBody({
+                    data: d, mesh, sprite, orbitLine, orbitCurtain, label, isMoon,
+                    scaledA, physicalRadius,
+                    datasetVisible: true, isCulled: false, hideLabel: false,
+                    baseRenderOrder: rOrder,
+                    distToCamSq: 0
+                }));
             }
             
             if (index < planetaryData.length) {

@@ -160,6 +160,10 @@ class CelestialBody {
   poleQuaternion;
   scaledA;              // semi-major axis, AU
   physicalRadius;       // AU
+  baseRenderOrder;      // optional constructor field, default 0 — set by build sites that need
+                         // a stable renderOrder before the first frame runs
+  distToCamSq;          // optional constructor field, default 0 — reassigned every frame by
+                         // PhysicsEngine.zSortCelestialBodies
 }
 ```
 

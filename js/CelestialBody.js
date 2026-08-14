@@ -33,5 +33,12 @@ export class CelestialBody {
         // Physical Properties
         this.scaledA = params.scaledA || 0;
         this.physicalRadius = params.physicalRadius || 0;
+
+        // Render / culling bookkeeping. Some construction sites (e.g. planet/moon
+        // build-out) seed these up front so the first frame has sane values before
+        // PhysicsEngine/RenderPipeline run; others (radar contacts, promotions) leave
+        // them to be attached later per-frame -- see ARCHITECTURE.md §5.
+        this.baseRenderOrder = params.baseRenderOrder !== undefined ? params.baseRenderOrder : 0;
+        this.distToCamSq = params.distToCamSq !== undefined ? params.distToCamSq : 0;
     }
 }
