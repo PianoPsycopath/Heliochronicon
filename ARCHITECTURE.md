@@ -5,7 +5,8 @@ between modules, and the current known debt. It exists so that contributors (inc
 future maintainers) don't have to reverse-engineer the system from `main.js`, and so future
 changes have a documented baseline to check against.
 
-**Last verified against the main branch: August 11 2026.**
+**Last verified against the main branch: August 13 2026** (Phase B: `BodyRegistry` extraction —
+see §8 item 5).
 
 ## 1. What the system does
 
@@ -95,8 +96,8 @@ Everything else reaches it only through the `ctx` callbacks and getters:
 
 | State | Owner | Read / mutated by |
 |---|---|---|
-| `celestialBodies[]` | main.js | SystemBuilder, PhysicsEngine, RenderPipeline, TacticalScanner, InteractionController, Terrain/Daylight/Eclipse controllers, MeasurementManager |
-| `pickableObjects[]` | main.js | SystemBuilder, InteractionController, TacticalScanner |
+| `celestialBodies[]` | main.js | SystemBuilder, PhysicsEngine, RenderPipeline, TacticalScanner, InteractionController, Terrain/Daylight/Eclipse controllers, MeasurementManager, `BodyRegistry` (sole mutator of add/remove — see §7, §8 item 5) |
+| `pickableObjects[]` | main.js | SystemBuilder, InteractionController, TacticalScanner, `BodyRegistry` (sole mutator of add/remove) |
 | `gpuParticleSystems[]` | main.js | SystemBuilder, RenderPipeline, TacticalScanner, StarLoader (star field) |
 | `currentTargetData` / `trackingTargetData` / `previewTargetData` | main.js | nearly everything, via getters / callbacks |
 | `systemDate`, `currentOrigin` | main.js | PhysicsEngine, RenderPipeline, TacticalScanner, MeasurementManager, PinnedStarManager |
@@ -235,9 +236,11 @@ Missing manifest is non-fatal (terrain simply stays off).
 
 | Module | Role |
 |---|---|
-| `main.js` | Composition root, state ownership, frame pipeline, boot, dataset visibility/purge |
+| `main.js` | Composition root, state ownership, frame pipeline, boot, dataset visibility/purge (delegates body dispose to `BodyRegistry`) |
 | `SceneManager.js` | Canvas, scene, camera, renderer, OrbitControls |
-| `SystemBuilder.js` | Build / clear solar system, promote asteroid to CPU body |
+| `SystemBuilder.js` | Build / clear solar system, promote asteroid to CPU body (registers/removes via `BodyRegistry`) |
+| `BodyRegistry.js` | Owns the full CelestialBody lifecycle: `registerBody`, `promote`, `removeBody`, `removeByNameAndCategory`, `removeByDataset`, `purgeTacticalClones`, `sweepForRescan`, `clearAll`. Single place that runs the full dispose sequence (scene removal, geometry/material dispose, DOM label removal, `daylightController`/`eclipseShadowController` cleanup, `pickableObjects` bookkeeping). |
+| `bodyRegistryPredicates.js` | Pure, DOM/Three-free matching logic used by `BodyRegistry` (e.g. `shouldPurgeInFullSweep`, `shouldPurgeInRescan`) — no scene/graphics dependency, covered by Vitest unit tests. |
 | `DataLoader.js` | Fetch + normalize planetary / asteroid JSON |
 | `CelestialBody.js` | Enforced body schema / factory |
 | `storage.js` | `StorageManager` — sole `localStorage` access point |
@@ -275,7 +278,7 @@ Missing manifest is non-fatal (terrain simply stays off).
 | `TelemetryManager.js` | Target telemetry panel (incl. eclipse readout hooks) |
 | `VisibilityTreeManager.js` | Dataset visibility tree |
 | `InteractionController.js` | Picking, focus, tracking, hover preview |
-| `TacticalScanner.js` | Near-field scan + promote |
+| `TacticalScanner.js` | Near-field scan + promote (radar-contact lifecycle via `BodyRegistry`) |
 | `MeasurementManager.js` | Spatial measurement tools |
 | `ZoomRulerManager.js` | Dynamic 3D distance ruler |
 | `TutorialManager.js` | First-run tutorial (uses `StorageManager`) |
@@ -284,42 +287,53 @@ Missing manifest is non-fatal (terrain simply stays off).
 
 ## 8. Known architectural debt
 
-1. **Planet / moon duplicate chunks** — `main.js` still carries a TODO:
-   `// TODO: GET RID OF PLANET AND MOON DUPLICATE CHUNKS`. Loading the same body from more
-   than one chunk can produce duplicate entries or wasted work.
-
-2. **`Shaders.js` monolith** (~820 lines) — every shader lives in one class. A
+1. **`Shaders.js` monolith** (~820 lines) — every shader lives in one class. A
    `ShaderManager` (or per-feature modules: grid, star, eclipse, terrain, tactical) would
    improve navigability and allow tree-shaking / lazy creation.
 
-3. **Star-field performance at high zoom / mobile** — the background star map (proper-motion
+2. **Star-field performance at high zoom / mobile** — the background star map (proper-motion
    GPU particles + far-plane projection hack) is a known source of lag, especially on mobile
    when the camera is deep in the interstellar regime. Needs culling, LOD, or density
    throttling.
 
-4. **No formal store** — shared mutable arrays remain the source of truth. A lightweight
-   registry / event bus (or even a minimal store) for body lifecycle (add / promote / purge /
-   dispose) would reduce duplicated dispose logic across visibility toggles and purge paths.
+3. **No formal store** — shared mutable arrays remain the source of truth. `BodyRegistry`
+   (see item 5) centralizes body *lifecycle* bookkeeping, but there is still no formal
+   store/reducer for the rest of `main.js`'s top-level state (`currentTargetData`,
+   `activeDatasets`, `systemDate`, etc.).
 
-5. **Body lifecycle / dispose duplication** — purge sequences for meshes, sprites, orbit
-   lines, curtains, labels, daylight/eclipse overlays, and particle systems exist in more
-   than one place. A single `BodyRegistry` or scene-graph service would own add/remove/dispose.
+4. **Body lifecycle / dispose duplication — resolved.** `BodyRegistry.js` now owns
+   add/remove/dispose for `CelestialBody` scene-graph, GPU, and DOM resources.
+   `SystemBuilder` (`buildSolarSystem`, `promoteAsteroidToCPU`, `clearSolarSystem`),
+   `TacticalScanner` (`performTacticalScan`, `purgeTacticalClones`), and `main.js`
+   (`onDatasetVisibilityChanged`'s purge branch, `onPurgeRequested`) all register/remove
+   bodies through it instead of duplicating `scene.remove()` / `dispose()` / splice
+   sequences. Two distinct purge semantics that existed at different call sites were kept
+   distinct rather than force-unified: `purgeTacticalClones()` (unconditional full sweep,
+   used when scanning is toggled off) and `sweepForRescan(protectedTargetData)` (radar
+   contacts always cleared, but an unpinned promoted-asteroid clone is spared if it's the
+   currently targeted body, used immediately before a scan repopulates radar hits). The
+   underlying match/purge decisions are pure functions in `bodyRegistryPredicates.js`,
+   unit-tested independently of THREE/DOM. One intentional behavior change from this pass:
+   the old inline purge code in `main.js` never disposed geometry/material for purged
+   bodies (a leak); `BodyRegistry.disposeBody` always does.
 
-6. **Test coverage lag** — pure orbital math, DataLoader, TimeThrottle, storage, and parts of
-   Physics/Render are covered. Newer systems (EclipseEngine pure helpers, TerrainController
-   decisions, StarLoader parsing, MeasurementManager, promote/purge paths) have little or no
-   automated coverage. An eclipse unit test exists locally but is not yet in the repo.
+5. **Test coverage lag** — pure orbital math, DataLoader, TimeThrottle, storage, and parts of
+   Physics/Render are covered, as are the new `bodyRegistryPredicates.js` helpers. Newer
+   systems (EclipseEngine pure helpers, TerrainController decisions, StarLoader parsing,
+   MeasurementManager) still have little or no automated coverage, and `BodyRegistry` itself
+   is only covered indirectly (its pure predicates are tested; the THREE/DOM-touching
+   dispose/register methods are not — they'd need a headless THREE + jsdom harness). An
+   eclipse unit test exists locally but is not yet in the repo.
 
-7. **Large static data in Git** — `public/data` is ~836 MB (asteroid chunks + heightmaps) plus
+6. **Large static data in Git** — `public/data` is ~836 MB (asteroid chunks + heightmaps) plus
    `public/star_data` (~27 MB). Currently required for Vercel-from-GitHub deploys; external
    object storage remains a future option once notes / full-feature release constraints allow.
 
-8. **`DataLoader` lookup cost** — there is a TODO to move a hot designation-normalization /
+7. **`DataLoader` lookup cost** — there is a TODO to move a hot designation-normalization /
    lookup path into a cheaper structure.
 
-9. **ARCHITECTURE.md / docs lag risk** — this file must be updated whenever the frame
-   pipeline, body schema, or module inventory changes. Sequence diagrams under `docs/` are
-   planned but not yet committed.
+8. **ARCHITECTURE.md / docs lag risk** — this file must be updated whenever the frame
+   pipeline, body schema, or module inventory changes.
 
 ---
 

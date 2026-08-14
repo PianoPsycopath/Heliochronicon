@@ -50,30 +50,9 @@ export class SystemBuilder {
     }
 
     clearSolarSystem() {
-        const { celestialBodies, pickableObjects, gpuParticleSystems, scene, UI } = this.ctx;
-        
-        celestialBodies.forEach(b => {
-            if (b.mesh) scene.remove(b.mesh);
-            if (b.sprite) scene.remove(b.sprite);
-            if (b.orbitLine) scene.remove(b.orbitLine);
-            if (b.orbitCurtain) scene.remove(b.orbitCurtain);
-            if (b.label && b.label.parentNode) b.label.parentNode.removeChild(b.label);
-        });
-        celestialBodies.length = 0;
-        pickableObjects.length = 0;
+        const { celestialBodies, UI, bodyRegistry } = this.ctx;
 
-        gpuParticleSystems.forEach(s => {
-            scene.remove(s);
-            if (s.geometry) s.geometry.dispose();
-            if (s.material) s.material.dispose();
-            if (s.userData.groupLabel) {
-                scene.remove(s.userData.groupLabel);
-                s.userData.groupLabel.material.map.dispose();
-                s.userData.groupLabel.material.dispose();
-                s.userData.groupLabel.geometry.dispose();
-            }
-        });
-        gpuParticleSystems.length = 0;
+        bodyRegistry.clearAll();
 
         this.ctx.onClearTarget();
         UI.updateTargetPanel(null);
@@ -85,7 +64,7 @@ export class SystemBuilder {
     buildSolarSystem(planetaryData) {
         if (planetaryData.length === 0) return;
         
-        const { scene, celestialBodies, gpuParticleSystems, pickableObjects, UI, datasetMaterials, savedColors, tacticalMaterial, AU_IN_KM } = this.ctx;
+        const { scene, celestialBodies, gpuParticleSystems, UI, datasetMaterials, savedColors, tacticalMaterial, AU_IN_KM, bodyRegistry } = this.ctx;
         const datasetCategory = planetaryData[0].datasetCategory;
         const datasetName = planetaryData[0].datasetName;
         const currentTargetData = this.ctx.getCurrentTarget();
@@ -164,12 +143,19 @@ export class SystemBuilder {
         let index = 0;
         const CHUNK_SIZE = 150; 
 
+        // Planet/moon chunk files can overlap (the same body listed in more
+        // than one manifest chunk). Track registered names in a Set instead
+        // of re-scanning celestialBodies per row -- O(1) duplicate check
+        // instead of O(n) per row / O(n*m) overall as chunk sets grow.
+        const registeredNames = new Set(celestialBodies.map(b => b.data.name));
+
         const buildChunk = () => {
             const end = Math.min(index + CHUNK_SIZE, planetaryData.length);
             
             for (; index < end; index++) {
                 const d = planetaryData[index];
-                if (celestialBodies.some(b => b.data.name === d.name)) continue; 
+                if (registeredNames.has(d.name)) continue;
+                registeredNames.add(d.name);
 
                 const isSun = d.parent === d.name;
                 const isMoon = !isSun && d.category === 'MOON';
@@ -212,8 +198,7 @@ export class SystemBuilder {
                 }
 
                 scene.add(mesh);
-                pickableObjects.push(mesh);
-                
+
                 const label = document.createElement('div');
                 label.className = 'tactical-label';
                 label.innerText = d.name;
@@ -238,7 +223,6 @@ export class SystemBuilder {
                 sprite.userData = d;
                 sprite.renderOrder = rOrder; 
                 scene.add(sprite);
-                pickableObjects.push(sprite);
                 bodyObj.sprite = sprite;
 
                 if (!isSun) {
@@ -255,7 +239,7 @@ export class SystemBuilder {
                 if (bodyObj.orbitLine) bodyObj.orbitLine.matrixAutoUpdate = false;
                 if (bodyObj.orbitCurtain) bodyObj.orbitCurtain.matrixAutoUpdate = false;
 
-                celestialBodies.push(bodyObj);
+                bodyRegistry.registerBody(bodyObj);
             }
             
             if (index < planetaryData.length) {
@@ -285,21 +269,9 @@ export class SystemBuilder {
     }
 
     promoteAsteroidToCPU(d) {
-        const { scene, celestialBodies, pickableObjects, savedColors, dotTexture, tacticalMaterial, AU_IN_KM } = this.ctx;
+        const { scene, celestialBodies, savedColors, dotTexture, tacticalMaterial, AU_IN_KM, bodyRegistry } = this.ctx;
 
         if (celestialBodies.some(b => b.data.name === d.name && b.data.datasetCategory === 'PROMOTED_ASTEROID')) return;
-
-        const radarIdx = celestialBodies.findIndex(b => b.data.name === d.name && b.data.datasetCategory === 'RADAR_CONTACT');
-        if (radarIdx !== -1) {
-            const old = celestialBodies[radarIdx];
-            scene.remove(old.sprite);
-            const pIdx = pickableObjects.indexOf(old.sprite);
-            if (pIdx > -1) pickableObjects.splice(pIdx, 1);
-            if (old.orbitLine) scene.remove(old.orbitLine);
-            if (old.orbitCurtain) scene.remove(old.orbitCurtain);
-            if (old.label && old.label.parentNode) old.label.parentNode.removeChild(old.label);
-            celestialBodies.splice(radarIdx, 1);
-        }
 
         const promotedData = { ...d, datasetCategory: 'PROMOTED_ASTEROID' };
 
@@ -323,7 +295,6 @@ export class SystemBuilder {
         mesh.add(new THREE.Line(poleGeo, poleMat));
 
         scene.add(mesh);
-        pickableObjects.push(mesh);
 
         const datasetColor = savedColors[promotedData.datasetName] || '#00ffff';
         const label = document.createElement('div');
@@ -338,7 +309,6 @@ export class SystemBuilder {
         sprite.userData = promotedData;
         sprite.renderOrder = 1500;
         scene.add(sprite);
-        pickableObjects.push(sprite);
 
         const orbitLine = this.createOrbitPath(promotedData, scaledA);
         orbitLine.material.color.set(datasetColor);
@@ -352,19 +322,22 @@ export class SystemBuilder {
         orbitLine.matrixAutoUpdate = false;
         orbitCurtain.matrixAutoUpdate = false;
 
-        celestialBodies.push(new CelestialBody({ 
-            data: promotedData, 
-            mesh: mesh, 
-            label: label, 
-            sprite: sprite,
-            orbitLine: orbitLine,
-            orbitCurtain: orbitCurtain,
-            isMoon: false, 
-            scaledA: scaledA, 
-            physicalRadius: physicalRadius, 
-            datasetVisible: true, 
-            isCulled: false, 
-            hideLabel: false 
-        }));
+        bodyRegistry.promote(
+            new CelestialBody({
+                data: promotedData,
+                mesh: mesh,
+                label: label,
+                sprite: sprite,
+                orbitLine: orbitLine,
+                orbitCurtain: orbitCurtain,
+                isMoon: false,
+                scaledA: scaledA,
+                physicalRadius: physicalRadius,
+                datasetVisible: true,
+                isCulled: false,
+                hideLabel: false
+            }),
+            { name: d.name, category: 'RADAR_CONTACT' }
+        );
     }
 }

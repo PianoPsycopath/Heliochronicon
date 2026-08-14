@@ -10,6 +10,7 @@ import { RenderPipeline} from './RenderPipeline.js';
 import { TacticalScanner} from './TacticalScanner.js';
 import { PhysicsEngine} from './PhysicsEngine.js';
 import { TutorialManager} from './TutorialManager.js';
+import { BodyRegistry } from './BodyRegistry.js';
 import { StorageManager } from './storage.js';
 import { ZoomRulerManager } from './ZoomRulerManager.js';
 import { MeasurementManager } from './MeasurementManager.js';
@@ -108,9 +109,22 @@ const tacticalMaterial = Shaders.getTacticalMaterial();
 const UI = new UIController();
 
 // --- INITIALIZE SUBSYSTEMS ---
+const terrainController = new TerrainController({ celestialBodies });
+const daylightController = new DaylightController({ scene, celestialBodies });
+const eclipseShadowController = new EclipseShadowController({ scene, celestialBodies, AU_IN_KM });
+
+// Owns the full add/remove/dispose lifecycle for CelestialBody scene-graph,
+// GPU, and DOM resources. SystemBuilder and TacticalScanner both register
+// and remove bodies through this instead of duplicating dispose sequences.
+const bodyRegistry = new BodyRegistry({
+    scene, celestialBodies, pickableObjects, gpuParticleSystems,
+    daylightController, eclipseShadowController
+});
+
 const systemBuilder = new SystemBuilder({
     scene, UI, celestialBodies, pickableObjects, gpuParticleSystems,
     datasetMaterials, savedColors, dotTexture, tacticalMaterial, AU_IN_KM,
+    bodyRegistry,
     getCurrentTarget: () => currentTargetData,
     onClearTarget: () => { 
         currentTargetData = null; 
@@ -145,9 +159,6 @@ const interactionController = new InteractionController({
     onBodyHovered: (data) => { previewTargetData = data; }
 });
 
-const terrainController = new TerrainController({ celestialBodies });
-const daylightController = new DaylightController({ scene, celestialBodies });
-const eclipseShadowController = new EclipseShadowController({ scene, celestialBodies, AU_IN_KM });
 const renderPipeline = new RenderPipeline({
     camera, controls, gridMaterial, gpuParticleSystems, UI, savedColors, MAX_WELLS,
     terrainController, daylightController, eclipseShadowController
@@ -155,7 +166,7 @@ const renderPipeline = new RenderPipeline({
 
 const tacticalScanner = new TacticalScanner({
     scene, camera, UI, celestialBodies, pickableObjects, gpuParticleSystems, currentOrigin, dotTexture, savedColors,
-    systemBuilder,
+    systemBuilder, bodyRegistry,
     getSystemDate: () => systemDate,
     getCurrentTarget: () => currentTargetData,
     getJ2000Days: (date) => PhysicsEngine.getJ2000Days(date),
@@ -194,8 +205,7 @@ UI.onDatasetVisibilityChanged = async (datasetName, isVisible, urls) => {
             const fetchPromises = urlArray.map(url => DataLoader.fetchJSONDataset(url));
             const chunkResults = await Promise.all(fetchPromises);
             
-            // Merge all parsed chunk arrays into single dataset, 
-            // TODO: GET RID OF PLANET AND MOON DUPLICATE CHUNKS
+            // Merge all parsed chunk arrays into single dataset,
             const mergedJSON = chunkResults.flat();
             
             const processedData = DataLoader.processPlanetaryData(mergedJSON, datasetName);
@@ -208,43 +218,8 @@ UI.onDatasetVisibilityChanged = async (datasetName, isVisible, urls) => {
     } else {
         // PURGE SEQUENCE
         activeDatasets.delete(datasetName);
-        
-        // 1. Purge Standard Bodies
-        for (let i = celestialBodies.length - 1; i >= 0; i--) {
-            const b = celestialBodies[i];
-            if (b.data.datasetName === datasetName) {
-                scene.remove(b.mesh);
-                if (b.sprite) scene.remove(b.sprite);
-                if (b.orbitLine) scene.remove(b.orbitLine);
-                if (b.orbitCurtain) scene.remove(b.orbitCurtain);
-                if (b.label && b.label.parentNode) b.label.parentNode.removeChild(b.label);
-                daylightController.removeBody(b.data.name);
-                
-                let pIdx = pickableObjects.indexOf(b.mesh);
-                if (pIdx > -1) pickableObjects.splice(pIdx, 1);
-                pIdx = pickableObjects.indexOf(b.sprite);
-                if (pIdx > -1) pickableObjects.splice(pIdx, 1);
-                
-                celestialBodies.splice(i, 1);
-            }
-        }
-        for (let i = gpuParticleSystems.length - 1; i >= 0; i--) {
-            const sys = gpuParticleSystems[i];
-            if (sys.userData && sys.userData.datasetName === datasetName) {
-                scene.remove(sys); 
-                if (sys.geometry) sys.geometry.dispose();
-                if (sys.material) sys.material.dispose();
-            
-                if (sys.userData.groupLabel) {
-                    scene.remove(sys.userData.groupLabel);
-                    if (sys.userData.groupLabel.material.map) sys.userData.groupLabel.material.map.dispose();
-                    sys.userData.groupLabel.material.dispose();
-                    sys.userData.groupLabel.geometry.dispose();
-                }
-            
-                gpuParticleSystems.splice(i, 1);
-            }
-        }
+
+        bodyRegistry.removeByDataset(datasetName);
 
         if (currentTargetData && currentTargetData.datasetName === datasetName) {
             tacticalScanner.onTargetPurged();
@@ -292,24 +267,8 @@ UI.onPinRequested = (data) => {
 };
 
 UI.onPurgeRequested = (data) => {
-    const idx = celestialBodies.findIndex(x => x.data.name === data.name && x.data.datasetCategory === 'PROMOTED_ASTEROID');
-    if (idx !== -1) {
-        const b = celestialBodies[idx];
-        scene.remove(b.mesh);
-        scene.remove(b.sprite);
-        scene.remove(b.orbitLine);
-        scene.remove(b.orbitCurtain);
-        if (b.label && b.label.parentNode) b.label.parentNode.removeChild(b.label);
-        daylightController.removeBody(b.data.name);
-        
-        let pIdx = pickableObjects.indexOf(b.mesh);
-        if (pIdx > -1) pickableObjects.splice(pIdx, 1);
-        pIdx = pickableObjects.indexOf(b.sprite);
-        if (pIdx > -1) pickableObjects.splice(pIdx, 1);
-        
-        celestialBodies.splice(idx, 1);
-    }
-    
+    bodyRegistry.removeByNameAndCategory(data.name, 'PROMOTED_ASTEROID');
+
     currentTargetData = null;
     trackingTargetData = null;
     interactionController.clearTracking();

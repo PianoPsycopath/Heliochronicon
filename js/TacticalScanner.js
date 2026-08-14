@@ -1,6 +1,7 @@
 // js/TacticalScanner.js
 import { OrbitalMath } from './OrbitalMath.js';
 import { CelestialBody } from './CelestialBody.js';
+import { shouldPurgeInFullSweep } from './bodyRegistryPredicates.js';
 import * as THREE from 'three'
 
 export class TacticalScanner {
@@ -10,36 +11,14 @@ export class TacticalScanner {
     }
 
     purgeTacticalClones() {
-        const { scene, celestialBodies, pickableObjects, UI } = this.ctx;
+        const { UI, celestialBodies, bodyRegistry } = this.ctx;
         const currentTargetData = this.ctx.getCurrentTarget();
 
         // 1. Sweep and destroy all Radar Contacts and Unpinned Clones
-        for (let i = celestialBodies.length - 1; i >= 0; i--) {
-            const b = celestialBodies[i];
-            const isRadar = b.data.datasetCategory === 'RADAR_CONTACT';
-            const isUnpinnedClone = b.data.datasetCategory === 'PROMOTED_ASTEROID' && !b.data.isPinned;
-            
-            if (isRadar || isUnpinnedClone) {
-                scene.remove(b.sprite);
-                if (b.mesh) scene.remove(b.mesh);
-                if (b.orbitLine) scene.remove(b.orbitLine);
-                if (b.orbitCurtain) scene.remove(b.orbitCurtain);
-                if (b.label && b.label.parentNode) b.label.parentNode.removeChild(b.label);
-                
-                let pIdx = pickableObjects.indexOf(b.sprite);
-                if (pIdx > -1) pickableObjects.splice(pIdx, 1);
-                if (b.mesh) {
-                    pIdx = pickableObjects.indexOf(b.mesh);
-                    if (pIdx > -1) pickableObjects.splice(pIdx, 1);
-                }
-                
-                celestialBodies.splice(i, 1);
-            }
-        }
+        bodyRegistry.purgeTacticalClones();
 
         // 2. Break camera tracking if the user was focused on an unpinned clone that just got deleted
-        if (currentTargetData && (currentTargetData.datasetCategory === 'RADAR_CONTACT' || 
-           (currentTargetData.datasetCategory === 'PROMOTED_ASTEROID' && !currentTargetData.isPinned))) {
+        if (currentTargetData && shouldPurgeInFullSweep(currentTargetData)) {
             this.ctx.onTargetPurged();
         } else {
             // 3. Reset the UI Panels normally
@@ -49,7 +28,7 @@ export class TacticalScanner {
     }
 
     performTacticalScan() {
-        const { UI, scene, camera, currentOrigin, celestialBodies, gpuParticleSystems, pickableObjects, dotTexture, savedColors } = this.ctx;
+        const { UI, scene, camera, currentOrigin, celestialBodies, gpuParticleSystems, dotTexture, savedColors, bodyRegistry } = this.ctx;
         const systemDate = this.ctx.getSystemDate();
         const currentTargetData = this.ctx.getCurrentTarget();
 
@@ -76,30 +55,8 @@ export class TacticalScanner {
             let closestList = []; 
 
             // 1. Clear old green radar contacts AND unpinned memory clones
-            for (let i = celestialBodies.length - 1; i >= 0; i--) {
-                const b = celestialBodies[i];
-                const isRadar = b.data.datasetCategory === 'RADAR_CONTACT';
-                
-                // Protect currently targeted objects from the sweep even if unpinned
-                const isUnpinnedClone = b.data.datasetCategory === 'PROMOTED_ASTEROID' && !b.data.isPinned && (!currentTargetData || currentTargetData.name !== b.data.name);
-                
-                if (isRadar || isUnpinnedClone) {
-                    scene.remove(b.sprite);
-                    if (b.mesh) scene.remove(b.mesh);
-                    if (b.orbitLine) scene.remove(b.orbitLine);
-                    if (b.orbitCurtain) scene.remove(b.orbitCurtain);
-                    if (b.label && b.label.parentNode) b.label.parentNode.removeChild(b.label);
-                    
-                    let pIdx = pickableObjects.indexOf(b.sprite);
-                    if (pIdx > -1) pickableObjects.splice(pIdx, 1);
-                    if (b.mesh) {
-                        pIdx = pickableObjects.indexOf(b.mesh);
-                        if (pIdx > -1) pickableObjects.splice(pIdx, 1);
-                    }
-                    
-                    celestialBodies.splice(i, 1);
-                }
-            }
+            // (protects the currently targeted body's clone from the sweep)
+            bodyRegistry.sweepForRescan(currentTargetData);
 
             gpuParticleSystems.forEach(system => {
                 if (!system.visible) return;
@@ -158,13 +115,10 @@ export class TacticalScanner {
                 sprite.updateMatrixWorld();
 
                 scene.add(sprite);
-                pickableObjects.push(sprite);
                 
                 const dummyMesh = new THREE.Object3D(); 
 
-                const orbitLine = systemBuilder.createOrbitPath(
-                    radarData.a, radarData.e, radarData.i, radarData.w, radarData.Node, 'RADAR_CONTACT'
-                );
+                const orbitLine = systemBuilder.createOrbitPath(radarData, radarData.a);
                 orbitLine.material.color.set(datasetColor);
                 orbitLine.visible = false;
                 orbitLine.matrixAutoUpdate = false;
@@ -179,7 +133,7 @@ export class TacticalScanner {
                 label.style.color = datasetColor;
                 document.body.appendChild(label);
 
-                celestialBodies.push(new CelestialBody({
+                bodyRegistry.registerBody(new CelestialBody({
                     data: radarData, 
                     mesh: dummyMesh, 
                     sprite: sprite, 
