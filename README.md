@@ -39,6 +39,20 @@ Shows real-time information about selected targets.
 - **Custom Planetary Systems**
 Bring your own orbital elements via CSV and load them in place of the default dataset (see Custom Solar Systems below).
 
+<details>
+<summary><strong>What’s new</strong> (recent feature wave)</summary>
+
+- Planetary surface heightmaps (Earth, Moon, Jupiter)
+- Day/night shading and multi-body eclipse overlays
+- GPU star field with proper motion + star pinning
+- Spatial measurements and dynamic zoom ruler
+- Analytic orbits: VSOP87 (Earth) and Meeus (Moon)
+- Architecture docs and sequence diagrams under `docs/`
+
+See [CHANGELOG.md](CHANGELOG.md) for the full list.
+
+</details>
+
 <table width="100%">
   <tr>
     <td width="50%" align="center">
@@ -111,7 +125,7 @@ cd Heliochronicon
 npm install
 npm run dev
 ```
-3. Opens at `http://localhost:5173` by default.
+2. Opens at `http://localhost:5173` by default.
 
 ## Testing
 
