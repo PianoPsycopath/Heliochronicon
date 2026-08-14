@@ -188,8 +188,7 @@ See `docs/` for sequence and flow diagrams for a visual understanding.
 
 - Deep Space Network (DSN) line-of-sight communication simulation.
 - Magnetic fields, gravity profiles, and weather/fluid dynamics modeling or historical weather viewing for Earth.
-- Procedural generation of neighbor![Uploading captions.svg…]()
-ing star systems.
+- Procedural generation of neighboring star systems.
 
 ## Credits and Data Sources
 
