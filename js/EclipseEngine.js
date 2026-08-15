@@ -1,8 +1,8 @@
 // js/EclipseEngine.js
-import { OrbitalMath, kmToAU, AU_IN_KM } from './OrbitalMath.js';
+import { OrbitalMath, kmToAU } from './OrbitalMath.js';
+import { AU_IN_KM, JULIAN_CENTURY_DAYS } from './constants.js';
 import * as THREE from 'three';
 
-const SUN_RADIUS_AU = 696340 / AU_IN_KM;
 const rad = Math.PI / 180;
 const MAX_MOON_MOON_MEMBERS = 8;
 
@@ -14,7 +14,7 @@ export class EclipseEngine {
         return d.radius_km > 0 ? d.radius_km / AU_IN_KM : (1.0 / AU_IN_KM);
     }
     static _poleQuaternion(d, daysSinceJ2000) {
-        const T = daysSinceJ2000 / 36525.0;
+        const T = daysSinceJ2000 / JULIAN_CENTURY_DAYS;
         const ra = (d.pole_ra + d.pole_ra_rate * T) * rad;
         const dec = (d.pole_dec + d.pole_dec_rate * T) * rad;
         const poleVec = new THREE.Vector3(
@@ -91,7 +91,7 @@ export class EclipseEngine {
         const starPos = snapshot.get(star.name);
         if (!sPos || !oPos || !starPos) return { signal: -1 };
 
-        const starRadius = star.radius_km ? star.radius_km / AU_IN_KM : SUN_RADIUS_AU;
+        const starRadius = this._radiusAU(star);
         const result = this._shadowTest(sPos, oPos, this._radiusAU(occulter), starPos, starRadius);
         if (!result) return { signal: -1 };
 

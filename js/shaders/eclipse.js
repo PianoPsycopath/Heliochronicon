@@ -3,10 +3,11 @@
 // the former Shaders.js monolith -- see ShaderManager.js for the aggregated
 // call surface.
 import * as THREE from 'three'
+import { MAX_SHADOWS } from '../constants.js'
 
 export class EclipseShaders {
 
-    static createEclipseShadowMat(maxShadows = 8) {
+    static createEclipseShadowMat(maxShadows = MAX_SHADOWS) {
         const defaultPositions = new Array(maxShadows).fill(null).map(() => new THREE.Vector3());
         const defaultRadii = new Array(maxShadows).fill(0.0001);
 

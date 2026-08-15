@@ -1,8 +1,7 @@
 // js/OrbitalMath.js
 import { MeeusMoon } from './MeeusMoon.js';
 import { VSOP87 } from './vsop87.js';
-
-export const AU_IN_KM = 149597870.7;
+import { AU_IN_KM, EARTH_MOON_MASS_RATIO } from './constants.js';
 
 export function kmToAU(km) {
     return km / AU_IN_KM;
@@ -19,7 +18,7 @@ export class OrbitalMath {
             // --- DYNAMIC BARYCENTER CORRECTION ---
             if (bodyData.barycenter_model === "MEEUS") {
                 const moonGeo = MeeusMoon.getPosition(daysSinceJ2000);
-                const massRatio = bodyData.barycenter_mass_ratio || (1.0 / 82.30059); 
+                const massRatio = bodyData.barycenter_mass_ratio || (1.0 / EARTH_MOON_MASS_RATIO); 
                 
                 return {
                     x: pos.x - (moonGeo.x * massRatio),

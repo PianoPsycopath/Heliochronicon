@@ -163,9 +163,7 @@ export class SystemBuilder {
                 const scaledA = this.getTacticalA(d, isMoon);
 
                 let physicalRadius = 0;
-                if (isSun) {
-                    physicalRadius = 696340 / AU_IN_KM; 
-                } else if (d.radius_km > 0) {
+                if (d.radius_km > 0) {
                     physicalRadius = d.radius_km / AU_IN_KM;
                 } else {
                     physicalRadius = 1.0 / AU_IN_KM; 

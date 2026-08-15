@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { Shaders } from './Shaders.js';
 import { EclipseEngine } from './EclipseEngine.js';
+import { MAX_SHADOWS } from './constants.js';
 
 const OVERLAY_GEOMETRY = new THREE.SphereGeometry(1, 32, 32);
 const OVERLAY_SCALE_PAD = 1.006;
@@ -31,7 +32,7 @@ export class EclipseShadowController {
     _ensureOverlay(bodyObj) {
         let entry = this.overlays.get(bodyObj.data.name);
         if (!entry) {
-            const material = Shaders.createEclipseShadowMat();
+            const material = Shaders.createEclipseShadowMat(MAX_SHADOWS);
             const mesh = new THREE.Mesh(OVERLAY_GEOMETRY, material);
             mesh.frustumCulled = false;
             mesh.renderOrder = (bodyObj.mesh.renderOrder || 0) + 2;
@@ -58,7 +59,7 @@ export class EclipseShadowController {
             
             const result = EclipseEngine._shadowTest(
                 bodyObj.renderPos, occ.renderPos, occ.physicalRadius,
-                starBody.renderPos, 696340 / this.ctx.AU_IN_KM
+                starBody.renderPos, starBody.physicalRadius
             );
             
             if (result && result.perpDist < (result.rPenumbra + bodyObj.physicalRadius)) {
@@ -74,16 +75,16 @@ export class EclipseShadowController {
             return; 
         }
     
-        // Sort by how deep the shadow cuts into the planet, take the top 8
+        // Sort by how deep the shadow cuts into the planet, take the top MAX_SHADOWS
         validCandidates.sort((a, b) => b.margin - a.margin);
-        const activeCount = Math.min(validCandidates.length, 8); // MAX_SHADOWS = 8
+        const activeCount = Math.min(validCandidates.length, MAX_SHADOWS);
         
         entry.mesh.visible = true;
         entry.mesh.position.copy(bodyObj.renderPos);
         entry.mesh.scale.setScalar(bodyObj.physicalRadius * OVERLAY_SCALE_PAD);
         
         entry.material.uniforms.uStarPos.value.copy(starBody.renderPos);
-        entry.material.uniforms.uStarRadius.value = 696340 / this.ctx.AU_IN_KM;
+        entry.material.uniforms.uStarRadius.value = starBody.physicalRadius;
         entry.material.uniforms.uPlanetCenter.value.copy(bodyObj.renderPos);
         
         // Populate the Multi-Shadow Arrays

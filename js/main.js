@@ -1,6 +1,7 @@
 // js/main.js
 import { DataLoader} from './DataLoader.js';
 import { OrbitalMath } from './OrbitalMath.js';
+import { AU_IN_KM, MAX_WELLS } from './constants.js';
 import { SceneManager} from './SceneManager.js';
 import { Shaders} from './Shaders.js';
 import { UIController} from './UIController.js';
@@ -22,9 +23,6 @@ import { EclipseEngine } from './EclipseEngine.js';
 import { EclipseShadowController } from './EclipseShadowController.js';
 
 import * as THREE from 'three'
-
-const AU_IN_KM = 149597870.7; 
-const MAX_WELLS = 35; 
 
 const storage = new StorageManager();
 // --- DATA SOURCE (switchable at runtime from the browser console) ---
@@ -111,7 +109,7 @@ const UI = new UIController();
 // --- INITIALIZE SUBSYSTEMS ---
 const terrainController = new TerrainController({ celestialBodies });
 const daylightController = new DaylightController({ scene, celestialBodies });
-const eclipseShadowController = new EclipseShadowController({ scene, celestialBodies, AU_IN_KM });
+const eclipseShadowController = new EclipseShadowController({ scene, celestialBodies });
 
 // Owns the full add/remove/dispose lifecycle for CelestialBody scene-graph,
 // GPU, and DOM resources. SystemBuilder and TacticalScanner both register
