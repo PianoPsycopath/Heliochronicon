@@ -3,38 +3,41 @@ import { OrbitalMath } from './OrbitalMath.js';
 import * as THREE from 'three';
 
 export class PhysicsEngine {
-    static getJ2000Days(date) { 
-        return (date.getTime() - Date.UTC(2000, 0, 1, 12, 0, 0)) / 86400000; 
+    static getJ2000Days(date) {
+        return (date.getTime() - Date.UTC(2000, 0, 1, 12, 0, 0)) / 86400000;
     }
 
     static updateSystemTime(UI, currentDate, deltaSec) {
         let newDate = currentDate;
         if (UI.timeMultiplier !== 0) {
-            newDate = new Date(currentDate.getTime() + (deltaSec * 1000 * UI.timeMultiplier));
+            newDate = new Date(currentDate.getTime() + deltaSec * 1000 * UI.timeMultiplier);
             UI.updateTimeInput(newDate);
         }
         return {
             newDate: newDate,
-            daysSinceJ2000: this.getJ2000Days(newDate)
+            daysSinceJ2000: this.getJ2000Days(newDate),
         };
     }
 
     static calculateKeplerianKinematics(celestialBodies, daysSinceJ2000) {
         const T = daysSinceJ2000 / 36525.0;
         const rad = Math.PI / 180;
-        
-        celestialBodies.forEach(b => {
+
+        celestialBodies.forEach((b) => {
             const d = b.data;
-            if (b.datasetVisible === false) { b.isCulled = true; return; }
+            if (b.datasetVisible === false) {
+                b.isCulled = true;
+                return;
+            }
             b.isCulled = false;
             if (d.datasetCategory !== 'RADAR_CONTACT') {
                 b.hideLabel = false;
             }
-            
+
             const ra_deg = d.pole_ra + d.pole_ra_rate * T;
             const dec_deg = d.pole_dec + d.pole_dec_rate * T;
             const w_deg = d.pm_w + d.pm_w_rate * daysSinceJ2000;
-            
+
             const RA = ra_deg * rad;
             const DEC = dec_deg * rad;
             const W = w_deg * rad;
@@ -42,10 +45,13 @@ export class PhysicsEngine {
             const poleVec = new THREE.Vector3(
                 Math.cos(DEC) * Math.cos(RA),
                 Math.sin(DEC),
-                -Math.cos(DEC) * Math.sin(RA) 
+                -Math.cos(DEC) * Math.sin(RA)
             ).normalize();
 
-            b.poleQuaternion = new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), poleVec);
+            b.poleQuaternion = new THREE.Quaternion().setFromUnitVectors(
+                new THREE.Vector3(0, 1, 0),
+                poleVec
+            );
             b.W_current = W;
             b.RA_current_deg = ra_deg;
             b.DEC_current_deg = dec_deg;
@@ -63,22 +69,24 @@ export class PhysicsEngine {
     }
 
     static applyMoonParentOffsets(celestialBodies) {
-        celestialBodies.forEach(b => {
+        celestialBodies.forEach((b) => {
             const d = b.data;
             if (b.isCulled || d.parent === d.name) return;
 
             let parentPos = new THREE.Vector3(0, 0, 0);
-            let parentQuat = new THREE.Quaternion(); 
+            let parentQuat = new THREE.Quaternion();
 
             if (b.isMoon) {
-                const pBody = celestialBodies.find(x => x.data.name === d.parent);
+                const pBody = celestialBodies.find((x) => x.data.name === d.parent);
                 if (pBody) {
                     parentPos = pBody.globalPos.clone();
-                    
+
                     // Analytical models (like MEEUS) are already in Ecliptic space:
                     // DO NOT rotate Meeus coordinates using the parent's pole quaternion.
                     if (!d.orbit_model || d.orbit_model === 'KEPLER') {
-                        parentQuat = pBody.poleQuaternion ? pBody.poleQuaternion.clone() : new THREE.Quaternion();
+                        parentQuat = pBody.poleQuaternion
+                            ? pBody.poleQuaternion.clone()
+                            : new THREE.Quaternion();
                         const rotatedLocal = b.localPos.clone().applyQuaternion(parentQuat);
                         b.globalPos = rotatedLocal.add(parentPos);
                         b.parentPos = parentPos;
@@ -87,7 +95,7 @@ export class PhysicsEngine {
                     }
                 }
             }
-            
+
             b.globalPos = b.localPos.clone().add(parentPos);
             b.parentPos = parentPos;
             b.parentQuat = parentQuat;
@@ -95,7 +103,7 @@ export class PhysicsEngine {
     }
 
     static zSortCelestialBodies(celestialBodies, cameraPos, currentOrigin) {
-        celestialBodies.forEach(b => {
+        celestialBodies.forEach((b) => {
             if (!b.isCulled && b.data.parent !== b.data.name) {
                 b.distToCamSq = cameraPos.distanceToSquared(b.globalPos.clone().sub(currentOrigin));
             }
@@ -104,8 +112,8 @@ export class PhysicsEngine {
         celestialBodies.sort((a, b) => {
             const sizeA = a.data.radius_km || 0;
             const sizeB = b.data.radius_km || 0;
-            if (sizeA !== sizeB) return sizeB - sizeA; 
-            
+            if (sizeA !== sizeB) return sizeB - sizeA;
+
             const distA = a.distToCamSq || 0;
             const distB = b.distToCamSq || 0;
             if (distA !== distB) return distA - distB;

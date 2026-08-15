@@ -2,7 +2,7 @@
 
 import * as THREE from 'three';
 
-const STAR_FAR_PLANE_AU = 1e14; 
+const STAR_FAR_PLANE_AU = 1e14;
 
 export class PinnedStarManager {
     constructor() {
@@ -13,8 +13,15 @@ export class PinnedStarManager {
 
     static keyFor(data) {
         return (
-            data.name || data.designation || data.proper ||
-            data.hip || data.hd || data.hr || data.gl || data.id || ''
+            data.name ||
+            data.designation ||
+            data.proper ||
+            data.hip ||
+            data.hd ||
+            data.hr ||
+            data.gl ||
+            data.id ||
+            ''
         ).toString();
     }
 
@@ -58,8 +65,9 @@ export class PinnedStarManager {
     }
 
     clearAll() {
-        this.pinned.forEach(entry => {
-            if (entry.label && entry.label.parentNode) entry.label.parentNode.removeChild(entry.label);
+        this.pinned.forEach((entry) => {
+            if (entry.label && entry.label.parentNode)
+                entry.label.parentNode.removeChild(entry.label);
         });
         this.pinned.clear();
     }

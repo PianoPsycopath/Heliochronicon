@@ -28,26 +28,50 @@ import { TerrainShaders } from './terrain.js';
 
 export class Shaders {
     // grid.js
-    static getGridMaterial(maxWells) { return GridShaders.getGridMaterial(maxWells); }
-    static getEquatorialGridMaterial() { return GridShaders.getEquatorialGridMaterial(); }
+    static getGridMaterial(maxWells) {
+        return GridShaders.getGridMaterial(maxWells);
+    }
+    static getEquatorialGridMaterial() {
+        return GridShaders.getEquatorialGridMaterial();
+    }
 
     // tactical.js
-    static getTacticalMaterial() { return TacticalShaders.getTacticalMaterial(); }
-    static createDotTexture() { return TacticalShaders.createDotTexture(); }
-    static createStarSpriteMat() { return TacticalShaders.createStarSpriteMat(); }
-    static createDiamondSpriteMat(symbol) { return TacticalShaders.createDiamondSpriteMat(symbol); }
-    static getAsteroidParticleMaterial(colorHex) { return TacticalShaders.getAsteroidParticleMaterial(colorHex); }
-    static createGroupLabelMat(text, colorHex = '#ffffff', meanA = 2.5) { return TacticalShaders.createGroupLabelMat(text, colorHex, meanA); }
+    static getTacticalMaterial() {
+        return TacticalShaders.getTacticalMaterial();
+    }
+    static createDotTexture() {
+        return TacticalShaders.createDotTexture();
+    }
+    static createStarSpriteMat() {
+        return TacticalShaders.createStarSpriteMat();
+    }
+    static createDiamondSpriteMat(symbol) {
+        return TacticalShaders.createDiamondSpriteMat(symbol);
+    }
+    static getAsteroidParticleMaterial(colorHex) {
+        return TacticalShaders.getAsteroidParticleMaterial(colorHex);
+    }
+    static createGroupLabelMat(text, colorHex = '#ffffff', meanA = 2.5) {
+        return TacticalShaders.createGroupLabelMat(text, colorHex, meanA);
+    }
 
     // starField.js
-    static getStarFieldMaterial() { return StarFieldShaders.getStarFieldMaterial(); }
-    static getStarPickingMaterial() { return StarFieldShaders.getStarPickingMaterial(); }
+    static getStarFieldMaterial() {
+        return StarFieldShaders.getStarFieldMaterial();
+    }
+    static getStarPickingMaterial() {
+        return StarFieldShaders.getStarPickingMaterial();
+    }
 
     // nightSide.js
-    static createNightShadeMat() { return NightSideShaders.createNightShadeMat(); }
+    static createNightShadeMat() {
+        return NightSideShaders.createNightShadeMat();
+    }
 
     // eclipse.js
-    static createEclipseShadowMat(maxShadows = 8) { return EclipseShaders.createEclipseShadowMat(maxShadows); }
+    static createEclipseShadowMat(maxShadows = 8) {
+        return EclipseShaders.createEclipseShadowMat(maxShadows);
+    }
 
     // terrain.js
     static createTerrainContourMat(heightmapTexture, elevMin = -450, elevMax = 6800) {
@@ -57,4 +81,11 @@ export class Shaders {
 
 // Re-export the feature modules too, for call sites that want to import a
 // single feature directly instead of going through the flat manager.
-export { GridShaders, TacticalShaders, StarFieldShaders, EclipseShaders, NightSideShaders, TerrainShaders };
+export {
+    GridShaders,
+    TacticalShaders,
+    StarFieldShaders,
+    EclipseShaders,
+    NightSideShaders,
+    TerrainShaders,
+};

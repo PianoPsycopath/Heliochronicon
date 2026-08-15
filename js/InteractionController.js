@@ -1,5 +1,5 @@
 // js/InteractionController.js
-import * as THREE from 'three'
+import * as THREE from 'three';
 export class InteractionController {
     constructor(ctx) {
         this.ctx = ctx;
@@ -9,7 +9,7 @@ export class InteractionController {
         this.pickableObjects = ctx.pickableObjects;
         this.gpuParticleSystems = ctx.gpuParticleSystems || [];
         this.UI = ctx.UI;
-        
+
         this.getCurrentTarget = ctx.getCurrentTarget;
         this.onBodyClicked = ctx.onBodyClicked;
         this.onTrackingBroken = ctx.onTrackingBroken;
@@ -45,7 +45,7 @@ export class InteractionController {
             display: 'none',
             whiteSpace: 'nowrap',
             textShadow: '0 0 6px rgba(255,204,0,0.45)',
-            transform: 'translate(12px, 14px)'
+            transform: 'translate(12px, 14px)',
         });
         document.body.appendChild(this._starHoverLabel);
         this._lastHoverClientX = 0;
@@ -67,8 +67,6 @@ export class InteractionController {
         this._pickingCamera = this.camera.clone();
 
         this._STAR_FAR_PLANE_AU = 1e14;
-
-        
 
         this.initHooks();
     }
@@ -95,8 +93,10 @@ export class InteractionController {
                 uTime: { value: 0.0 },
                 uOrigin: { value: new THREE.Vector3(0, 0, 0) },
                 uZoom: { value: 1.0 },
-                uPixelRatio: { value: (typeof window !== 'undefined' ? window.devicePixelRatio : 1) || 1 },
-                uStarProjectionMatrix: { value: new THREE.Matrix4() }
+                uPixelRatio: {
+                    value: (typeof window !== 'undefined' ? window.devicePixelRatio : 1) || 1,
+                },
+                uStarProjectionMatrix: { value: new THREE.Matrix4() },
             },
             vertexShader: `
                 uniform float uTime;
@@ -139,7 +139,7 @@ export class InteractionController {
                 }
             `,
             depthTest: false,
-            depthWrite: false
+            depthWrite: false,
         });
     }
     _pickAtScreenPos(clientX, clientY) {
@@ -147,40 +147,47 @@ export class InteractionController {
         this._mouse.y = -(clientY / window.innerHeight) * 2 + 1;
         this._raycaster.setFromCamera(this._mouse, this.camera);
 
-        let intersects = this._raycaster.intersectObjects(this.pickableObjects, false).filter(ix => ix.object.visible);
+        let intersects = this._raycaster
+            .intersectObjects(this.pickableObjects, false)
+            .filter((ix) => ix.object.visible);
         let hit = intersects.length > 0 ? intersects[0] : null;
 
         if (!hit) {
             const PICK_RADIUS = 30;
             let closestDist = Infinity;
 
-            this.pickableObjects.filter(obj => obj.visible).forEach(obj => {
-                const vector = new THREE.Vector3().setFromMatrixPosition(obj.matrixWorld);
-                vector.project(this.camera);
+            this.pickableObjects
+                .filter((obj) => obj.visible)
+                .forEach((obj) => {
+                    const vector = new THREE.Vector3().setFromMatrixPosition(obj.matrixWorld);
+                    vector.project(this.camera);
 
-                // Depth check: Ignore objects floating behind the camera
-                if (vector.z > 1) return;
+                    // Depth check: Ignore objects floating behind the camera
+                    if (vector.z > 1) return;
 
-                const x = (vector.x + 1) * window.innerWidth / 2;
-                const y = -(vector.y - 1) * window.innerHeight / 2;
+                    const x = ((vector.x + 1) * window.innerWidth) / 2;
+                    const y = (-(vector.y - 1) * window.innerHeight) / 2;
 
-                const d = Math.hypot(clientX - x, clientY - y);
-                if (d < PICK_RADIUS && d < closestDist) {
-                    closestDist = d;
-                    hit = { object: obj };
-                }
-            });
+                    const d = Math.hypot(clientX - x, clientY - y);
+                    if (d < PICK_RADIUS && d < closestDist) {
+                        closestDist = d;
+                        hit = { object: obj };
+                    }
+                });
         }
-        
+
         const data = hit ? hit.object.userData : null;
-        return (data && data.name) ? data : null;
+        return data && data.name ? data : null;
     }
     setupPickingScene() {
         if (!this.gpuParticleSystems || this.gpuParticleSystems.length === 0) return;
-        const starSystem = this.gpuParticleSystems.find(s =>
-            s.geometry && s.geometry.userData && s.geometry.userData.sourceData &&
-            s.geometry.userData.sourceData[0] &&
-            s.geometry.userData.sourceData[0].datasetCategory === 'BACKGROUND_STAR'
+        const starSystem = this.gpuParticleSystems.find(
+            (s) =>
+                s.geometry &&
+                s.geometry.userData &&
+                s.geometry.userData.sourceData &&
+                s.geometry.userData.sourceData[0] &&
+                s.geometry.userData.sourceData[0].datasetCategory === 'BACKGROUND_STAR'
         );
         if (!starSystem || this.starMeshClone) return;
 
@@ -207,14 +214,14 @@ export class InteractionController {
         }
 
         const newKey = newData
-            ? (newData.datasetCategory === 'BACKGROUND_STAR'
+            ? newData.datasetCategory === 'BACKGROUND_STAR'
                 ? 'STAR:' + InteractionController.starDisplayName(newData)
-                : (newData.name || ''))
+                : newData.name || ''
             : null;
         const oldKey = this._hoveredData
-            ? (this._hoveredData.datasetCategory === 'BACKGROUND_STAR'
+            ? this._hoveredData.datasetCategory === 'BACKGROUND_STAR'
                 ? 'STAR:' + InteractionController.starDisplayName(this._hoveredData)
-                : (this._hoveredData.name || ''))
+                : this._hoveredData.name || ''
             : null;
 
         if (newKey !== oldKey) {
@@ -227,9 +234,15 @@ export class InteractionController {
     }
 
     static starClass(data) {
-        const raw = data.spect ?? data.spectral_class ?? data.spectralClass ??
-                    data.st_spectype ?? data.class ?? data.sptype ?? null;
-        return (raw === null || raw === undefined || raw === '') ? null : String(raw);
+        const raw =
+            data.spect ??
+            data.spectral_class ??
+            data.spectralClass ??
+            data.st_spectype ??
+            data.class ??
+            data.sptype ??
+            null;
+        return raw === null || raw === undefined || raw === '' ? null : String(raw);
     }
     _updateStarHoverLabel(data, clientX, clientY) {
         if (data && data.datasetCategory === 'BACKGROUND_STAR') {
@@ -248,7 +261,7 @@ export class InteractionController {
         this._starHoverLabel.style.left = `${clientX}px`;
         this._starHoverLabel.style.top = `${clientY}px`;
     }
-    
+
     _pickStar(clientX, clientY) {
         if (!this.starMeshClone) this.setupPickingScene();
         if (!this.starMeshClone) return null;
@@ -272,7 +285,8 @@ export class InteractionController {
             renderer.domElement.height,
             clientX * window.devicePixelRatio,
             clientY * window.devicePixelRatio,
-            1, 1
+            1,
+            1
         );
         const realFar = pickCam.far;
         pickCam.far = this._STAR_FAR_PLANE_AU;
@@ -285,7 +299,7 @@ export class InteractionController {
             renderer.clear();
             renderer.render(this.pickingScene, pickCam);
             renderer.readRenderTargetPixels(this.pickingTexture, 0, 0, 1, 1, this.pixelBuffer);
-            id = (this.pixelBuffer[0] << 16) | (this.pixelBuffer[1] << 8) | (this.pixelBuffer[2]);
+            id = (this.pixelBuffer[0] << 16) | (this.pixelBuffer[1] << 8) | this.pixelBuffer[2];
         } catch (err) {
             console.warn('Star picking pass failed, skipping this hover:', err);
             id = 0;
@@ -315,97 +329,102 @@ export class InteractionController {
     }
 
     initHooks() {
-    let currentMouseAction = null;
-    let mouseDownPos = new THREE.Vector2();
-    
-    // Prevent default browser context menu for right-click
-    window.addEventListener('contextmenu', (e) => {
-        if (e.target.closest('.panel') || e.target.closest('button')) return;
-        e.preventDefault();
-    });
-    
-    window.addEventListener('pointerdown', (e) => { 
-        if (e.target.closest('.panel') || e.target.closest('button')) return;
-        currentMouseAction = e.button; 
-        mouseDownPos.set(e.clientX, e.clientY);
-    });
-    
-    window.addEventListener('wheel', () => { currentMouseAction = 1; });
+        let currentMouseAction = null;
+        let mouseDownPos = new THREE.Vector2();
 
-    this.controls.addEventListener('start', () => {
-        this.autoZoomActive = false;
-        this.flyPanActive = false; 
-        
-        if (currentMouseAction === 2) {
-            this.isCameraTracking = false; 
-            if (this.onTrackingBroken) this.onTrackingBroken();
-            
-            const currentTarget = this.getCurrentTarget();
-            if (currentTarget) this.UI.setManualOverride(currentTarget.name);
-        }
-    });
-
-    window.addEventListener('pointerup', (event) => {
-        if (event.target.closest('.panel') || event.target.closest('button')) return;
-
-        const dist = Math.hypot(event.clientX - mouseDownPos.x, event.clientY - mouseDownPos.y);
-        if (dist > 15) return;
-
-        let clickedData = this._pickAtScreenPos(event.clientX, event.clientY);
-        if (!clickedData && this.ctx.renderer) {
-            clickedData = this._pickStar(event.clientX, event.clientY);
-        }
-
-        if (clickedData) {
-            const isHardLock = (currentMouseAction === 0 || event.pointerType === 'touch');
-            this.onBodyClicked(clickedData, isHardLock);
-        }
-    });
-
-    window.addEventListener('pointermove', (event) => {
-        if (event.pointerType === 'touch') return; 
-
-        if (event.target.closest('.panel') || event.target.closest('button')) {
-            this.clearHover();
-            return;
-        }
-
-        if (event.buttons !== 0) return; 
-
-        if (this._hoverRAFPending) return;
-        this._hoverRAFPending = true;
-        const { clientX, clientY } = event;
-
-        requestAnimationFrame(() => {
-            this._hoverRAFPending = false;
-            this._updateHover(clientX, clientY);
+        // Prevent default browser context menu for right-click
+        window.addEventListener('contextmenu', (e) => {
+            if (e.target.closest('.panel') || e.target.closest('button')) return;
+            e.preventDefault();
         });
-    });
 
-    window.addEventListener('pointerleave', () => this.clearHover());
-}
+        window.addEventListener('pointerdown', (e) => {
+            if (e.target.closest('.panel') || e.target.closest('button')) return;
+            currentMouseAction = e.button;
+            mouseDownPos.set(e.clientX, e.clientY);
+        });
+
+        window.addEventListener('wheel', () => {
+            currentMouseAction = 1;
+        });
+
+        this.controls.addEventListener('start', () => {
+            this.autoZoomActive = false;
+            this.flyPanActive = false;
+
+            if (currentMouseAction === 2) {
+                this.isCameraTracking = false;
+                if (this.onTrackingBroken) this.onTrackingBroken();
+
+                const currentTarget = this.getCurrentTarget();
+                if (currentTarget) this.UI.setManualOverride(currentTarget.name);
+            }
+        });
+
+        window.addEventListener('pointerup', (event) => {
+            if (event.target.closest('.panel') || event.target.closest('button')) return;
+
+            const dist = Math.hypot(event.clientX - mouseDownPos.x, event.clientY - mouseDownPos.y);
+            if (dist > 15) return;
+
+            let clickedData = this._pickAtScreenPos(event.clientX, event.clientY);
+            if (!clickedData && this.ctx.renderer) {
+                clickedData = this._pickStar(event.clientX, event.clientY);
+            }
+
+            if (clickedData) {
+                const isHardLock = currentMouseAction === 0 || event.pointerType === 'touch';
+                this.onBodyClicked(clickedData, isHardLock);
+            }
+        });
+
+        window.addEventListener('pointermove', (event) => {
+            if (event.pointerType === 'touch') return;
+
+            if (event.target.closest('.panel') || event.target.closest('button')) {
+                this.clearHover();
+                return;
+            }
+
+            if (event.buttons !== 0) return;
+
+            if (this._hoverRAFPending) return;
+            this._hoverRAFPending = true;
+            const { clientX, clientY } = event;
+
+            requestAnimationFrame(() => {
+                this._hoverRAFPending = false;
+                this._updateHover(clientX, clientY);
+            });
+        });
+
+        window.addEventListener('pointerleave', () => this.clearHover());
+    }
 
     triggerFocus(data, isHardLock, AU_IN_KM) {
         if (data && data.datasetCategory === 'BACKGROUND_STAR') {
             return;
         }
-        this.panFrames = 0; 
-        if (isHardLock) { 
+        this.panFrames = 0;
+        if (isHardLock) {
             this.isCameraTracking = true;
             this.autoZoomActive = true;
             this.flyPanActive = true;
-            
+
             if (data.radius_km && data.radius_km > 0) {
                 const radiusAU = data.radius_km / AU_IN_KM;
-                this.targetZoom = (this.frustumSize * 0.15) / radiusAU; 
+                this.targetZoom = (this.frustumSize * 0.15) / radiusAU;
             } else {
                 this.targetZoom = data.a === 0 ? 0.5 : 5000000;
             }
-            this.targetZoom = Math.max(this.controls.minZoom, Math.min(this.targetZoom, this.controls.maxZoom));
-        } else { 
+            this.targetZoom = Math.max(
+                this.controls.minZoom,
+                Math.min(this.targetZoom, this.controls.maxZoom)
+            );
+        } else {
             this.isCameraTracking = false;
             this.autoZoomActive = false;
-            this.flyPanActive = true; 
+            this.flyPanActive = true;
         }
     }
 
@@ -421,12 +440,12 @@ export class InteractionController {
 
         if (this.flyPanActive) {
             this.panFrames++;
-            const lerpFactor = Math.min(1.0, 0.08 + (this.panFrames * 0.015));
-            delta.multiplyScalar(lerpFactor); 
+            const lerpFactor = Math.min(1.0, 0.08 + this.panFrames * 0.015);
+            delta.multiplyScalar(lerpFactor);
             applyPan = true;
-            
+
             if (delta.lengthSq() < 0.000001 || this.panFrames > 60) {
-                this.flyPanActive = false; 
+                this.flyPanActive = false;
             }
         } else if (this.isCameraTracking) {
             applyPan = true;

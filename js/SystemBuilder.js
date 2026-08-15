@@ -1,51 +1,69 @@
 // js/SystemBuilder.js
 import { OrbitalMath } from './OrbitalMath.js';
-import { Shaders} from './Shaders.js';
+import { Shaders } from './Shaders.js';
 import { CelestialBody } from './CelestialBody.js';
 import { kmToAU } from './OrbitalMath.js';
-import * as THREE from 'three'
+import * as THREE from 'three';
 
 export class SystemBuilder {
     constructor(engineContext) {
         this.ctx = engineContext;
     }
     getTacticalA(data, isMoon = false) {
-        return (isMoon && data.a > 1000) ? kmToAU(data.a) : data.a;
+        return isMoon && data.a > 1000 ? kmToAU(data.a) : data.a;
     }
 
     createOrbitPath(data, scaledA) {
         const points = [];
         const resolution = 720; // Unified resolution
-        
+
         if (data.orbit_model === 'MEEUS' || data.orbit_model === 'VSOP87') {
             const period = data.period; // Pull dynamically from DataLoader
-            for(let j = 0; j <= resolution; j++) {
+            for (let j = 0; j <= resolution; j++) {
                 const days = (j / resolution) * period;
                 const pos = OrbitalMath.calculatePosition(data, days);
                 points.push(new THREE.Vector3(pos.x, pos.y, pos.z));
             }
         } else {
-            for(let j = 0; j <= resolution; j++) {
-                const pos = OrbitalMath.calcPosFromM(scaledA, data.e, data.i, data.w, data.Node, (j / resolution) * Math.PI * 2);
+            for (let j = 0; j <= resolution; j++) {
+                const pos = OrbitalMath.calcPosFromM(
+                    scaledA,
+                    data.e,
+                    data.i,
+                    data.w,
+                    data.Node,
+                    (j / resolution) * Math.PI * 2
+                );
                 points.push(new THREE.Vector3(pos.x, pos.y, pos.z));
             }
         }
-        
+
         let lw = 1;
         if (data.datasetCategory === 'PLANET') lw = 3;
         else if (data.datasetCategory === 'MOON') lw = 2;
 
-        const mat = new THREE.LineBasicMaterial({ color: 0xff1111, transparent: true, opacity: 0.5, depthTest: false, linewidth: lw });
+        const mat = new THREE.LineBasicMaterial({
+            color: 0xff1111,
+            transparent: true,
+            opacity: 0.5,
+            depthTest: false,
+            linewidth: lw,
+        });
         const line = new THREE.Line(new THREE.BufferGeometry().setFromPoints(points), mat);
-        line.renderOrder = 2; 
+        line.renderOrder = 2;
         return line;
     }
 
     createOrbitCurtain() {
-        const mat = new THREE.LineBasicMaterial({ color: 0x00aaff, transparent: true, opacity: 0.2, depthTest: false });
+        const mat = new THREE.LineBasicMaterial({
+            color: 0x00aaff,
+            transparent: true,
+            opacity: 0.2,
+            depthTest: false,
+        });
         const curtain = new THREE.LineSegments(new THREE.BufferGeometry(), mat);
-        curtain.renderOrder = 1; 
-        curtain.visible = false; 
+        curtain.renderOrder = 1;
+        curtain.visible = false;
         return curtain;
     }
 
@@ -57,14 +75,24 @@ export class SystemBuilder {
         this.ctx.onClearTarget();
         UI.updateTargetPanel(null);
         UI.renderBodyList(celestialBodies, null);
-        
+
         this.ctx.onClearMemory();
     }
 
     buildSolarSystem(planetaryData) {
         if (planetaryData.length === 0) return;
-        
-        const { scene, celestialBodies, gpuParticleSystems, UI, datasetMaterials, savedColors, tacticalMaterial, AU_IN_KM, bodyRegistry } = this.ctx;
+
+        const {
+            scene,
+            celestialBodies,
+            gpuParticleSystems,
+            UI,
+            datasetMaterials,
+            savedColors,
+            tacticalMaterial,
+            AU_IN_KM,
+            bodyRegistry,
+        } = this.ctx;
         const datasetCategory = planetaryData[0].datasetCategory;
         const datasetName = planetaryData[0].datasetName;
         const currentTargetData = this.ctx.getCurrentTarget();
@@ -73,7 +101,7 @@ export class SystemBuilder {
         if (datasetCategory === 'ASTEROID') {
             const count = planetaryData.length;
             const geometry = new THREE.BufferGeometry();
-            
+
             const a_arr = new Float32Array(count);
             const e_arr = new Float32Array(count);
             const i_arr = new Float32Array(count);
@@ -81,7 +109,7 @@ export class SystemBuilder {
             const Node_arr = new Float32Array(count);
             const M0_arr = new Float32Array(count);
             const n_arr = new Float32Array(count);
-            const pos_arr = new Float32Array(count * 3); 
+            const pos_arr = new Float32Array(count * 3);
 
             for (let idx = 0; idx < count; idx++) {
                 const d = planetaryData[idx];
@@ -93,7 +121,9 @@ export class SystemBuilder {
                 M0_arr[idx] = d.M0;
                 n_arr[idx] = d.n;
             }
-            let minA = Infinity, maxA = -Infinity, sumA = 0;
+            let minA = Infinity,
+                maxA = -Infinity,
+                sumA = 0;
             for (let idx = 0; idx < count; idx++) {
                 if (a_arr[idx] < minA) minA = a_arr[idx];
                 if (a_arr[idx] > maxA) maxA = a_arr[idx];
@@ -102,7 +132,7 @@ export class SystemBuilder {
             const aSpread = maxA - minA;
             const meanA = sumA / count;
 
-            geometry.setAttribute('position', new THREE.BufferAttribute(pos_arr, 3)); 
+            geometry.setAttribute('position', new THREE.BufferAttribute(pos_arr, 3));
             geometry.setAttribute('a', new THREE.BufferAttribute(a_arr, 1));
             geometry.setAttribute('e', new THREE.BufferAttribute(e_arr, 1));
             geometry.setAttribute('i', new THREE.BufferAttribute(i_arr, 1));
@@ -113,45 +143,50 @@ export class SystemBuilder {
 
             const savedInitialColor = savedColors[datasetName] || '#ffff00';
             const material = Shaders.getAsteroidParticleMaterial(savedInitialColor);
-            datasetMaterials[datasetName] = material; 
+            datasetMaterials[datasetName] = material;
 
             const particleSystem = new THREE.Points(geometry, material);
             particleSystem.frustumCulled = false;
-            particleSystem.userData = { 
-                datasetName: datasetName, 
-                datasetVisible: true, 
+            particleSystem.userData = {
+                datasetName: datasetName,
+                datasetVisible: true,
                 sourceData: planetaryData,
-                aSpread: aSpread
+                aSpread: aSpread,
             };
-            particleSystem.renderOrder = 200; 
+            particleSystem.renderOrder = 200;
             particleSystem.matrixAutoUpdate = false;
-            particleSystem.updateMatrix(); 
-            
+            particleSystem.updateMatrix();
+
             scene.add(particleSystem);
             gpuParticleSystems.push(particleSystem);
 
-            const groupLabel = this.createGroupLabel(datasetName, savedInitialColor, meanA, aSpread);
+            const groupLabel = this.createGroupLabel(
+                datasetName,
+                savedInitialColor,
+                meanA,
+                aSpread
+            );
             scene.add(groupLabel);
             particleSystem.userData.groupLabel = groupLabel;
             particleSystem.userData.aSpread = aSpread;
-            
+
             UI.renderBodyList(celestialBodies, currentTargetData);
-            return; 
+            return;
         }
 
         // --- PATH B: CPU LOGIC (PLANETS & MOONS ONLY) ---
         let index = 0;
-        const CHUNK_SIZE = 150; 
+        const CHUNK_SIZE = 150;
 
         // Planet/moon chunk files can overlap (the same body listed in more
         // than one manifest chunk). Track registered names in a Set instead
         // of re-scanning celestialBodies per row -- O(1) duplicate check
         // instead of O(n) per row / O(n*m) overall as chunk sets grow.
-        const registeredNames = new Set(celestialBodies.map(b => b.data.name));
+        const registeredNames = new Set(celestialBodies.map((b) => b.data.name));
 
         const buildChunk = () => {
             const end = Math.min(index + CHUNK_SIZE, planetaryData.length);
-            
+
             for (; index < end; index++) {
                 const d = planetaryData[index];
                 if (registeredNames.has(d.name)) continue;
@@ -166,33 +201,42 @@ export class SystemBuilder {
                 if (d.radius_km > 0) {
                     physicalRadius = d.radius_km / AU_IN_KM;
                 } else {
-                    physicalRadius = 1.0 / AU_IN_KM; 
+                    physicalRadius = 1.0 / AU_IN_KM;
                 }
-                
+
                 const geometry = new THREE.SphereGeometry(physicalRadius, 32, 32);
-                geometry.rotateY(Math.PI / 2); 
+                geometry.rotateY(Math.PI / 2);
                 const mesh = new THREE.Mesh(geometry, tacticalMaterial);
                 mesh.userData = d;
-                
-                let rOrder = 500; 
-                if (isSun) rOrder = 2000;
-                else if (d.datasetCategory === 'PLANET') rOrder = 1000; 
-                else if (d.datasetCategory === 'MOON') rOrder = 800; 
 
-                mesh.renderOrder = rOrder; 
-                
-                const wireMat = new THREE.MeshBasicMaterial({ color: isSun ? 0xffcc00 : 0xaaaaaa, wireframe: true, transparent: true, opacity: 0.15 });
+                let rOrder = 500;
+                if (isSun) rOrder = 2000;
+                else if (d.datasetCategory === 'PLANET') rOrder = 1000;
+                else if (d.datasetCategory === 'MOON') rOrder = 800;
+
+                mesh.renderOrder = rOrder;
+
+                const wireMat = new THREE.MeshBasicMaterial({
+                    color: isSun ? 0xffcc00 : 0xaaaaaa,
+                    wireframe: true,
+                    transparent: true,
+                    opacity: 0.15,
+                });
                 const wireMesh = new THREE.Mesh(mesh.geometry, wireMat);
                 mesh.add(wireMesh);
 
                 if (!isSun) {
-                    const poleMat = new THREE.LineBasicMaterial({ color: 0xff3333, transparent: true, opacity: 0.6 });
+                    const poleMat = new THREE.LineBasicMaterial({
+                        color: 0xff3333,
+                        transparent: true,
+                        opacity: 0.6,
+                    });
                     const poleGeo = new THREE.BufferGeometry().setFromPoints([
                         new THREE.Vector3(0, physicalRadius * 1.5, 0),
-                        new THREE.Vector3(0, -physicalRadius * 1.5, 0)
+                        new THREE.Vector3(0, -physicalRadius * 1.5, 0),
                     ]);
                     const pole = new THREE.Line(poleGeo, poleMat);
-                    mesh.add(pole); 
+                    mesh.add(pole);
                 }
 
                 scene.add(mesh);
@@ -200,7 +244,7 @@ export class SystemBuilder {
                 const label = document.createElement('div');
                 label.className = 'tactical-label';
                 label.innerText = d.name;
-                label.style.color = isMoon ? '#aaa' : '#ffcc00'; 
+                label.style.color = isMoon ? '#aaa' : '#ffcc00';
                 document.body.appendChild(label);
 
                 let spriteMat;
@@ -212,16 +256,16 @@ export class SystemBuilder {
 
                 const sprite = new THREE.Sprite(spriteMat);
                 sprite.userData = d;
-                sprite.renderOrder = rOrder; 
+                sprite.renderOrder = rOrder;
                 scene.add(sprite);
 
                 let orbitLine = null;
                 let orbitCurtain = null;
                 if (!isSun) {
-                    mesh.visible = false; 
+                    mesh.visible = false;
                     orbitLine = this.createOrbitPath(d, scaledA);
                     scene.add(orbitLine);
-                    
+
                     orbitCurtain = this.createOrbitCurtain();
                     scene.add(orbitCurtain);
                 }
@@ -231,35 +275,48 @@ export class SystemBuilder {
                 if (orbitLine) orbitLine.matrixAutoUpdate = false;
                 if (orbitCurtain) orbitCurtain.matrixAutoUpdate = false;
 
-                bodyRegistry.registerBody(new CelestialBody({
-                    data: d, mesh, sprite, orbitLine, orbitCurtain, label, isMoon,
-                    scaledA, physicalRadius,
-                    datasetVisible: true, isCulled: false, hideLabel: false,
-                    baseRenderOrder: rOrder,
-                    distToCamSq: 0
-                }));
+                bodyRegistry.registerBody(
+                    new CelestialBody({
+                        data: d,
+                        mesh,
+                        sprite,
+                        orbitLine,
+                        orbitCurtain,
+                        label,
+                        isMoon,
+                        scaledA,
+                        physicalRadius,
+                        datasetVisible: true,
+                        isCulled: false,
+                        hideLabel: false,
+                        baseRenderOrder: rOrder,
+                        distToCamSq: 0,
+                    })
+                );
             }
-            
+
             if (index < planetaryData.length) {
                 requestAnimationFrame(buildChunk);
             } else {
                 UI.renderBodyList(celestialBodies, currentTargetData);
             }
         };
-        
+
         buildChunk();
     }
     createGroupLabel(text, colorHex, meanA, aSpread) {
         const mat = Shaders.createGroupLabelMat(text, colorHex, meanA);
-        
-        const SPREAD_MIN = 0.05, SPREAD_MAX = 1.5;
-        const SIZE_MULT_MIN = 0.8, SIZE_MULT_MAX = 2.0;
+
+        const SPREAD_MIN = 0.05,
+            SPREAD_MAX = 1.5;
+        const SIZE_MULT_MIN = 0.8,
+            SIZE_MULT_MAX = 2.0;
         const t = Math.min(1, Math.max(0, (aSpread - SPREAD_MIN) / (SPREAD_MAX - SPREAD_MIN)));
         const multiplier = SIZE_MULT_MIN + t * (SIZE_MULT_MAX - SIZE_MULT_MIN);
-        
+
         const BASE_WORLD_SIZE = 3.0;
         const worldSize = BASE_WORLD_SIZE * multiplier;
-        
+
         const mesh = new THREE.Mesh(new THREE.PlaneGeometry(worldSize, worldSize), mat);
         mesh.renderOrder = 250;
         mesh.matrixAutoUpdate = false;
@@ -267,28 +324,51 @@ export class SystemBuilder {
     }
 
     promoteAsteroidToCPU(d) {
-        const { scene, celestialBodies, savedColors, dotTexture, tacticalMaterial, AU_IN_KM, bodyRegistry } = this.ctx;
+        const {
+            scene,
+            celestialBodies,
+            savedColors,
+            dotTexture,
+            tacticalMaterial,
+            AU_IN_KM,
+            bodyRegistry,
+        } = this.ctx;
 
-        if (celestialBodies.some(b => b.data.name === d.name && b.data.datasetCategory === 'PROMOTED_ASTEROID')) return;
+        if (
+            celestialBodies.some(
+                (b) => b.data.name === d.name && b.data.datasetCategory === 'PROMOTED_ASTEROID'
+            )
+        )
+            return;
 
         const promotedData = { ...d, datasetCategory: 'PROMOTED_ASTEROID' };
 
-        const scaledA = this.getTacticalA(promotedData, false); 
-        
-        const physicalRadius = (promotedData.radius_km > 0) ? (promotedData.radius_km / AU_IN_KM) : (1.0 / AU_IN_KM);
+        const scaledA = this.getTacticalA(promotedData, false);
+
+        const physicalRadius =
+            promotedData.radius_km > 0 ? promotedData.radius_km / AU_IN_KM : 1.0 / AU_IN_KM;
 
         const geometry = new THREE.SphereGeometry(physicalRadius, 32, 32);
-        geometry.rotateY(Math.PI / 2); 
+        geometry.rotateY(Math.PI / 2);
         const mesh = new THREE.Mesh(geometry, tacticalMaterial);
         mesh.userData = promotedData;
-        mesh.renderOrder = 1500; 
+        mesh.renderOrder = 1500;
 
-        const wireMat = new THREE.MeshBasicMaterial({ color: 0x00ffff, wireframe: true, transparent: true, opacity: 0.4 });
+        const wireMat = new THREE.MeshBasicMaterial({
+            color: 0x00ffff,
+            wireframe: true,
+            transparent: true,
+            opacity: 0.4,
+        });
         mesh.add(new THREE.Mesh(mesh.geometry, wireMat));
-        const poleMat = new THREE.LineBasicMaterial({ color: 0x00ffff, transparent: true, opacity: 0.8 });
+        const poleMat = new THREE.LineBasicMaterial({
+            color: 0x00ffff,
+            transparent: true,
+            opacity: 0.8,
+        });
         const poleGeo = new THREE.BufferGeometry().setFromPoints([
             new THREE.Vector3(0, physicalRadius * 1.5, 0),
-            new THREE.Vector3(0, -physicalRadius * 1.5, 0)
+            new THREE.Vector3(0, -physicalRadius * 1.5, 0),
         ]);
         mesh.add(new THREE.Line(poleGeo, poleMat));
 
@@ -298,10 +378,10 @@ export class SystemBuilder {
         const label = document.createElement('div');
         label.className = 'tactical-label';
         label.innerText = promotedData.name;
-        label.style.color = datasetColor; 
+        label.style.color = datasetColor;
         document.body.appendChild(label);
 
-        const spriteMat = new THREE.SpriteMaterial({ map: dotTexture, depthTest: false }); 
+        const spriteMat = new THREE.SpriteMaterial({ map: dotTexture, depthTest: false });
         spriteMat.color.set(datasetColor);
         const sprite = new THREE.Sprite(spriteMat);
         sprite.userData = promotedData;
@@ -311,7 +391,7 @@ export class SystemBuilder {
         const orbitLine = this.createOrbitPath(promotedData, scaledA);
         orbitLine.material.color.set(datasetColor);
         scene.add(orbitLine);
-        
+
         const orbitCurtain = this.createOrbitCurtain();
         scene.add(orbitCurtain);
 
@@ -333,7 +413,7 @@ export class SystemBuilder {
                 physicalRadius: physicalRadius,
                 datasetVisible: true,
                 isCulled: false,
-                hideLabel: false
+                hideLabel: false,
             }),
             { name: d.name, category: 'RADAR_CONTACT' }
         );

@@ -3,18 +3,17 @@
 // slope glow, lat/lon grid, ocean fill). Split out of the former
 // Shaders.js monolith -- see ShaderManager.js for the aggregated call
 // surface.
-import * as THREE from 'three'
+import * as THREE from 'three';
 
 export class TerrainShaders {
-
     static createTerrainContourMat(heightmapTexture, elevMin = -450, elevMax = 6800) {
         return new THREE.ShaderMaterial({
             uniforms: {
                 uHeightmap: { value: heightmapTexture },
                 uElevMin: { value: elevMin },
                 uElevMax: { value: elevMax },
-                uLonOffset: { value: 0.0 }, 
-                uLineWidthPx: { value: 2.0 } 
+                uLonOffset: { value: 0.0 },
+                uLineWidthPx: { value: 2.0 },
             },
             vertexShader: `
                 varying vec2 vUv;
@@ -128,7 +127,7 @@ export class TerrainShaders {
             }
         `,
             transparent: true,
-            extensions: { derivatives: true }
+            extensions: { derivatives: true },
         });
     }
 }

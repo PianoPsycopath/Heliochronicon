@@ -23,16 +23,20 @@ export class StarLoader {
             const fetchPromises = [];
             for (const dataset of Object.values(manifest.datasets)) {
                 for (const chunk of dataset.chunks) {
-                    fetchPromises.push(fetch(`${basePath}${chunk}`).then(res => res.json()));
+                    fetchPromises.push(fetch(`${basePath}${chunk}`).then((res) => res.json()));
                 }
             }
 
             const allChunks = await Promise.all(fetchPromises);
-            
-            allChunks.forEach(chunk => {
-                chunk.forEach(star => {
-                    const px = star.x || 0; const py = star.y || 0; const pz = star.z || 0;
-                    const vx = star.vx || 0; const vy = star.vy || 0; const vz = star.vz || 0;
+
+            allChunks.forEach((chunk) => {
+                chunk.forEach((star) => {
+                    const px = star.x || 0;
+                    const py = star.y || 0;
+                    const pz = star.z || 0;
+                    const vx = star.vx || 0;
+                    const vy = star.vy || 0;
+                    const vz = star.vz || 0;
 
                     // 1. Equatorial to Ecliptic Rotation
                     const eq_x = px;
@@ -58,11 +62,15 @@ export class StarLoader {
                     cis.push(star.ci !== null ? star.ci : 0.0);
                     // 1-based pick ID (0 is reserved for "no hit" in the picking pass)
                     pickIds.push(sourceData.length + 1);
-                    
+
                     // 3. Save calculations for CPU Promotion
-                    star.engineX = ex; star.engineY = ey; star.engineZ = ez;
-                    star.engineVx = evx; star.engineVy = evy; star.engineVz = evz;
-                    sourceData.push({ ...star, datasetCategory: 'BACKGROUND_STAR' }); 
+                    star.engineX = ex;
+                    star.engineY = ey;
+                    star.engineZ = ez;
+                    star.engineVx = evx;
+                    star.engineVy = evy;
+                    star.engineVz = evz;
+                    sourceData.push({ ...star, datasetCategory: 'BACKGROUND_STAR' });
                 });
             });
 
@@ -71,12 +79,12 @@ export class StarLoader {
             geometry.setAttribute('mag', new THREE.Float32BufferAttribute(mags, 1));
             geometry.setAttribute('ci', new THREE.Float32BufferAttribute(cis, 1));
             geometry.setAttribute('pickId', new THREE.Float32BufferAttribute(pickIds, 1));
-            
-            geometry.userData = { sourceData: sourceData }; 
+
+            geometry.userData = { sourceData: sourceData };
 
             return geometry;
         } catch (error) {
-            console.warn("Star background disabled or missing:", error);
+            console.warn('Star background disabled or missing:', error);
             return null;
         }
     }

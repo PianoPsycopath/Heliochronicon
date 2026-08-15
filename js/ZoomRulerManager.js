@@ -3,37 +3,37 @@ export class ZoomRulerManager {
     constructor(ctx) {
         this.camera = ctx.camera;
         this.controls = ctx.controls;
-        
+
         this.slider = document.getElementById('zoom-slider');
         this.landmarks = document.querySelectorAll('.landmark');
         this.canvas = document.getElementById('tactical-ruler-canvas');
         this.ctx2d = this.canvas.getContext('2d');
-        
+
         this.AU_IN_KM = 149597870.7;
         this.LY_IN_AU = 63241.1;
-        
+
         this.minZoom = 0.00001;
         this.maxZoom = 150000000;
-        
+
         this.logMin = Math.log(this.minZoom);
         this.logMax = Math.log(this.maxZoom);
         this.scale = (this.logMax - this.logMin) / 1000;
-        
+
         this.isDragging = false;
         this.lastZoom = this.camera.zoom;
-        
+
         this.initBindings();
-        this.updateRuler(); 
+        this.updateRuler();
         this.startContinuousTracking();
     }
 
     startContinuousTracking() {
-        // Continuous Sync: By checking the camera every frame, the UI will flawlessly track 
+        // Continuous Sync: By checking the camera every frame, the UI will flawlessly track
         // the depth even when the engine animates the camera programmatically (clicking planets).
         const sync = () => {
             if (this.camera.zoom !== this.lastZoom) {
                 this.lastZoom = this.camera.zoom;
-                
+
                 if (!this.isDragging) {
                     const zoom = Math.max(this.minZoom, Math.min(this.maxZoom, this.camera.zoom));
                     const sliderVal = (Math.log(zoom) - this.logMin) / this.scale;
@@ -55,7 +55,7 @@ export class ZoomRulerManager {
             this.controls.domElement.dispatchEvent(fakeWheel);
         }
     }
-    
+
     initBindings() {
         this.slider.addEventListener('pointerdown', () => {
             this.abortCameraLock();
@@ -70,11 +70,11 @@ export class ZoomRulerManager {
             this.camera.updateProjectionMatrix();
             // Note: updateRuler() is automatically handled by the continuous tracking loop
         });
-        
-        this.slider.addEventListener('change', () => this.isDragging = false);
-        this.slider.addEventListener('pointerup', () => this.isDragging = false);
-        
-        this.landmarks.forEach(lm => {
+
+        this.slider.addEventListener('change', () => (this.isDragging = false));
+        this.slider.addEventListener('pointerup', () => (this.isDragging = false));
+
+        this.landmarks.forEach((lm) => {
             lm.addEventListener('click', (e) => {
                 this.abortCameraLock();
                 const targetZoom = parseFloat(e.currentTarget.dataset.val);
@@ -99,27 +99,28 @@ export class ZoomRulerManager {
         this.canvas.height = rect.height * dpr;
         this.ctx2d.setTransform(dpr, 0, 0, dpr, 0, 0);
     }
-    
+
     updateLandmarks() {
         const currentLog = Math.log(this.camera.zoom);
         const range = this.logMax - this.logMin;
 
-        this.landmarks.forEach(lm => {
+        this.landmarks.forEach((lm) => {
             const val = parseFloat(lm.dataset.val);
             const lmLog = Math.log(val);
-            
+
             const sliderVal = (lmLog - this.logMin) / this.scale;
             const percent = (sliderVal / 1000) * 100;
             lm.style.left = `calc(${percent}% - 12px)`;
-            
+
             const dist = Math.abs(currentLog - lmLog) / range;
-            let opacity = 1.0 - (dist * 6); 
-            opacity = Math.max(0.15, Math.min(1.0, opacity)); 
-            let scale = 0.8 + (opacity * 0.4); 
-            
+            let opacity = 1.0 - dist * 6;
+            opacity = Math.max(0.15, Math.min(1.0, opacity));
+            let scale = 0.8 + opacity * 0.4;
+
             lm.style.opacity = opacity;
             lm.style.transform = `scale(${scale})`;
-            lm.style.filter = opacity > 0.8 ? `drop-shadow(0 0 10px rgba(255, 255, 255, 0.9))` : 'none';
+            lm.style.filter =
+                opacity > 0.8 ? `drop-shadow(0 0 10px rgba(255, 255, 255, 0.9))` : 'none';
         });
     }
 
@@ -127,7 +128,7 @@ export class ZoomRulerManager {
         const ctx = this.ctx2d;
         const w = this.canvas.offsetWidth;
         const h = this.canvas.offsetHeight;
-        
+
         ctx.clearRect(0, 0, w, h);
 
         const trackY = 15;
@@ -135,25 +136,25 @@ export class ZoomRulerManager {
 
         const visibleWidthAU = (this.camera.right - this.camera.left) / this.camera.zoom;
         const auPerPixel = visibleWidthAU / window.innerWidth;
-        const targetAU = auPerPixel * 150; 
-        
+        const targetAU = auPerPixel * 150;
+
         let magnitude, unit, multiplier;
-        
-        if (targetAU * this.AU_IN_KM < 1) { 
+
+        if (targetAU * this.AU_IN_KM < 1) {
             magnitude = targetAU * this.AU_IN_KM * 1000;
-            unit = "M";
+            unit = 'M';
             multiplier = 1 / (this.AU_IN_KM * 1000);
-        } else if (targetAU < 0.01) { 
+        } else if (targetAU < 0.01) {
             magnitude = targetAU * this.AU_IN_KM;
-            unit = "KM";
+            unit = 'KM';
             multiplier = 1 / this.AU_IN_KM;
-        } else if (targetAU > 1000) { 
+        } else if (targetAU > 1000) {
             magnitude = targetAU / this.LY_IN_AU;
-            unit = "LY";
+            unit = 'LY';
             multiplier = this.LY_IN_AU;
-        } else { 
+        } else {
             magnitude = targetAU;
-            unit = "AU";
+            unit = 'AU';
             multiplier = 1;
         }
 
@@ -162,7 +163,7 @@ export class ZoomRulerManager {
         let niceNorm = 1;
         if (norm >= 2 && norm < 5) niceNorm = 2;
         else if (norm >= 5 && norm < 10) niceNorm = 5;
-        
+
         const cleanMagnitude = niceNorm * p10;
         const exactAU = cleanMagnitude * multiplier;
         const tickPx = exactAU / auPerPixel;
@@ -177,8 +178,8 @@ export class ZoomRulerManager {
         const minorTickPx = tickPx / 5;
         ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
         ctx.beginPath();
-        for (let i = 1; (i * minorTickPx) < w / 2; i++) {
-            if (i % 5 === 0) continue; 
+        for (let i = 1; i * minorTickPx < w / 2; i++) {
+            if (i % 5 === 0) continue;
             const xRight = cx + i * minorTickPx;
             const xLeft = cx - i * minorTickPx;
             ctx.moveTo(xRight, trackY - 3);
@@ -188,7 +189,7 @@ export class ZoomRulerManager {
         }
         ctx.stroke();
 
-        ctx.fillStyle = '#00ffff'; 
+        ctx.fillStyle = '#00ffff';
         ctx.strokeStyle = 'rgba(255, 255, 255, 0.8)';
         ctx.font = '13px "Teko", monospace';
         ctx.textBaseline = 'top';
@@ -199,10 +200,10 @@ export class ZoomRulerManager {
         ctx.stroke();
 
         ctx.textAlign = 'center';
-        ctx.fillText("0", cx, trackY + 10);
+        ctx.fillText('0', cx, trackY + 10);
 
         const maxTicks = Math.ceil(cx / tickPx);
-        for(let i = 1; i <= maxTicks; i++) {
+        for (let i = 1; i <= maxTicks; i++) {
             const xRight = cx + i * tickPx;
             const xLeft = cx - i * tickPx;
             const valText = `${(i * cleanMagnitude).toLocaleString(undefined, { maximumFractionDigits: 1 })} ${unit}`;
@@ -219,8 +220,8 @@ export class ZoomRulerManager {
         }
 
         const thumbX = (this.slider.value / 1000) * w;
-        
-        ctx.strokeStyle = '#ffcc00'; 
+
+        ctx.strokeStyle = '#ffcc00';
         ctx.lineWidth = 2;
         ctx.beginPath();
         ctx.moveTo(thumbX, trackY - 12);

@@ -12,53 +12,61 @@ export class TelemetryManager {
     }
     //spectral class needs adding in data
     static _getStarClass(data) {
-        const raw = data.spect ?? data.spectral_class ?? data.spectralClass ??
-                    data.st_spectype ?? data.class ?? data.sptype ?? null;
+        const raw =
+            data.spect ??
+            data.spectral_class ??
+            data.spectralClass ??
+            data.st_spectype ??
+            data.class ??
+            data.sptype ??
+            null;
         if (raw === null || raw === undefined || raw === '') return '—';
         return String(raw);
     }
 
     setManualOverride(name) {
-        if (!name) return; 
+        if (!name) return;
         this.currentTargetEl.innerHTML = `${name.toUpperCase()} <span style="color: #ff5555;">[MANUAL OVERRIDE]</span>`;
     }
 
     triggerCRTFlash() {
-        this.crtOverlay.style.backgroundColor = "rgba(255, 204, 0, 0.1)";
-        setTimeout(() => this.crtOverlay.style.backgroundColor = "transparent", 100);
+        this.crtOverlay.style.backgroundColor = 'rgba(255, 204, 0, 0.1)';
+        setTimeout(() => (this.crtOverlay.style.backgroundColor = 'transparent'), 100);
     }
 
     updateTargetPanel(data) {
-    if (!data || !data.name) {
-        this.currentTargetEl.innerText = "NONE";
-        this.telemetryDataEl.innerHTML = `<p>AWAITING DATA INPUT...</p>`;
-        return;
-    }
+        if (!data || !data.name) {
+            this.currentTargetEl.innerText = 'NONE';
+            this.telemetryDataEl.innerHTML = `<p>AWAITING DATA INPUT...</p>`;
+            return;
+        }
 
-    this.currentTargetEl.innerText = data.name.toUpperCase();
+        this.currentTargetEl.innerText = data.name.toUpperCase();
 
-    let actionButtons = '';
-    if (data.datasetCategory === 'PROMOTED_ASTEROID') {
-        const pinText = data.isPinned ? 'PINNED TO CPU' : 'PIN TO CPU';
-        const pinColor = data.isPinned ? '#00ff00' : '#ffcc00';
-        actionButtons = `
+        let actionButtons = '';
+        if (data.datasetCategory === 'PROMOTED_ASTEROID') {
+            const pinText = data.isPinned ? 'PINNED TO CPU' : 'PIN TO CPU';
+            const pinColor = data.isPinned ? '#00ff00' : '#ffcc00';
+            actionButtons = `
             <div style="display:flex; gap:5px; margin-top:15px;">
                 <button id="btn-pin" class="full-btn" style="border-color: ${pinColor}; color: ${pinColor};">${pinText}</button>
                 <button id="btn-purge" class="full-btn" style="border-color: #ff3333; color: #ff3333;">PURGE CLONE</button>
             </div>
         `;
-    }
+        }
 
-    const canEclipse = data.parent !== data.name;
-    const eclipseSection = canEclipse ? `
+        const canEclipse = data.parent !== data.name;
+        const eclipseSection = canEclipse
+            ? `
         <div style="display:flex; gap:5px; margin-top:10px;">
             <button id="btn-eclipse-prev" class="full-btn">◀ PREV ECLIPSE</button>
             <button id="btn-eclipse-next" class="full-btn">NEXT ECLIPSE ▶</button>
         </div>
         <div id="eclipse-result"></div>
-    ` : '';
+    `
+            : '';
 
-    this.telemetryDataEl.innerHTML = `
+        this.telemetryDataEl.innerHTML = `
         <p style="color: #ffcc00; font-weight: bold;">TARGET: ${data.name.toUpperCase()}</p>
         <p>PARENT: ${data.parent}</p>
         ${data.a > 0 ? `<p>DIST: ${data.a.toFixed(4)} AU</p><p>PERIOD: ${data.period.toFixed(2)} D</p><p>RADIUS: ${(data.radius_km || 0).toFixed(1)} KM</p>` : `<p>CLASS: ANCHOR STAR</p>`}
@@ -70,30 +78,33 @@ export class TelemetryManager {
         ${eclipseSection}
     `;
 
-    if (data.datasetCategory === 'PROMOTED_ASTEROID') {
-        document.getElementById('btn-pin').addEventListener('click', () => {
-            if (this.onPinRequested) this.onPinRequested(data);
-        });
-        document.getElementById('btn-purge').addEventListener('click', () => {
-            if (this.onPurgeRequested) this.onPurgeRequested(data);
-        });
-    }
+        if (data.datasetCategory === 'PROMOTED_ASTEROID') {
+            document.getElementById('btn-pin').addEventListener('click', () => {
+                if (this.onPinRequested) this.onPinRequested(data);
+            });
+            document.getElementById('btn-purge').addEventListener('click', () => {
+                if (this.onPurgeRequested) this.onPurgeRequested(data);
+            });
+        }
 
-    if (canEclipse) {
-        document.getElementById('btn-eclipse-prev').addEventListener('click', () => {
-            if (this.onEclipseNavRequested) this.onEclipseNavRequested(-1);
-        });
-        document.getElementById('btn-eclipse-next').addEventListener('click', () => {
-            if (this.onEclipseNavRequested) this.onEclipseNavRequested(1);
-        });
-    }
+        if (canEclipse) {
+            document.getElementById('btn-eclipse-prev').addEventListener('click', () => {
+                if (this.onEclipseNavRequested) this.onEclipseNavRequested(-1);
+            });
+            document.getElementById('btn-eclipse-next').addEventListener('click', () => {
+                if (this.onEclipseNavRequested) this.onEclipseNavRequested(1);
+            });
+        }
 
-    this.triggerCRTFlash();
-}
+        this.triggerCRTFlash();
+    }
     renderEclipseResult(event) {
         const box = document.getElementById('eclipse-result');
         if (!box) return;
-        if (!event) { box.innerHTML = `<p style="color:#ff3333;">NO EVENT FOUND IN RANGE</p>`; return; }
+        if (!event) {
+            box.innerHTML = `<p style="color:#ff3333;">NO EVENT FOUND IN RANGE</p>`;
+            return;
+        }
         const date = new Date(Date.UTC(2000, 0, 1, 12, 0, 0) + event.days * 86400000);
         box.innerHTML = `
             <p style="color:#00ffff;">${event.type} ECLIPSE</p>
@@ -105,23 +116,28 @@ export class TelemetryManager {
         if (!data) return;
 
         const displayName = (
-            data.name || data.designation || data.proper ||
-            data.hip || data.hd || data.hr || data.gl || data.id || 'STAR'
+            data.name ||
+            data.designation ||
+            data.proper ||
+            data.hip ||
+            data.hd ||
+            data.hr ||
+            data.gl ||
+            data.id ||
+            'STAR'
         ).toString();
 
         this.currentTargetEl.innerText = displayName.toUpperCase();
 
         const starClass = this._escapeHtml(TelemetryManager._getStarClass(data));
-        const ci = (data.ci != null && isFinite(data.ci))
-            ? Number(data.ci).toFixed(3) : '—';
+        const ci = data.ci != null && isFinite(data.ci) ? Number(data.ci).toFixed(3) : '—';
 
         let distStr = '—';
         if (data.engineX != null) {
             const d = Math.hypot(data.engineX, data.engineY || 0, data.engineZ || 0);
             if (isFinite(d) && d > 0) {
-                distStr = d >= 206265
-                    ? `${(d / 206265).toFixed(2)} pc`
-                    : `${d.toExponential(3)} AU`;
+                distStr =
+                    d >= 206265 ? `${(d / 206265).toFixed(2)} pc` : `${d.toExponential(3)} AU`;
             }
         } else if (data.x != null) {
             const d = Math.hypot(data.x || 0, data.y || 0, data.z || 0);
@@ -143,7 +159,7 @@ export class TelemetryManager {
             <p>SPECTRAL CLASS: <span style="color:#fff">${starClass}</span></p>
             <p>B−V COLOR INDEX: <span style="color:#fff">${ci}</span></p>
             <p>DISTANCE: <span style="color:#fff">${distStr}</span></p>
-            ${extraIds.length ? `<p style="margin-top:10px; color:#888;">${extraIds.map(s => this._escapeHtml(s)).join(' · ')}</p>` : ''}
+            ${extraIds.length ? `<p style="margin-top:10px; color:#888;">${extraIds.map((s) => this._escapeHtml(s)).join(' · ')}</p>` : ''}
             <div style="display:flex; gap:5px; margin-top:15px;">
                 <button id="btn-pin-star" class="full-btn" style="border-color: ${pinColor}; color: ${pinColor};">${pinText}</button>
             </div>
@@ -172,7 +188,7 @@ export class TelemetryManager {
         let html = `<p style="color: #00ffff; font-weight: bold; border-bottom: 1px solid #00ffff; padding-bottom:5px;">
             RADAR PING: CLOSEST TO ${referenceName}
         </p>`;
-        
+
         if (results.length === 0) {
             html += `<p>NO CONTACTS DETECTED.</p>`;
             this.telemetryDataEl.innerHTML = html;
@@ -180,7 +196,7 @@ export class TelemetryManager {
         }
 
         this.telemetryDataEl.innerHTML = html;
-        
+
         results.forEach((hit, i) => {
             const distAU = Math.sqrt(hit.distSq);
             const div = document.createElement('div');
@@ -190,25 +206,28 @@ export class TelemetryManager {
             div.style.display = 'flex';
             div.style.justifyContent = 'space-between';
             div.style.borderBottom = '1px solid rgba(0, 255, 255, 0.2)';
-            
+
             div.innerHTML = `
-                <span style="color:#00ffff">[${i+1}] ${hit.data.name}</span>
+                <span style="color:#00ffff">[${i + 1}] ${hit.data.name}</span>
                 <span style="color:#aaa;">${distAU.toFixed(5)} AU</span>
             `;
-            
+
             div.addEventListener('click', () => {
                 if (this.onFocusBody) this.onFocusBody(hit.data);
             });
-            
-            div.addEventListener('mouseenter', () => div.style.backgroundColor = 'rgba(0, 255, 255, 0.2)');
-            div.addEventListener('mouseleave', () => div.style.backgroundColor = 'transparent');
-            
+
+            div.addEventListener(
+                'mouseenter',
+                () => (div.style.backgroundColor = 'rgba(0, 255, 255, 0.2)')
+            );
+            div.addEventListener('mouseleave', () => (div.style.backgroundColor = 'transparent'));
+
             this.telemetryDataEl.appendChild(div);
         });
-        
+
         this.triggerCRTFlash();
     }
-   
+
     showLookupPending(query) {
         const safe = this._escapeHtml(query.toUpperCase());
         this.telemetryDataEl.innerHTML = `

@@ -1,234 +1,320 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Heliochronicon</title>
+    <head>
+        <meta charset="UTF-8" />
+        <meta
+            name="viewport"
+            content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"
+        />
+        <title>Heliochronicon</title>
 
-    <link href="https://fonts.googleapis.com/css2?family=Teko:wght@400;600&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/dseg@0.46.0/css/dseg.css">
-    
-    <link rel="stylesheet" href="css/base.css">
-    <link rel="stylesheet" href="css/layout.css">
-    <link rel="stylesheet" href="css/controls.css">
-    <link rel="stylesheet" href="css/chronometer.css">
-    <link rel="stylesheet" href="css/magi.css">
-    <link rel="stylesheet" href="css/tutorial.css">
-    <link rel="stylesheet" href="css/ruler.css">
-</head>
-<body oncontextmenu="return false;"> 
+        <link
+            href="https://fonts.googleapis.com/css2?family=Teko:wght@400;600&display=swap"
+            rel="stylesheet"
+        />
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/dseg@0.46.0/css/dseg.css" />
 
-    <div id="crt-overlay"></div>
-    <div id="tactical-zoom-ruler">
-        <div class="ruler-landmarks">
-            <span class="landmark" data-val="0.00001" title="Galaxy (Deep Space)">
-                <svg viewBox="0 0 24 24">
-                    <!-- spiral arms -->
-                    <ellipse cx="12" cy="12" rx="10" ry="2.8" transform="rotate(15 12 12)"/>
-                    <ellipse cx="12" cy="12" rx="10" ry="2.8" transform="rotate(75 12 12)"/>
-                    <ellipse cx="12" cy="12" rx="10" ry="2.8" transform="rotate(135 12 12)"/>
-                    <!-- bright core -->
-                    <circle cx="12" cy="12" r="1.8" fill="currentColor" stroke="none"/>
-                </svg>
-            </span>
-        
-            <span class="landmark" data-val="0.01" title="Oort Cloud">
-                <svg viewBox="0 0 24 24">
-                    <polygon points="12,2 14.5,8.5 21.5,8.5 16,13 18,20 12,16 6,20 8,13 2.5,8.5 9.5,8.5"
-                             fill="currentColor" stroke="none"/>
-                </svg>
-            </span>
-        
-            <span class="landmark" data-val="2" title="Solar System">
-                <svg viewBox="0 0 24 24">
-                    <!-- sun -->
-                    <circle cx="12" cy="12" r="2.5" fill="currentColor" stroke="none"/>
-                    <!-- orbits -->
-                    <circle cx="12" cy="12" r="6"/>
-                    <circle cx="12" cy="12" r="9.5"/>
-                    <!-- planets on the rings -->
-                    <circle cx="18" cy="12" r="1.1" fill="currentColor" stroke="none"/>
-                    <circle cx="12" cy="5.5" r="0.9" fill="currentColor" stroke="none"/>
-                    <circle cx="7.5" cy="16.5" r="0.85" fill="currentColor" stroke="none"/>
-                </svg>
-            </span>
-        
-            <span class="landmark" data-val="50" title="Planet System">
-                <svg viewBox="0 0 24 24">
-                    <!-- larger planet body -->
-                    <circle cx="12" cy="12" r="5.5"/>
-                    <!-- ring -->
-                    <ellipse cx="12" cy="12" rx="11" ry="3"/>
-                </svg>
-            </span>
-        
-            <span class="landmark" data-val="2000" title="Moon System">
-                <svg viewBox="0 0 24 24">
-                    <!-- crescent -->
-                    <path d="M14 4
+        <link rel="stylesheet" href="css/base.css" />
+        <link rel="stylesheet" href="css/layout.css" />
+        <link rel="stylesheet" href="css/controls.css" />
+        <link rel="stylesheet" href="css/chronometer.css" />
+        <link rel="stylesheet" href="css/magi.css" />
+        <link rel="stylesheet" href="css/tutorial.css" />
+        <link rel="stylesheet" href="css/ruler.css" />
+    </head>
+    <body oncontextmenu="return false;">
+        <div id="crt-overlay"></div>
+        <div id="tactical-zoom-ruler">
+            <div class="ruler-landmarks">
+                <span class="landmark" data-val="0.00001" title="Galaxy (Deep Space)">
+                    <svg viewBox="0 0 24 24">
+                        <!-- spiral arms -->
+                        <ellipse cx="12" cy="12" rx="10" ry="2.8" transform="rotate(15 12 12)" />
+                        <ellipse cx="12" cy="12" rx="10" ry="2.8" transform="rotate(75 12 12)" />
+                        <ellipse cx="12" cy="12" rx="10" ry="2.8" transform="rotate(135 12 12)" />
+                        <!-- bright core -->
+                        <circle cx="12" cy="12" r="1.8" fill="currentColor" stroke="none" />
+                    </svg>
+                </span>
+
+                <span class="landmark" data-val="0.01" title="Oort Cloud">
+                    <svg viewBox="0 0 24 24">
+                        <polygon
+                            points="12,2 14.5,8.5 21.5,8.5 16,13 18,20 12,16 6,20 8,13 2.5,8.5 9.5,8.5"
+                            fill="currentColor"
+                            stroke="none"
+                        />
+                    </svg>
+                </span>
+
+                <span class="landmark" data-val="2" title="Solar System">
+                    <svg viewBox="0 0 24 24">
+                        <!-- sun -->
+                        <circle cx="12" cy="12" r="2.5" fill="currentColor" stroke="none" />
+                        <!-- orbits -->
+                        <circle cx="12" cy="12" r="6" />
+                        <circle cx="12" cy="12" r="9.5" />
+                        <!-- planets on the rings -->
+                        <circle cx="18" cy="12" r="1.1" fill="currentColor" stroke="none" />
+                        <circle cx="12" cy="5.5" r="0.9" fill="currentColor" stroke="none" />
+                        <circle cx="7.5" cy="16.5" r="0.85" fill="currentColor" stroke="none" />
+                    </svg>
+                </span>
+
+                <span class="landmark" data-val="50" title="Planet System">
+                    <svg viewBox="0 0 24 24">
+                        <!-- larger planet body -->
+                        <circle cx="12" cy="12" r="5.5" />
+                        <!-- ring -->
+                        <ellipse cx="12" cy="12" rx="11" ry="3" />
+                    </svg>
+                </span>
+
+                <span class="landmark" data-val="2000" title="Moon System">
+                    <svg viewBox="0 0 24 24">
+                        <!-- crescent -->
+                        <path
+                            d="M14 4
                              A8.5 8.5 0 1 0 14 20
                              A6.5 6.5 0 1 1 14 4Z"
-                          fill="currentColor" stroke="none"/>
-                </svg>
-            </span>
-        
-            <span class="landmark" data-val="500000" title="Asteroid Scale">
-                <svg viewBox="0 0 24 24">
-                    <polygon points="12,3 18,7 19,14 14,20 7,19 4,12 7,6"/>
-                    <!-- small crater -->
-                    <circle cx="10" cy="11" r="1.2" fill="currentColor" stroke="none"/>
-                </svg>
-            </span>
-        
-            <span class="landmark" data-val="150000000" title="Planetary Surface">
-                <svg viewBox="0 0 24 24">
-                    <!-- layered pine foliage -->
-                    <polygon points="12,2 7,9 17,9"/>
-                    <polygon points="12,6 5.5,14 18.5,14"/>
-                    <polygon points="12,11 4,20 20,20"/>
-                    <!-- trunk -->
-                    <line x1="12" y1="20" x2="12" y2="22.5"/>
-                </svg>
-            </span>
-        </div>
-        <div id="ruler-interactive-zone">
-            <canvas id="tactical-ruler-canvas"></canvas>
-            <input type="range" id="zoom-slider" min="0" max="1000" value="500">
-        </div>
-    </div>
-    <button id="btn-mobile-toggle">ACCESS TERMINAL</button>
-    <div id="panel-left" class="panel">
-        <h2>System Status</h2>
-        <p style="color: #ffcc00; font-weight: bold; margin-bottom: 5px;">TARGET: <span id="current-target">NONE</span></p>
-        <div class="tab-nav flex-row">
-            <button id="btn-tab-search" class="tab-btn active">SEARCH</button>
-            <button id="btn-tab-vis" class="tab-btn">VISIBILITY</button>
-        </div>
+                            fill="currentColor"
+                            stroke="none"
+                        />
+                    </svg>
+                </span>
 
-        <div id="tab-search" class="tab-content active">
-            <div class="control-group" style="margin-top: 10px;">
-                <label>TACTICAL DATABASE</label>
-                <input type="text" id="search-input" placeholder="SEARCH ALL (TEXT)...">
-                <button id="sort-toggle" class="full-btn">SORT: DIST</button>
-                <div id="body-list" class="scrollable-list" style="max-height: 50vh;"></div>
+                <span class="landmark" data-val="500000" title="Asteroid Scale">
+                    <svg viewBox="0 0 24 24">
+                        <polygon points="12,3 18,7 19,14 14,20 7,19 4,12 7,6" />
+                        <!-- small crater -->
+                        <circle cx="10" cy="11" r="1.2" fill="currentColor" stroke="none" />
+                    </svg>
+                </span>
+
+                <span class="landmark" data-val="150000000" title="Planetary Surface">
+                    <svg viewBox="0 0 24 24">
+                        <!-- layered pine foliage -->
+                        <polygon points="12,2 7,9 17,9" />
+                        <polygon points="12,6 5.5,14 18.5,14" />
+                        <polygon points="12,11 4,20 20,20" />
+                        <!-- trunk -->
+                        <line x1="12" y1="20" x2="12" y2="22.5" />
+                    </svg>
+                </span>
+            </div>
+            <div id="ruler-interactive-zone">
+                <canvas id="tactical-ruler-canvas"></canvas>
+                <input type="range" id="zoom-slider" min="0" max="1000" value="500" />
             </div>
         </div>
+        <button id="btn-mobile-toggle">ACCESS TERMINAL</button>
+        <div id="panel-left" class="panel">
+            <h2>System Status</h2>
+            <p style="color: #ffcc00; font-weight: bold; margin-bottom: 5px">
+                TARGET: <span id="current-target">NONE</span>
+            </p>
+            <div class="tab-nav flex-row">
+                <button id="btn-tab-search" class="tab-btn active">SEARCH</button>
+                <button id="btn-tab-vis" class="tab-btn">VISIBILITY</button>
+            </div>
 
-        <!-- TAB 2: VISIBILITY CONTENT -->
-        <div id="tab-visibility" class="tab-content" style="overflow-y: auto; padding-right: 5px;">
-            
-            <!-- MAGI CIRCUIT BOARD -->
-            <div class="control-group magi-board" style="padding: 10px 5px; margin-top: 10px;">
-                <div class="magi-header" style="display:flex; justify-content:space-between; margin-bottom: 15px;">
-                    <span>SYSTEM VISIBILITY</span>
-                    <button id="btn-clear-map" class="danger-btn" style="width: auto; margin:0; font-size: 0.7rem; padding: 2px 5px;">PURGE MEMORY</button>
+            <div id="tab-search" class="tab-content active">
+                <div class="control-group" style="margin-top: 10px">
+                    <label>TACTICAL DATABASE</label>
+                    <input type="text" id="search-input" placeholder="SEARCH ALL (TEXT)..." />
+                    <button id="sort-toggle" class="full-btn">SORT: DIST</button>
+                    <div id="body-list" class="scrollable-list" style="max-height: 50vh"></div>
                 </div>
-                
-                <!-- TWO-COLUMN CIRCUIT -->
-                <div class="magi-circuit">
-                    
-                    <!-- ASTEROIDS (LEFT) -->
-                    <div class="magi-column left-col">
-                        <!-- MASTER OVERRIDE (Root of Asteroid Tree) -->
-                        <div class="magi-row master-row" id="row-master-toggle" style="margin-bottom: 8px; justify-content: flex-end;">
-                            <div class="magi-btn">
-                                <div class="magi-status" style="width: 100%; justify-content: center;">
-                                    <span class="magi-label" style="color: #000; font-size: 0.65rem;">ASTEROID TOGGLE</span>
+            </div>
+
+            <!-- TAB 2: VISIBILITY CONTENT -->
+            <div
+                id="tab-visibility"
+                class="tab-content"
+                style="overflow-y: auto; padding-right: 5px"
+            >
+                <!-- MAGI CIRCUIT BOARD -->
+                <div class="control-group magi-board" style="padding: 10px 5px; margin-top: 10px">
+                    <div
+                        class="magi-header"
+                        style="display: flex; justify-content: space-between; margin-bottom: 15px"
+                    >
+                        <span>SYSTEM VISIBILITY</span>
+                        <button
+                            id="btn-clear-map"
+                            class="danger-btn"
+                            style="width: auto; margin: 0; font-size: 0.7rem; padding: 2px 5px"
+                        >
+                            PURGE MEMORY
+                        </button>
+                    </div>
+
+                    <!-- TWO-COLUMN CIRCUIT -->
+                    <div class="magi-circuit">
+                        <!-- ASTEROIDS (LEFT) -->
+                        <div class="magi-column left-col">
+                            <!-- MASTER OVERRIDE (Root of Asteroid Tree) -->
+                            <div
+                                class="magi-row master-row"
+                                id="row-master-toggle"
+                                style="margin-bottom: 8px; justify-content: flex-end"
+                            >
+                                <div class="magi-btn">
+                                    <div
+                                        class="magi-status"
+                                        style="width: 100%; justify-content: center"
+                                    >
+                                        <span
+                                            class="magi-label"
+                                            style="color: #000; font-size: 0.65rem"
+                                            >ASTEROID TOGGLE</span
+                                        >
+                                    </div>
                                 </div>
+                                <!-- Root SVG Stub -->
+                                <svg class="magi-svg-wire">
+                                    <polyline points="0,1 15,1" />
+                                    <circle cx="0" cy="1" r="1.5" />
+                                    <circle cx="15" cy="1" r="1.5" />
+                                </svg>
                             </div>
-                            <!-- Root SVG Stub -->
-                            <svg class="magi-svg-wire">
-                                <polyline points="0,1 15,1" />
-                                <circle cx="0" cy="1" r="1.5" />
-                                <circle cx="15" cy="1" r="1.5" />
-                            </svg>
+
+                            <!-- Dynamic Asteroid List -->
+                            <div
+                                id="dataset-list-asteroids"
+                                style="display: flex; flex-direction: column; gap: 8px"
+                            ></div>
                         </div>
-                        
-                        <!-- Dynamic Asteroid List -->
-                        <div id="dataset-list-asteroids" style="display: flex; flex-direction: column; gap: 8px;"></div>
-                    </div>
-                    
-                    <!-- PLANETS & MOONS (RIGHT) -->
-                    <div id="dataset-list-planets" class="magi-column right-col" style="gap: 8px;"></div>
-                </div>
-            </div>
 
-            <!-- MOON FILTERS -->
-            <div class="control-group">
-                <label>MOON VIS (DIST AU) <span id="dist-val" style="float:right;color:#ffcc00">0.000 - 0.300</span></label>
-                <div class="flex-row">
-                    <input type="range" id="moon-dist-min" min="0" max="0.3" step="0.001" value="0">
-                    <input type="range" id="moon-dist-max" min="0" max="0.3" step="0.001" value="0.3">
-                </div>
-     
-                <label style="margin-top:10px;">MOON VIS (SIZE KM) <span id="size-val" style="float:right; color:#ffcc00">0 - 5000</span></label>
-                <div class="flex-row">
-                    <input type="range" id="moon-size-min" min="0" max="5000" step="1" value="0">
-                    <input type="range" id="moon-size-max" min="0" max="5000" step="1" value="5000">
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div id="panel-right" class="panel" id="telemetry">
-        <h2>Telemetry</h2>
-        <div id="telemetry-data">
-            <p>AWAITING DATA INPUT...</p>
-        </div>
-    </div>
-    <div id="bottom-deck">
-        <div id="tactical-tools">
-            <button id="btn-measure" class="tactical-tool-btn" title="Toggle Spatial Ruler">
-                <div class="stby-content">SPATIAL RULER <span style="color: #ffffff; margin-left: 8px;">[ STBY ]</span></div>
-                
-                <div class="actv-content">
-                    <div class="marquee">
-                        <span>ACTIVE • SPATIAL RULER • ACTIVE • SPATIAL RULER •&nbsp;</span>
-                        <span>ACTIVE • SPATIAL RULER • ACTIVE • SPATIAL RULER •&nbsp;</span>
+                        <!-- PLANETS & MOONS (RIGHT) -->
+                        <div
+                            id="dataset-list-planets"
+                            class="magi-column right-col"
+                            style="gap: 8px"
+                        ></div>
                     </div>
                 </div>
-            </button>
-            <button id="btn-daylight-toggle" class="icon-toggle-btn active" title="Toggle Night-Side Overlay">
-                <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                    <circle cx="12" cy="12" r="5"/>
-                    <line x1="12" y1="1" x2="12" y2="4"/>
-                    <line x1="12" y1="20" x2="12" y2="23"/>
-                    <line x1="4.22" y1="4.22" x2="6.34" y2="6.34"/>
-                    <line x1="17.66" y1="17.66" x2="19.78" y2="19.78"/>
-                    <line x1="1" y1="12" x2="4" y2="12"/>
-                    <line x1="20" y1="12" x2="23" y2="12"/>
-                    <line x1="4.22" y1="19.78" x2="6.34" y2="17.66"/>
-                    <line x1="17.66" y1="6.34" x2="19.78" y2="4.22"/>
-                </svg>
-            </button>
-        </div>
-        <div class="chrono-header">
-            <button id="btn-live" class="active">LIVE</button>
-            <textarea id="time-input-bottom"></textarea>
-            <button id="btn-scan" class="radar-btn">
-                <div class="ring outer"></div>
-                <div class="ring inner"></div>
-                <div class="sweep"></div>
-            </button>
-        </div>
-        
-        <div class="throttle-container">
-            <button id="btn-time-rev" class="throttle-btn">◀◀</button>
-            <button id="btn-time-pause" class="throttle-btn">▐▐</button>
-                
-            <div id="chrono-slider-wrapper">
-                <canvas id="chrono-canvas"></canvas>
-                <input type="range" id="time-slider" min="0" max="20" step="1" value="11">
-            </div>
-        
-            <button id="btn-time-fwd" class="throttle-btn">▶▶</button>
-            <button id="btn-time-1x" class="throttle-btn">1X</button>
-        </div>
-        <div id="throttle-label">1 SEC / SEC</div>
-    </div>
-    <div id="canvas-container"></div>
 
-    <button id="btn-tutorial" title="Open Tutorial">?</button>
+                <!-- MOON FILTERS -->
+                <div class="control-group">
+                    <label
+                        >MOON VIS (DIST AU)
+                        <span id="dist-val" style="float: right; color: #ffcc00"
+                            >0.000 - 0.300</span
+                        ></label
+                    >
+                    <div class="flex-row">
+                        <input
+                            type="range"
+                            id="moon-dist-min"
+                            min="0"
+                            max="0.3"
+                            step="0.001"
+                            value="0"
+                        />
+                        <input
+                            type="range"
+                            id="moon-dist-max"
+                            min="0"
+                            max="0.3"
+                            step="0.001"
+                            value="0.3"
+                        />
+                    </div>
+
+                    <label style="margin-top: 10px"
+                        >MOON VIS (SIZE KM)
+                        <span id="size-val" style="float: right; color: #ffcc00"
+                            >0 - 5000</span
+                        ></label
+                    >
+                    <div class="flex-row">
+                        <input
+                            type="range"
+                            id="moon-size-min"
+                            min="0"
+                            max="5000"
+                            step="1"
+                            value="0"
+                        />
+                        <input
+                            type="range"
+                            id="moon-size-max"
+                            min="0"
+                            max="5000"
+                            step="1"
+                            value="5000"
+                        />
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="panel-right" class="panel" id="telemetry">
+            <h2>Telemetry</h2>
+            <div id="telemetry-data">
+                <p>AWAITING DATA INPUT...</p>
+            </div>
+        </div>
+        <div id="bottom-deck">
+            <div id="tactical-tools">
+                <button id="btn-measure" class="tactical-tool-btn" title="Toggle Spatial Ruler">
+                    <div class="stby-content">
+                        SPATIAL RULER <span style="color: #ffffff; margin-left: 8px">[ STBY ]</span>
+                    </div>
+
+                    <div class="actv-content">
+                        <div class="marquee">
+                            <span>ACTIVE • SPATIAL RULER • ACTIVE • SPATIAL RULER •&nbsp;</span>
+                            <span>ACTIVE • SPATIAL RULER • ACTIVE • SPATIAL RULER •&nbsp;</span>
+                        </div>
+                    </div>
+                </button>
+                <button
+                    id="btn-daylight-toggle"
+                    class="icon-toggle-btn active"
+                    title="Toggle Night-Side Overlay"
+                >
+                    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <circle cx="12" cy="12" r="5" />
+                        <line x1="12" y1="1" x2="12" y2="4" />
+                        <line x1="12" y1="20" x2="12" y2="23" />
+                        <line x1="4.22" y1="4.22" x2="6.34" y2="6.34" />
+                        <line x1="17.66" y1="17.66" x2="19.78" y2="19.78" />
+                        <line x1="1" y1="12" x2="4" y2="12" />
+                        <line x1="20" y1="12" x2="23" y2="12" />
+                        <line x1="4.22" y1="19.78" x2="6.34" y2="17.66" />
+                        <line x1="17.66" y1="6.34" x2="19.78" y2="4.22" />
+                    </svg>
+                </button>
+            </div>
+            <div class="chrono-header">
+                <button id="btn-live" class="active">LIVE</button>
+                <textarea id="time-input-bottom"></textarea>
+                <button id="btn-scan" class="radar-btn">
+                    <div class="ring outer"></div>
+                    <div class="ring inner"></div>
+                    <div class="sweep"></div>
+                </button>
+            </div>
+
+            <div class="throttle-container">
+                <button id="btn-time-rev" class="throttle-btn">◀◀</button>
+                <button id="btn-time-pause" class="throttle-btn">▐▐</button>
+
+                <div id="chrono-slider-wrapper">
+                    <canvas id="chrono-canvas"></canvas>
+                    <input type="range" id="time-slider" min="0" max="20" step="1" value="11" />
+                </div>
+
+                <button id="btn-time-fwd" class="throttle-btn">▶▶</button>
+                <button id="btn-time-1x" class="throttle-btn">1X</button>
+            </div>
+            <div id="throttle-label">1 SEC / SEC</div>
+        </div>
+        <div id="canvas-container"></div>
+
+        <button id="btn-tutorial" title="Open Tutorial">?</button>
 
         <div id="tutorial-overlay">
             <svg id="tutorial-svg">
@@ -244,10 +330,10 @@
                     <button id="btn-skip-tutorial">SKIP</button>
                 </div>
             </div>
-    </div>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
-    
-    <script type="module" src="/js/main.js"></script>
-</body>
+        </div>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+
+        <script type="module" src="/js/main.js"></script>
+    </body>
 </html>

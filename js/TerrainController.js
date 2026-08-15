@@ -11,10 +11,15 @@ export class TerrainController {
         this.registry = null;
 
         this.registryPromise = fetch(manifestUrl)
-            .then(res => res.ok ? res.json() : {})
-            .then(json => { this.registry = json; })
-            .catch(err => {
-                console.warn('Terrain manifest missing or failed to load -- terrain stays off until public/data/heightmaps/manifest.json exists.', err);
+            .then((res) => (res.ok ? res.json() : {}))
+            .then((json) => {
+                this.registry = json;
+            })
+            .catch((err) => {
+                console.warn(
+                    'Terrain manifest missing or failed to load -- terrain stays off until public/data/heightmaps/manifest.json exists.',
+                    err
+                );
                 this.registry = {};
             });
     }
@@ -65,7 +70,10 @@ export class TerrainController {
     }
 
     dispose() {
-        this.cache.forEach(({ texture, material }) => { texture.dispose(); material.dispose(); });
+        this.cache.forEach(({ texture, material }) => {
+            texture.dispose();
+            material.dispose();
+        });
         this.cache.clear();
         this.pending.clear();
     }

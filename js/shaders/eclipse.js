@@ -2,11 +2,10 @@
 // Multi-body umbra/penumbra eclipse-shadow overlay material. Split out of
 // the former Shaders.js monolith -- see ShaderManager.js for the aggregated
 // call surface.
-import * as THREE from 'three'
-import { MAX_SHADOWS } from '../constants.js'
+import * as THREE from 'three';
+import { MAX_SHADOWS } from '../constants.js';
 
 export class EclipseShaders {
-
     static createEclipseShadowMat(maxShadows = MAX_SHADOWS) {
         const defaultPositions = new Array(maxShadows).fill(null).map(() => new THREE.Vector3());
         const defaultRadii = new Array(maxShadows).fill(0.0001);
@@ -15,19 +14,19 @@ export class EclipseShaders {
             uniforms: {
                 uStarPos: { value: new THREE.Vector3() },
                 uStarRadius: { value: 0.00465 },
-                
+
                 // MULTI-SHADOW ARRAYS
                 uOccPositions: { value: defaultPositions },
                 uOccRadii: { value: defaultRadii },
                 uShadowCount: { value: 0 },
-                
+
                 uPlanetCenter: { value: new THREE.Vector3() },
-                
-                uUmbraColor: { value: new THREE.Color(0xff0000) },     
-                uPenumbraColor: { value: new THREE.Color(0x8a185d) },  
-                
+
+                uUmbraColor: { value: new THREE.Color(0xff0000) },
+                uPenumbraColor: { value: new THREE.Color(0x8a185d) },
+
                 uBarScale: { value: 0.05 },
-                uOpacity: { value: 0.85 } 
+                uOpacity: { value: 0.85 },
             },
             vertexShader: `
                 varying vec3 vWorldPos;
@@ -113,9 +112,9 @@ export class EclipseShaders {
                     gl_FragColor = vec4(finalColor, barAlpha * uOpacity);
                 }
             `,
-            transparent: true, 
-            depthWrite: false, 
-            side: THREE.FrontSide
+            transparent: true,
+            depthWrite: false,
+            side: THREE.FrontSide,
         });
     }
 }

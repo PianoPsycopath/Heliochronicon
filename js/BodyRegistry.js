@@ -9,7 +9,7 @@ import {
     matchesDataset,
     matchesNameAndCategory,
     shouldPurgeInFullSweep,
-    shouldPurgeInRescan
+    shouldPurgeInRescan,
 } from './bodyRegistryPredicates.js';
 
 export class BodyRegistry {
@@ -81,7 +81,9 @@ export class BodyRegistry {
     }
 
     removeByNameAndCategory(name, category) {
-        const idx = this.celestialBodies.findIndex(x => matchesNameAndCategory(x.data, name, category));
+        const idx = this.celestialBodies.findIndex((x) =>
+            matchesNameAndCategory(x.data, name, category)
+        );
         if (idx !== -1) {
             this.removeBody(this.celestialBodies[idx]);
         }
@@ -106,7 +108,8 @@ export class BodyRegistry {
 
                 if (sys.userData.groupLabel) {
                     this.scene.remove(sys.userData.groupLabel);
-                    if (sys.userData.groupLabel.material.map) sys.userData.groupLabel.material.map.dispose();
+                    if (sys.userData.groupLabel.material.map)
+                        sys.userData.groupLabel.material.map.dispose();
                     sys.userData.groupLabel.material.dispose();
                     sys.userData.groupLabel.geometry.dispose();
                 }
@@ -151,7 +154,8 @@ export class BodyRegistry {
 
             if (sys.userData.groupLabel) {
                 this.scene.remove(sys.userData.groupLabel);
-                if (sys.userData.groupLabel.material.map) sys.userData.groupLabel.material.map.dispose();
+                if (sys.userData.groupLabel.material.map)
+                    sys.userData.groupLabel.material.map.dispose();
                 sys.userData.groupLabel.material.dispose();
                 sys.userData.groupLabel.geometry.dispose();
             }

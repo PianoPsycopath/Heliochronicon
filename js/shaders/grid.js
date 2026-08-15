@@ -2,10 +2,9 @@
 // Ecliptic + equatorial reference-grid materials (gravity-well parallax grid,
 // and the targeted-body equatorial grid). Split out of the former Shaders.js
 // monolith -- see ShaderManager.js for the aggregated call surface.
-import * as THREE from 'three'
+import * as THREE from 'three';
 
 export class GridShaders {
-
     static getGridMaterial(maxWells) {
         const wellPositions = new Array(maxWells).fill(null).map(() => new THREE.Vector2());
         const wellDepths = new Array(maxWells).fill(0.0);
@@ -18,7 +17,7 @@ export class GridShaders {
                 wellPositions: { value: wellPositions },
                 wellDepths: { value: wellDepths },
                 wellRadii: { value: wellRadii },
-                numWells: { value: 0 }
+                numWells: { value: 0 },
             },
             vertexShader: `
                 varying vec3 vWorldPosition;
@@ -95,7 +94,7 @@ export class GridShaders {
             transparent: true,
             side: THREE.DoubleSide,
             depthWrite: false,
-            extensions: { derivatives: true }
+            extensions: { derivatives: true },
         });
     }
 
@@ -103,7 +102,7 @@ export class GridShaders {
         return new THREE.ShaderMaterial({
             uniforms: {
                 cameraPos: { value: new THREE.Vector3() },
-                uGridRadius: { value: 0.5 } // NEW: Dynamic grid size uniform
+                uGridRadius: { value: 0.5 }, // NEW: Dynamic grid size uniform
             },
             vertexShader: `
                 varying vec3 vWorldPosition;
@@ -156,7 +155,7 @@ export class GridShaders {
             transparent: true,
             side: THREE.DoubleSide,
             depthWrite: false,
-            extensions: { derivatives: true }
+            extensions: { derivatives: true },
         });
     }
 }

@@ -11,10 +11,9 @@
 // defaults to "show everything" (100.0) so behavior is unchanged unless a
 // caller actively lowers it -- see main.js's magnitude-limit-by-zoom curve
 // and docs/performance-notes.md.
-import * as THREE from 'three'
+import * as THREE from 'three';
 
 export class StarFieldShaders {
-
     // (position/velocity baked in AU by StarLoader, magnitude + B-V color
     // index carried as attributes). Proper motion is integrated on the GPU
     // from uTime (days since J2000, same clock the asteroid field uses) and
@@ -22,10 +21,12 @@ export class StarFieldShaders {
     static getStarFieldMaterial() {
         return new THREE.ShaderMaterial({
             uniforms: {
-                uTime: { value: 0.0 },       // days since J2000 (matches gpuParticleSystems convention)
+                uTime: { value: 0.0 }, // days since J2000 (matches gpuParticleSystems convention)
                 uOrigin: { value: new THREE.Vector3(0, 0, 0) },
                 uZoom: { value: 1.0 },
-                uPixelRatio: { value: (typeof window !== 'undefined' ? window.devicePixelRatio : 1) || 1 },
+                uPixelRatio: {
+                    value: (typeof window !== 'undefined' ? window.devicePixelRatio : 1) || 1,
+                },
                 // Magnitude LOD floor: stars with mag > uMagLimit are culled
                 // in the vertex shader. Default keeps every star visible.
                 uMagLimit: { value: 100.0 },
@@ -41,7 +42,7 @@ export class StarFieldShaders {
                 // updateStarFieldFarProjection() in main.js, called once per
                 // frame. Nothing else in the scene uses this matrix, so
                 // planet/grid depth precision is untouched.
-                uStarProjectionMatrix: { value: new THREE.Matrix4() }
+                uStarProjectionMatrix: { value: new THREE.Matrix4() },
             },
             vertexShader: `
                 uniform float uTime;
@@ -133,7 +134,7 @@ export class StarFieldShaders {
             depthTest: false,
             depthWrite: false,
             blending: THREE.CustomBlending,
-            blendEquation: THREE.MaxEquation
+            blendEquation: THREE.MaxEquation,
         });
     }
 
@@ -143,8 +144,10 @@ export class StarFieldShaders {
                 uTime: { value: 0.0 },
                 uOrigin: { value: new THREE.Vector3(0, 0, 0) },
                 uZoom: { value: 1.0 },
-                uPixelRatio: { value: (typeof window !== 'undefined' ? window.devicePixelRatio : 1) || 1 },
-                uStarProjectionMatrix: { value: new THREE.Matrix4() }
+                uPixelRatio: {
+                    value: (typeof window !== 'undefined' ? window.devicePixelRatio : 1) || 1,
+                },
+                uStarProjectionMatrix: { value: new THREE.Matrix4() },
             },
             vertexShader: `
                 uniform float uTime;
@@ -191,7 +194,7 @@ export class StarFieldShaders {
                 }
             `,
             depthTest: false,
-            depthWrite: false
+            depthWrite: false,
         });
     }
 }

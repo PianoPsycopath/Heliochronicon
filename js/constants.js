@@ -12,7 +12,6 @@ export const JULIAN_CENTURY_DAYS = 36525.0;
 // doesn't supply its own barycenter_mass_ratio.
 export const EARTH_MOON_MASS_RATIO = 82.30059;
 
-
 // Fixed size of the gravity-well uniform arrays in GridShaders.getGridMaterial.
 // Must match the array length main.js allocates and the loop bound baked
 // into the fragment shader at material-creation time.

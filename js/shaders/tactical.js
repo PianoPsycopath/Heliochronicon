@@ -3,10 +3,9 @@
 // label), and the GPU asteroid-particle field (Kepler solve on the GPU).
 // Split out of the former Shaders.js monolith -- see ShaderManager.js for the
 // aggregated call surface.
-import * as THREE from 'three'
+import * as THREE from 'three';
 
 export class TacticalShaders {
-
     static getTacticalMaterial() {
         return new THREE.ShaderMaterial({
             vertexShader: `
@@ -25,13 +24,14 @@ export class TacticalShaders {
                 }
             `,
             depthTest: false,
-            transparent: true
+            transparent: true,
         });
     }
 
     static createDotTexture() {
         const canvas = document.createElement('canvas');
-        canvas.width = 64; canvas.height = 64;
+        canvas.width = 64;
+        canvas.height = 64;
         const ctx = canvas.getContext('2d');
         ctx.fillStyle = '#ffffff';
         ctx.beginPath();
@@ -42,22 +42,51 @@ export class TacticalShaders {
 
     static createStarSpriteMat() {
         const canvas = document.createElement('canvas');
-        canvas.width = 128; canvas.height = 128;
+        canvas.width = 128;
+        canvas.height = 128;
         const ctx = canvas.getContext('2d');
-        ctx.fillStyle = '#ffcc00'; ctx.beginPath();
-        ctx.moveTo(64, 0); ctx.quadraticCurveTo(64, 64, 128, 64); ctx.quadraticCurveTo(64, 64, 64, 128); ctx.quadraticCurveTo(64, 64, 0, 64); ctx.quadraticCurveTo(64, 64, 64, 0);
-        ctx.closePath(); ctx.fill();
-        ctx.fillStyle = '#000'; ctx.font = 'bold 45px sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText("☉", 64, 66);
-        return new THREE.SpriteMaterial({ map: new THREE.CanvasTexture(canvas), depthTest: false, depthWrite: false });
+        ctx.fillStyle = '#ffcc00';
+        ctx.beginPath();
+        ctx.moveTo(64, 0);
+        ctx.quadraticCurveTo(64, 64, 128, 64);
+        ctx.quadraticCurveTo(64, 64, 64, 128);
+        ctx.quadraticCurveTo(64, 64, 0, 64);
+        ctx.quadraticCurveTo(64, 64, 64, 0);
+        ctx.closePath();
+        ctx.fill();
+        ctx.fillStyle = '#000';
+        ctx.font = 'bold 45px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('☉', 64, 66);
+        return new THREE.SpriteMaterial({
+            map: new THREE.CanvasTexture(canvas),
+            depthTest: false,
+            depthWrite: false,
+        });
     }
 
     static createDiamondSpriteMat(symbol) {
         const canvas = document.createElement('canvas');
-        canvas.width = 128; canvas.height = 128;
+        canvas.width = 128;
+        canvas.height = 128;
         const ctx = canvas.getContext('2d');
-        ctx.fillStyle = '#ffcc00'; ctx.beginPath(); ctx.moveTo(64, 5); ctx.lineTo(123, 64); ctx.lineTo(64, 123); ctx.lineTo(5, 64); ctx.closePath(); ctx.fill();
-        ctx.strokeStyle = '#fff'; ctx.lineWidth = 4; ctx.stroke();
-        ctx.fillStyle = '#000'; ctx.font = 'bold 50px sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(symbol, 64, 68);
+        ctx.fillStyle = '#ffcc00';
+        ctx.beginPath();
+        ctx.moveTo(64, 5);
+        ctx.lineTo(123, 64);
+        ctx.lineTo(64, 123);
+        ctx.lineTo(5, 64);
+        ctx.closePath();
+        ctx.fill();
+        ctx.strokeStyle = '#fff';
+        ctx.lineWidth = 4;
+        ctx.stroke();
+        ctx.fillStyle = '#000';
+        ctx.font = 'bold 50px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(symbol, 64, 68);
         return new THREE.SpriteMaterial({ map: new THREE.CanvasTexture(canvas), depthTest: false });
     }
 
@@ -67,7 +96,7 @@ export class TacticalShaders {
                 uTime: { value: 0.0 }, // Days since J2000
                 uOrigin: { value: new THREE.Vector3(0, 0, 0) },
                 uColor: { value: new THREE.Color(colorHex) },
-                uZoom: { value: 1.0 }
+                uZoom: { value: 1.0 },
             },
             vertexShader: `
                 uniform float uTime;
@@ -159,7 +188,7 @@ export class TacticalShaders {
             depthTest: true,
             depthWrite: false,
             blending: THREE.CustomBlending,
-            blendEquation: THREE.MaxEquation
+            blendEquation: THREE.MaxEquation,
         });
     }
 
@@ -167,7 +196,8 @@ export class TacticalShaders {
         const displayText = text.toUpperCase().replace(/[-_]/g, ' ');
         const size = 512;
         const canvas = document.createElement('canvas');
-        canvas.width = size; canvas.height = size;
+        canvas.width = size;
+        canvas.height = size;
         const ctx = canvas.getContext('2d');
 
         ctx.font = "bold 46px 'Helvetica Compressed', 'Helvetica Inserat', 'Teko', sans-serif";
@@ -178,16 +208,16 @@ export class TacticalShaders {
         ctx.textBaseline = 'middle';
 
         const chars = [...displayText];
-        const widths = chars.map(ch => ctx.measureText(ch).width);
+        const widths = chars.map((ch) => ctx.measureText(ch).width);
         const totalWidth = widths.reduce((a, b) => a + b, 0);
-        
+
         const PX_PER_AU = 90;
         const MAX_TOTAL_ANGLE = 2.2; // ~125° ceiling on how far the arc may wrap
         const distanceRadius = meanA * PX_PER_AU;
         const minFitRadius = totalWidth / MAX_TOTAL_ANGLE;
         const curveRadius = Math.max(distanceRadius, minFitRadius, 70);
 
-        const angleSteps = widths.map(w => w / curveRadius);
+        const angleSteps = widths.map((w) => w / curveRadius);
         const totalAngle = angleSteps.reduce((a, b) => a + b, 0);
 
         const cx = size / 2;
@@ -216,7 +246,7 @@ export class TacticalShaders {
             transparent: true,
             depthTest: false,
             depthWrite: false,
-            side: THREE.DoubleSide
+            side: THREE.DoubleSide,
         });
     }
 }

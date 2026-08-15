@@ -2,10 +2,9 @@
 // Day/night terminator shading shell for a single body. Split out of the
 // former Shaders.js monolith -- see ShaderManager.js for the aggregated call
 // surface.
-import * as THREE from 'three'
+import * as THREE from 'three';
 
 export class NightSideShaders {
-
     static createNightShadeMat() {
         return new THREE.ShaderMaterial({
             uniforms: {
@@ -13,7 +12,7 @@ export class NightSideShaders {
                 uPlanetCenter: { value: new THREE.Vector3() },
                 uColor: { value: new THREE.Color(0x8a185d) },
                 uBarScale: { value: 0.05 },
-                uOpacity: { value: 0.6 }
+                uOpacity: { value: 0.6 },
             },
             vertexShader: `
                 varying vec3 vWorldPos;
@@ -55,7 +54,7 @@ export class NightSideShaders {
             `,
             transparent: true,
             depthWrite: false,
-            side: THREE.FrontSide
+            side: THREE.FrontSide,
         });
     }
 }

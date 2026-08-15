@@ -8,12 +8,12 @@ export class MeasurementManager {
         this.activeRulers = [];
         this.currentNodeA = null;
         this._farCamera = null;
-        
+
         this.rulerMaterial = new THREE.ShaderMaterial({
             uniforms: {
                 uFarProjectionMatrix: { value: new THREE.Matrix4() },
                 uColor: { value: new THREE.Color(0xffffff) },
-                uOpacity: { value: 0.9 }
+                uOpacity: { value: 0.9 },
             },
             vertexShader: `
                 uniform mat4 uFarProjectionMatrix;
@@ -31,7 +31,7 @@ export class MeasurementManager {
             `,
             transparent: true,
             depthTest: false,
-            depthWrite: false
+            depthWrite: false,
         });
 
         this.labelContainer = document.createElement('div');
@@ -53,7 +53,7 @@ export class MeasurementManager {
         if (bodyData.datasetCategory === 'BACKGROUND_STAR') {
             node = { data: bodyData, isStar: true };
         } else {
-            const body = celestialBodies.find(b => b.data.name === bodyData.name);
+            const body = celestialBodies.find((b) => b.data.name === bodyData.name);
             if (!body) return;
             node = body;
         }
@@ -62,14 +62,14 @@ export class MeasurementManager {
             this.currentNodeA = node;
         } else {
             this.createRuler(this.currentNodeA, node);
-            this.currentNodeA = null; 
+            this.currentNodeA = null;
         }
     }
 
     createRuler(bodyA, bodyB) {
         const geometry = new THREE.BufferGeometry();
         const line = new THREE.LineSegments(geometry, this.rulerMaterial);
-        line.renderOrder = 999; 
+        line.renderOrder = 999;
         this.scene.add(line);
 
         const label = document.createElement('div');
@@ -94,11 +94,11 @@ export class MeasurementManager {
         // Greater than ~632 AU (1% of a Light Year)
         if (distAU > LY_IN_AU * 0.01) {
             return `${(distAU / LY_IN_AU).toFixed(4)} LY`;
-        } 
+        }
         // Greater than ~7.5 million KM (Ensures Jovian Moons stay in KM, Interplanetary uses AU)
         else if (distAU > 0.05) {
             return `${distAU.toFixed(4)} AU`;
-        } 
+        }
         // Everything smaller falls back to Kilometers
         else {
             const distKm = distAU * AU_IN_KM;
@@ -129,7 +129,9 @@ export class MeasurementManager {
         this._farCamera.copy(camera);
         this._farCamera.far = STAR_FAR_PLANE_AU;
         this._farCamera.updateProjectionMatrix();
-        this.rulerMaterial.uniforms.uFarProjectionMatrix.value.copy(this._farCamera.projectionMatrix);
+        this.rulerMaterial.uniforms.uFarProjectionMatrix.value.copy(
+            this._farCamera.projectionMatrix
+        );
 
         const tempVec = new THREE.Vector3();
         const lineDir = new THREE.Vector3();
@@ -139,7 +141,7 @@ export class MeasurementManager {
         for (const ruler of this.activeRulers) {
             const posA = this._getNodePosition(ruler.bodyA, currentOrigin, daysSinceJ2000);
             const posB = this._getNodePosition(ruler.bodyB, currentOrigin, daysSinceJ2000);
-            
+
             const points = [posA.x, posA.y, posA.z, posB.x, posB.y, posB.z];
 
             const midPoint = new THREE.Vector3().addVectors(posA, posB).multiplyScalar(0.5);
@@ -148,22 +150,25 @@ export class MeasurementManager {
             perp.crossVectors(lineDir, toCamera).normalize();
 
             const dist = posA.distanceTo(posB);
-            const tickSize = dist * 0.01; 
+            const tickSize = dist * 0.01;
 
             const numSegments = 10;
             for (let i = 1; i < numSegments; i++) {
                 const fraction = i / numSegments;
                 const tickCenter = new THREE.Vector3().lerpVectors(posA, posB, fraction);
-                
-                const scale = (i === 5) ? tickSize * 1.8 : tickSize; 
-                
+
+                const scale = i === 5 ? tickSize * 1.8 : tickSize;
+
                 const tickStart = new THREE.Vector3().copy(tickCenter).addScaledVector(perp, scale);
                 const tickEnd = new THREE.Vector3().copy(tickCenter).addScaledVector(perp, -scale);
-                
+
                 points.push(tickStart.x, tickStart.y, tickStart.z, tickEnd.x, tickEnd.y, tickEnd.z);
             }
 
-            ruler.line.geometry.setAttribute('position', new THREE.Float32BufferAttribute(points, 3));
+            ruler.line.geometry.setAttribute(
+                'position',
+                new THREE.Float32BufferAttribute(points, 3)
+            );
 
             // Pass the native AU 3D distance into our revised formatter
             ruler.label.innerText = this.formatDistance(dist);
@@ -176,7 +181,7 @@ export class MeasurementManager {
                 const x = (tempVec.x * 0.5 + 0.5) * window.innerWidth;
                 const y = (tempVec.y * -0.5 + 0.5) * window.innerHeight;
                 ruler.label.style.left = `${x}px`;
-                ruler.label.style.top = `${y - 20}px`; 
+                ruler.label.style.top = `${y - 20}px`;
             }
         }
     }

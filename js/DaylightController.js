@@ -23,10 +23,10 @@ export class DaylightController {
         while (current && !visited.has(current.name)) {
             visited.add(current.name);
             if (current.parent === current.name) {
-                const starBody = bodies.find(b => b.data.name === current.name);
+                const starBody = bodies.find((b) => b.data.name === current.name);
                 return starBody ? starBody.renderPos : null;
             }
-            const parentBody = bodies.find(b => b.data.name === current.parent);
+            const parentBody = bodies.find((b) => b.data.name === current.parent);
             if (!parentBody) return null;
             current = parentBody.data;
         }
@@ -70,7 +70,10 @@ export class DaylightController {
         if (!entry || !entry.mesh.visible) return;
 
         const sunPos = this._findStarRenderPos(bodyObj);
-        if (!sunPos) { entry.mesh.visible = false; return; }
+        if (!sunPos) {
+            entry.mesh.visible = false;
+            return;
+        }
 
         entry.mesh.position.copy(bodyObj.renderPos);
         entry.mesh.scale.setScalar((bodyObj.physicalRadius || 1) * OVERLAY_SCALE_PAD);
@@ -90,7 +93,9 @@ export class DaylightController {
     setEnabled(enabled) {
         this.enabled = enabled;
         if (!enabled) {
-            this.overlays.forEach(({ mesh }) => { mesh.visible = false; });
+            this.overlays.forEach(({ mesh }) => {
+                mesh.visible = false;
+            });
         }
         // When re-enabled, overlays repopulate naturally on the next frame
         // via RenderPipeline's per-body onMeshVisibilityChange/updateForBody calls.

@@ -19,23 +19,23 @@ export class TutorialManager {
             {
                 id: 'bottom-deck',
                 title: 'CLOCK',
-                text: 'TBA'
+                text: 'TBA',
             },
             {
                 id: 'panel-left',
                 title: 'SEARCH AND VISIBILITY',
-                text: 'TBA'
+                text: 'TBA',
             },
             {
                 id: 'btn-scan',
                 title: 'ASTEROID SCAN',
-                text: 'SCAN'
+                text: 'SCAN',
             },
             {
-                id: null, 
+                id: null,
                 title: '3D CONTROLS',
-                text: 'Left-click and drag to pan the camera. Scroll to zoom. Click any celestial body or asteroid to lock the camera onto it.'
-            }//gif for mobile
+                text: 'Left-click and drag to pan the camera. Scroll to zoom. Click any celestial body or asteroid to lock the camera onto it.',
+            }, //gif for mobile
         ];
         this.initBindings();
         this.checkFirstRun();
@@ -63,9 +63,9 @@ export class TutorialManager {
         this.isActive = true;
         this.overlay.classList.add('active');
         this.storage.set('heliochronicon_tutorial', 'true');
-        
+
         this.renderStep();
-        this.trackTarget(); 
+        this.trackTarget();
     }
     nextStep() {
         this.currentStep++;
@@ -77,14 +77,14 @@ export class TutorialManager {
     }
     renderStep() {
         const step = this.steps[this.currentStep];
-        
+
         if (this.currentTargetEl) {
             this.currentTargetEl.classList.remove('tutorial-highlight');
         }
         // --- MOBILE ---
         const isMobile = window.innerWidth <= 768;
         const panelLeft = document.getElementById('panel-left');
-        
+
         if (isMobile && panelLeft) {
             if (step.id === 'panel-left') {
                 panelLeft.classList.add('mobile-active');
@@ -98,14 +98,14 @@ export class TutorialManager {
         this.text.innerText = step.text;
 
         this.currentTargetEl = step.id ? document.getElementById(step.id) : null;
-        
+
         if (this.currentTargetEl) {
             this.currentTargetEl.classList.add('tutorial-highlight');
         }
     }
     trackTarget() {
         if (!this.isActive) return;
-        
+
         this.positionOverlay();
         this.trackingFrame = requestAnimationFrame(() => this.trackTarget());
     }
@@ -132,8 +132,8 @@ export class TutorialManager {
         const boxHeight = this.box.offsetHeight || 180;
 
         if (!this.currentTargetEl) {
-            this.box.style.left = `${(window.innerWidth / 2) - (boxWidth / 2)}px`;
-            this.box.style.top = `${(window.innerHeight / 2) - (boxHeight / 2)}px`;
+            this.box.style.left = `${window.innerWidth / 2 - boxWidth / 2}px`;
+            this.box.style.top = `${window.innerHeight / 2 - boxHeight / 2}px`;
 
             this.line.style.display = 'none';
             this.dot.style.display = 'none';
@@ -144,14 +144,14 @@ export class TutorialManager {
 
         const targetRect = this.currentTargetEl.getBoundingClientRect();
 
-        const targetX = targetRect.left + (targetRect.width / 2);
-        const targetY = targetRect.top + (targetRect.height / 2);
+        const targetX = targetRect.left + targetRect.width / 2;
+        const targetY = targetRect.top + targetRect.height / 2;
 
-        let boxX = (window.innerWidth / 2) - (boxWidth / 2);
-        let boxY = (window.innerHeight / 2) - (boxHeight / 2);
+        let boxX = window.innerWidth / 2 - boxWidth / 2;
+        let boxY = window.innerHeight / 2 - boxHeight / 2;
 
         if (targetY > window.innerHeight / 2) {
-            boxY -= 150; 
+            boxY -= 150;
         } else {
             boxY += 150;
         }
@@ -161,8 +161,8 @@ export class TutorialManager {
         this.box.style.left = `${boxX}px`;
         this.box.style.top = `${boxY}px`;
 
-        const startX = boxX + (boxWidth / 2);
-        const startY = boxY + (boxHeight / 2);
+        const startX = boxX + boxWidth / 2;
+        const startY = boxY + boxHeight / 2;
 
         this.line.setAttribute('x1', startX);
         this.line.setAttribute('y1', startY);

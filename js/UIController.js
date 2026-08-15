@@ -16,12 +16,12 @@ export class UIController {
             btnFwd: document.getElementById('btn-time-fwd'),
             btnPause: document.getElementById('btn-time-pause'),
             btn1x: document.getElementById('btn-time-1x'),
-            btnLive: document.getElementById('btn-live')
+            btnLive: document.getElementById('btn-live'),
         });
         this.bodyListManager = new BodyListManager({
             listContainer: document.getElementById('body-list'),
             searchEl: document.getElementById('search-input'),
-            sortToggleEl: document.getElementById('sort-toggle')
+            sortToggleEl: document.getElementById('sort-toggle'),
         });
         this.telemetryManager = new TelemetryManager();
         this.visibilityTreeManager = new VisibilityTreeManager();
@@ -31,14 +31,14 @@ export class UIController {
         this.panelRight = document.getElementById('panel-right');
 
         this.mobileUiState = 0;
-        
+
         this.distMinEl = document.getElementById('moon-dist-min');
         this.distMaxEl = document.getElementById('moon-dist-max');
         this.sizeMinEl = document.getElementById('moon-size-min');
         this.sizeMaxEl = document.getElementById('moon-size-max');
         this.distValEl = document.getElementById('dist-val');
         this.sizeValEl = document.getElementById('size-val');
-        
+
         this.btnScan = document.getElementById('btn-scan');
         this.isScanActive = false;
 
@@ -56,25 +56,41 @@ export class UIController {
         this.onPinStarRequested = null;
 
         // Route internal manager events to UIController callbacks
-        this.bodyListManager.onFocusBody = (data) => { if (this.onFocusBody) this.onFocusBody(data); };
-        this.bodyListManager.onRefreshList = () => { if (this.onRefreshList) this.onRefreshList(); };
-        this.bodyListManager.onAsteroidLookup = (query) => { if (this.onAsteroidLookup) this.onAsteroidLookup(query); };
-        
-        this.telemetryManager.onPinRequested = (data) => { if (this.onPinRequested) this.onPinRequested(data); };
-        this.telemetryManager.onPurgeRequested = (data) => { if (this.onPurgeRequested) this.onPurgeRequested(data); };
-        this.telemetryManager.onFocusBody = (data) => { if (this.onFocusBody) this.onFocusBody(data); };
-        this.telemetryManager.onPinStarRequested = (data) => { if (this.onPinStarRequested) this.onPinStarRequested(data); };
+        this.bodyListManager.onFocusBody = (data) => {
+            if (this.onFocusBody) this.onFocusBody(data);
+        };
+        this.bodyListManager.onRefreshList = () => {
+            if (this.onRefreshList) this.onRefreshList();
+        };
+        this.bodyListManager.onAsteroidLookup = (query) => {
+            if (this.onAsteroidLookup) this.onAsteroidLookup(query);
+        };
 
-        this.telemetryManager.onEclipseNavRequested = (dir) => { if (this.onEclipseNavRequested) this.onEclipseNavRequested(dir); };
+        this.telemetryManager.onPinRequested = (data) => {
+            if (this.onPinRequested) this.onPinRequested(data);
+        };
+        this.telemetryManager.onPurgeRequested = (data) => {
+            if (this.onPurgeRequested) this.onPurgeRequested(data);
+        };
+        this.telemetryManager.onFocusBody = (data) => {
+            if (this.onFocusBody) this.onFocusBody(data);
+        };
+        this.telemetryManager.onPinStarRequested = (data) => {
+            if (this.onPinStarRequested) this.onPinStarRequested(data);
+        };
+
+        this.telemetryManager.onEclipseNavRequested = (dir) => {
+            if (this.onEclipseNavRequested) this.onEclipseNavRequested(dir);
+        };
 
         this.visibilityTreeManager.onDatasetVisibilityChanged = async (name, state, urls) => {
-            if (this.onDatasetVisibilityChanged) await this.onDatasetVisibilityChanged(name, state, urls);
+            if (this.onDatasetVisibilityChanged)
+                await this.onDatasetVisibilityChanged(name, state, urls);
         };
         this.visibilityTreeManager.onDatasetColorChanged = (name, color) => {
             if (this.onDatasetColorChanged) this.onDatasetColorChanged(name, color);
         };
-        
-        
+
         this.initBindings();
     }
 
@@ -102,7 +118,7 @@ export class UIController {
         this.onDaylightToggleChanged = null;
 
         const applyManualTime = () => {
-            const parsed = new Date(this.timeInput.value + "Z");
+            const parsed = new Date(this.timeInput.value + 'Z');
             if (!isNaN(parsed) && this.onTimeChanged) {
                 this.onTimeChanged(parsed);
                 this.timeThrottle.pauseForManualInput();
@@ -110,8 +126,11 @@ export class UIController {
         };
 
         this.timeInput.addEventListener('blur', applyManualTime);
-        this.timeInput.addEventListener('keypress', (e) => { 
-            if (e.key === 'Enter') { applyManualTime(); this.timeInput.blur(); } 
+        this.timeInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                applyManualTime();
+                this.timeInput.blur();
+            }
         });
 
         const updateSliders = () => {
@@ -123,7 +142,9 @@ export class UIController {
             const sMax = parseFloat(this.sizeMaxEl.value);
             this.sizeValEl.innerText = `${Math.min(sMin, sMax)} - ${Math.max(sMin, sMax)}`;
         };
-        [this.distMinEl, this.distMaxEl, this.sizeMinEl, this.sizeMaxEl].forEach(el => el.addEventListener('input', updateSliders));
+        [this.distMinEl, this.distMaxEl, this.sizeMinEl, this.sizeMaxEl].forEach((el) =>
+            el.addEventListener('input', updateSliders)
+        );
 
         // Scan For Nearby Asteroids
         this.btnScan.addEventListener('click', () => {
@@ -148,12 +169,12 @@ export class UIController {
                     this.panelLeft.classList.add('mobile-active');
                     this.panelRight.classList.remove('mobile-active');
                     this.btnMobileToggle.innerText = 'VIEW TELEMETRY';
-                    this.btnMobileToggle.style.color = '#00ffff'; 
+                    this.btnMobileToggle.style.color = '#00ffff';
                 } else {
                     this.panelLeft.classList.remove('mobile-active');
                     this.panelRight.classList.add('mobile-active');
                     this.btnMobileToggle.innerText = 'CLOSE TERMINAL';
-                    this.btnMobileToggle.style.color = '#ff3333'; 
+                    this.btnMobileToggle.style.color = '#ff3333';
                 }
             });
         }
@@ -161,14 +182,14 @@ export class UIController {
         if (this.btnMeasure) {
             this.btnMeasure.addEventListener('click', () => {
                 this.isMeasureMode = !this.isMeasureMode;
-                
+
                 // Pure CSS class toggle (HTML/CSS handles the visuals)
                 if (this.isMeasureMode) {
                     this.btnMeasure.classList.add('active');
                 } else {
                     this.btnMeasure.classList.remove('active');
                 }
-                
+
                 if (this.onMeasureModeChanged) {
                     this.onMeasureModeChanged(this.isMeasureMode);
                 }
@@ -209,9 +230,9 @@ export class UIController {
             if (this.onClearData) {
                 this.onClearData();
                 this.datasets.clear();
-                
+
                 this.visibilityTreeManager.clearTrees();
-                
+
                 this.isScanActive = false;
                 this.btnScan.classList.remove('active');
             }
@@ -242,9 +263,15 @@ export class UIController {
 
     // --- Sub-manager Passthroughs ---
     addDatasetToggle(datasetName, category, colorHex, isChecked = false, urls = []) {
-        this.visibilityTreeManager.addDatasetToggle(datasetName, category, colorHex, isChecked, urls);
+        this.visibilityTreeManager.addDatasetToggle(
+            datasetName,
+            category,
+            colorHex,
+            isChecked,
+            urls
+        );
     }
-    
+
     updateTargetPanel(data) {
         this.telemetryManager.updateTargetPanel(data);
     }
@@ -252,7 +279,7 @@ export class UIController {
     updateLiveTelemetry(wDeg, raDeg, decDeg) {
         this.telemetryManager.updateLiveTelemetry(wDeg, raDeg, decDeg);
     }
-    
+
     renderScanResults(results, referenceName) {
         this.telemetryManager.renderScanResults(results, referenceName);
     }
@@ -290,7 +317,7 @@ export class UIController {
             distMin: Math.min(dMin, dMax),
             distMax: Math.max(dMin, dMax),
             sizeMin: Math.min(sMin, sMax),
-            sizeMax: Math.max(sMin, sMax)
+            sizeMax: Math.max(sMin, sMax),
         };
     }
 
