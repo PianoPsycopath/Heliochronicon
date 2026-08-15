@@ -2,7 +2,8 @@
 // tests/SystemBuilder.test.js
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import * as THREE from 'three';
-import { OrbitalMath, kmToAU, AU_IN_KM } from '../js/OrbitalMath.js';
+import { OrbitalMath, kmToAU } from '../js/OrbitalMath.js';
+import { AU_IN_KM } from '../js/constants.js';
 
 // Shaders.js was not supplied; mock it so SystemBuilder's own branching logic runs
 // without depending on real shader/material construction.

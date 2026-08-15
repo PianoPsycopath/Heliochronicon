@@ -28,8 +28,7 @@ vi.mock('../js/Shaders.js', () => ({
 
 import { Shaders } from '../js/Shaders.js';
 import { EclipseShadowController } from '../js/EclipseShadowController.js';
-
-const AU_IN_KM = 149597870.7;
+import { AU_IN_KM } from '../js/constants.js';
 
 function mkBody(name, parent, { isMoon = false, renderPos = null, physicalRadius = 0.0001, mesh = null } = {}) {
     return {
@@ -161,7 +160,9 @@ describe('EclipseShadowController', () => {
         });
 
         it('shows the overlay and populates uniforms when a moon eclipses its planet', () => {
-            const sun = mkBody('SUN', 'SUN', { renderPos: new THREE.Vector3(0, 0, 0) });
+            const sun = mkBody('SUN', 'SUN', {
+                renderPos: new THREE.Vector3(0, 0, 0), physicalRadius: starRadiusAU
+            });
             const earth = mkBody('EARTH', 'SUN', {
                 renderPos: new THREE.Vector3(1, 0, 0), physicalRadius: 6371 / AU_IN_KM
             });

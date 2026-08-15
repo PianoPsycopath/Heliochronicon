@@ -6,7 +6,7 @@
 // scene graph out of them without throwing, with the right shape at each hop.
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { DataLoader } from '../js/DataLoader.js';
-import { AU_IN_KM } from '../js/OrbitalMath.js';
+import { AU_IN_KM } from '../js/constants.js';
 
 vi.mock('../js/Shaders.js', () => ({
     Shaders: {
