@@ -24,7 +24,7 @@ export class DataLoader {
             return await response.json();
         } catch (error) {
             logger.error(`Failed to load dataset from ${url}:`, error);
-            return [];
+            throw error instanceof Error ? error : new Error(`Failed to load dataset from ${url}`);
         }
     }
     static processPlanetaryData(rawData, datasetName = 'UNKNOWN_DATASET') {
