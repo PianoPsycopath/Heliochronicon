@@ -22,3 +22,9 @@ export const MAX_WELLS = 35;
 // Must match the cap EclipseShadowController applies when it ranks and
 // truncates eclipse candidates before uploading them to the shader.
 export const MAX_SHADOWS = 8;
+
+// Maximum number of moons that can be considered for a moon-moon eclipse
+// calculation. This is a hard cap to avoid combinatorial explosion in the
+// moon-moon eclipse search. The actual number of moons considered is the
+// minimum of this constant and the number of moons in the scene.
+export const MAX_MOON_MOON_MEMBERS = 8;
