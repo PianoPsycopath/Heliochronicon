@@ -8,7 +8,7 @@ import * as THREE from 'three';
 vi.mock('../js/Shaders.js', () => ({
     Shaders: {
         createTerrainContourMat: vi.fn((texture, elevMin, elevMax) => ({
-            isMockMaterial: true, texture, elevMin, elevMax
+            isMockMaterial: true, texture, elevMin, elevMax, dispose: vi.fn()
         }))
     }
 }));
@@ -155,7 +155,7 @@ describe('TerrainController', () => {
 
     it('on successful load: builds the material via Shaders, caches it, clears the pending flag, and assigns it if the body is still registered', async () => {
         fetchMock.mockResolvedValue({ ok: true, json: async () => ({}) });
-        const fakeTexture = { minFilter: null, magFilter: null, generateMipmaps: true };
+        const fakeTexture = { minFilter: null, magFilter: null, generateMipmaps: true, dispose: vi.fn() };
 
         vi.spyOn(THREE.TextureLoader.prototype, 'load').mockImplementation((url, onLoad) => {
             onLoad(fakeTexture);
@@ -176,7 +176,7 @@ describe('TerrainController', () => {
 
     it('on successful load: does NOT assign the material if the body was removed from ctx.celestialBodies while loading', async () => {
         fetchMock.mockResolvedValue({ ok: true, json: async () => ({}) });
-        const fakeTexture = {};
+        const fakeTexture = { dispose: vi.fn() };
         vi.spyOn(THREE.TextureLoader.prototype, 'load').mockImplementation((url, onLoad) => {
             onLoad(fakeTexture);
         });
@@ -188,7 +188,8 @@ describe('TerrainController', () => {
 
         ctrl.ensureLoaded(body, { url: 'earth.png' });
 
-        expect(ctrl.cache.has('EARTH')).toBe(true); // still cached for later reuse
+        expect(ctrl.cache.has('EARTH')).toBe(false); // still cached for later reuse
+        expect(fakeTexture.dispose).toHaveBeenCalled();
         expect(body.mesh.material).toBe('ORIGINAL_MATERIAL'); // left untouched
     });
 

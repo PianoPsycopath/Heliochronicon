@@ -233,31 +233,44 @@ UI.onRefreshList = () => {
 
 // Stateful Toggles
 const activeDatasets = new Set();
+const inFlightDatasets = new Set();
 
 UI.onDatasetVisibilityChanged = async (datasetName, isVisible, urls) => {
     if (isVisible) {
-        if (activeDatasets.has(datasetName)) return;
+        if (activeDatasets.has(datasetName) || inFlightDatasets.has(datasetName)) return;
 
+        inFlightDatasets.add(datasetName);
         const urlArray = Array.isArray(urls) ? urls : [urls];
 
         try {
-            // Fetch all chunks in parallel
             const fetchPromises = urlArray.map((url) => DataLoader.fetchJSONDataset(url));
             const chunkResults = await Promise.all(fetchPromises);
 
-            // Merge all parsed chunk arrays into single dataset,
-            const mergedJSON = chunkResults.flat();
+            // Lifecycle Race Fix: The user toggled this dataset off while chunks were fetching.
+            if (!inFlightDatasets.has(datasetName)) {
+                logger.info(
+                    `[Heliochronicon] Load aborted for ${datasetName}; toggled off during fetch.`
+                );
+                return;
+            }
 
+            const mergedJSON = chunkResults.flat();
             const processedData = DataLoader.processPlanetaryData(mergedJSON, datasetName);
             systemBuilder.buildSolarSystem(processedData);
             activeDatasets.add(datasetName);
+
+            // Clear any previous error states in the UI if applicable
         } catch (error) {
             logger.error(`Failed to load chunk group for ${datasetName}`, error);
+            // Wire user-visible feedback
+            UI.showLookupNotFound(`Failed to download ${datasetName} dataset. Check network.`);
+        } finally {
+            inFlightDatasets.delete(datasetName);
         }
     } else {
         // PURGE SEQUENCE
+        inFlightDatasets.delete(datasetName); // Immediately cancel pending state
         activeDatasets.delete(datasetName);
-
         bodyRegistry.removeByDataset(datasetName);
 
         if (currentTargetData && currentTargetData.datasetName === datasetName) {
@@ -359,11 +372,16 @@ UI.onAsteroidLookup = async (rawQuery) => {
         // hardcode specific group names here anymore.
         const skipGroups = [...activeDatasets];
         const found = await DataLoader.findAsteroidInManifest(query, assetManifest, skipGroups);
+
         if (found) {
             UI.onFocusBody(found);
         } else {
             UI.showLookupNotFound(query);
         }
+    } catch (error) {
+        logger.error(`Asteroid lookup failed due to network or parsing error:`, error);
+        // Distinguishable failure path
+        UI.showLookupNotFound(`Network error querying ${query}`);
     } finally {
         lookupInFlight = false;
     }

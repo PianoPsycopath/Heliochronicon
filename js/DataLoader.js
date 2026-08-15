@@ -20,7 +20,7 @@ export class DataLoader {
     static async fetchJSONDataset(url) {
         try {
             const response = await fetch(url);
-            if (!response.ok) throw new Error(`HTTP Error: ${response.status}`);
+            if (!response.ok) throw new Error(`HTTP Error: ${response.status} at ${url}`);
             return await response.json();
         } catch (error) {
             logger.error(`Failed to load dataset from ${url}:`, error);

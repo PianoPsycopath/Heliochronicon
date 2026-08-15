@@ -340,3 +340,13 @@ Missing manifest is non-fatal (terrain simply stays off).
 - `CONTRIBUTING.md` — local setup, conventions, CI expectations.
 - `docs/` — home for sequence diagrams (frame pipeline, body lifecycle, data load,
   eclipse/terrain attachment) and `docs/performance-notes.md` (star-field LOD work, Phase C).
+
+## 11. Async State & Resource Loading Policy
+
+To prevent orphaned geometries, memory leaks, and overlapping HTTP requests during procedural data generation or chunk loading, all async pathways must adhere to the following strict lifecycle rules:
+
+1. **In-Flight Guards:** Every user-initiated async load (e.g., dataset toggles, deep asteroid lookup) must check an active "in-flight" state (e.g., `inFlightDatasets.has(name)`) before firing to prevent duplicate fetches.
+2. **Cancellation Validation:** Upon resolution of a network promise, the orchestrator must verify that the user has not canceled the action (e.g., toggled off a dataset) before committing the result to the scene graph. 
+3. **Disposal Race Checks:** Async callbacks that apply textures or materials (like `TerrainController`) must verify that the target `CelestialBody` still exists in `celestialBodies[]` and `scene.children`. If the body was purged during the load, the newly loaded GPU resources must be `dispose()`'d immediately.
+4. **Distinguishable Failures:** Base data fetchers (like `DataLoader.fetchJSONDataset`) must throw errors rather than swallowing them into empty arrays. Orchestrators catch these errors and route them to user-visible telemetry elements (e.g., `UI.showLookupNotFound(msg)`).
+5. **Soft Failures for Optional Assets:** Purely aesthetic or background layers (like `StarLoader`) may catch and swallow errors, returning `null` to fail silently and preserve engine boot flow.

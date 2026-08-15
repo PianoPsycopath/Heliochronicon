@@ -55,12 +55,17 @@ export class TerrainController {
                 texture.generateMipmaps = false;
 
                 const material = Shaders.createTerrainContourMat(texture, cfg.elevMin, cfg.elevMax);
-                this.cache.set(name, { texture, material });
-                this.pending.delete(name);
 
-                if (this.ctx.celestialBodies.includes(bodyObj)) {
+                // Guard: Was this body purged from the scene during the async texture load?
+                if (this.ctx.celestialBodies.includes(bodyObj) && bodyObj.mesh) {
+                    this.cache.set(name, { texture, material });
                     bodyObj.mesh.material = material;
+                } else {
+                    // The body was deleted. Dump the GPU resources.
+                    texture.dispose();
+                    material.dispose();
                 }
+                this.pending.delete(name);
             },
             undefined,
             (err) => {
