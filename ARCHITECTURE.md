@@ -61,6 +61,10 @@ order.
   (`.github/workflows/ci.yml`) runs two jobs in parallel:
   - JS: `npm ci` → `npm run lint` → `npm test` → `npm run build`
   - Python: `pip install -e ".[dev]"` → `ruff check .` → `black --check .` → `pytest`
+- **Logging:** all diagnostics go through `js/logger.js` (levels: debug / info / warn /
+  error / silent). Production builds default to `warn` (quiet); the dev server defaults
+  to `debug`. Runtime override from the browser console: `setLogLevel('info')` /
+  `getLogLevel()`. Do not call `console.*` directly from app modules.
 - No TypeScript is in use. A full TS migration remains paused.
 
 `main.js` is the **composition root**: it imports every subsystem, instantiates them, and
@@ -220,6 +224,8 @@ to `raw/json_db/`. Examples: `raw/atira.csv`, `raw/kerbin_system.csv`.
 `main.js` reads its data directory from a runtime-configurable `DATA_BASE_PATH`
 (`?dataSource=` URL param or `StorageManager` key `heliochronicon_dataSourcePath`) and
 exposes `window.switchDataSource(path)` / `window.resetDataSource()` on the console.
+`main.js` also exposes `window.setLogLevel(level)` / `window.getLogLevel()` for the
+leveled logger (see §2 Tooling / Logging).
 
 ### Star field path
 
@@ -251,6 +257,7 @@ Missing manifest is non-fatal (terrain simply stays off).
 | `DataLoader.js` | Fetch + normalize planetary / asteroid JSON |
 | `CelestialBody.js` | Enforced body schema / factory |
 | `storage.js` | `StorageManager` — sole `localStorage` access point |
+| `logger.js` | Minimal leveled logger. Production defaults to `warn`; dev defaults to `debug`. Exposes `window.setLogLevel` / `window.getLogLevel`. |
 
 ### Physics & math
 
