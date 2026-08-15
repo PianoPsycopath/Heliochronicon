@@ -1,16 +1,15 @@
 // js/main.js
-import { DataLoader} from './DataLoader.js';
-import { OrbitalMath } from './OrbitalMath.js';
+import { DataLoader } from './DataLoader.js';
 import { AU_IN_KM, MAX_WELLS } from './constants.js';
-import { SceneManager} from './SceneManager.js';
-import { Shaders} from './Shaders.js';
-import { UIController} from './UIController.js';
-import { SystemBuilder} from './SystemBuilder.js';
-import { InteractionController} from './InteractionController.js';
-import { RenderPipeline} from './RenderPipeline.js';
-import { TacticalScanner} from './TacticalScanner.js';
-import { PhysicsEngine} from './PhysicsEngine.js';
-import { TutorialManager} from './TutorialManager.js';
+import { SceneManager } from './SceneManager.js';
+import { Shaders } from './Shaders.js';
+import { UIController } from './UIController.js';
+import { SystemBuilder } from './SystemBuilder.js';
+import { InteractionController } from './InteractionController.js';
+import { RenderPipeline } from './RenderPipeline.js';
+import { TacticalScanner } from './TacticalScanner.js';
+import { PhysicsEngine } from './PhysicsEngine.js';
+import { TutorialManager } from './TutorialManager.js';
 import { BodyRegistry } from './BodyRegistry.js';
 import { StorageManager } from './storage.js';
 import { ZoomRulerManager } from './ZoomRulerManager.js';
@@ -22,7 +21,7 @@ import { DaylightController } from './DaylightController.js';
 import { EclipseEngine } from './EclipseEngine.js';
 import { EclipseShadowController } from './EclipseShadowController.js';
 
-import * as THREE from 'three'
+import * as THREE from 'three';
 
 const storage = new StorageManager();
 // --- DATA SOURCE (switchable at runtime from the browser console) ---
@@ -37,8 +36,8 @@ function normalizeDataBasePath(path) {
 
 const DATA_BASE_PATH = normalizeDataBasePath(
     new URLSearchParams(window.location.search).get('dataSource') ||
-    storage.get(DATA_SOURCE_STORAGE_KEY) || 
-    DEFAULT_DATA_BASE_PATH
+        storage.get(DATA_SOURCE_STORAGE_KEY) ||
+        DEFAULT_DATA_BASE_PATH
 );
 
 const STAR_DATA_BASE_PATH = 'star_data/';
@@ -53,7 +52,9 @@ window.resetDataSource = function resetDataSource() {
     window.location.reload();
 };
 
-console.log(`[Heliochronicon] Data source: ${DATA_BASE_PATH} (switchDataSource('path/') to change, resetDataSource() to revert)`);
+console.log(
+    `[Heliochronicon] Data source: ${DATA_BASE_PATH} (switchDataSource('path/') to change, resetDataSource() to revert)`
+);
 
 // --- INITIALIZE SCENE MANAGER ---
 const sceneManager = new SceneManager('canvas-container');
@@ -65,40 +66,37 @@ const frustumSize = sceneManager.frustumSize;
 
 // --- STATE MANAGEMENT ---
 let systemDate = new Date();
-let currentTargetData = null;  
-let trackingTargetData = null; 
-let previewTargetData = null;  // Hover-only preview target - never targeted, never sent to telemetry
+let currentTargetData = null;
+let trackingTargetData = null;
+let previewTargetData = null; // Hover-only preview target - never targeted, never sent to telemetry
 
-const celestialBodies = []; 
-const pickableObjects = []; 
-const gpuParticleSystems = []; 
-const currentOrigin = new THREE.Vector3(0, 0, 0); 
+const celestialBodies = [];
+const pickableObjects = [];
+const gpuParticleSystems = [];
+const currentOrigin = new THREE.Vector3(0, 0, 0);
 
-let assetManifest = null;      // cached data/manifest.json, used by the deep asteroid lookup
-let lookupInFlight = false;    // guards against overlapping lookups
+let assetManifest = null; // cached data/manifest.json, used by the deep asteroid lookup
+let lookupInFlight = false; // guards against overlapping lookups
 
 // --- GLOBAL ASSETS & MEMORY ---
 const dotTexture = Shaders.createDotTexture();
-const datasetMaterials = {}; 
+const datasetMaterials = {};
 const savedColors = storage.get('tacticalMapColors', {});
 
 // --- INITIALIZE UI & MATERIALS ---
 const gridMaterial = Shaders.getGridMaterial(MAX_WELLS);
-const gridPlane = new THREE.Mesh(
-    new THREE.PlaneGeometry(1000000, 1000000, 4, 4), 
-    gridMaterial
-);
+const gridPlane = new THREE.Mesh(new THREE.PlaneGeometry(1000000, 1000000, 4, 4), gridMaterial);
 gridPlane.rotation.x = -Math.PI / 2;
 gridPlane.renderOrder = -2;
 scene.add(gridPlane);
 
 const equatorialMaterial = Shaders.getEquatorialGridMaterial();
 const equatorialGridPlane = new THREE.Mesh(
-    new THREE.PlaneGeometry(1000, 1000, 4, 4), 
+    new THREE.PlaneGeometry(1000, 1000, 4, 4),
     equatorialMaterial
 );
 equatorialGridPlane.visible = false;
-equatorialGridPlane.renderOrder = -1; 
+equatorialGridPlane.renderOrder = -1;
 scene.add(equatorialGridPlane);
 
 const measurementManager = new MeasurementManager(scene, camera);
@@ -115,26 +113,42 @@ const eclipseShadowController = new EclipseShadowController({ scene, celestialBo
 // GPU, and DOM resources. SystemBuilder and TacticalScanner both register
 // and remove bodies through this instead of duplicating dispose sequences.
 const bodyRegistry = new BodyRegistry({
-    scene, celestialBodies, pickableObjects, gpuParticleSystems,
-    daylightController, eclipseShadowController
+    scene,
+    celestialBodies,
+    pickableObjects,
+    gpuParticleSystems,
+    daylightController,
+    eclipseShadowController,
 });
 
 const systemBuilder = new SystemBuilder({
-    scene, UI, celestialBodies, pickableObjects, gpuParticleSystems,
-    datasetMaterials, savedColors, dotTexture, tacticalMaterial, AU_IN_KM,
+    scene,
+    UI,
+    celestialBodies,
+    pickableObjects,
+    gpuParticleSystems,
+    datasetMaterials,
+    savedColors,
+    dotTexture,
+    tacticalMaterial,
+    AU_IN_KM,
     bodyRegistry,
     getCurrentTarget: () => currentTargetData,
-    onClearTarget: () => { 
-        currentTargetData = null; 
-        trackingTargetData = null; 
+    onClearTarget: () => {
+        currentTargetData = null;
+        trackingTargetData = null;
     },
-    onClearMemory: () => {
-        
-    }
+    onClearMemory: () => {},
 });
 
 const interactionController = new InteractionController({
-    camera, controls, frustumSize, pickableObjects, gpuParticleSystems, UI, renderer,
+    camera,
+    controls,
+    frustumSize,
+    pickableObjects,
+    gpuParticleSystems,
+    UI,
+    renderer,
     getCurrentOrigin: () => currentOrigin,
     getDaysSinceJ2000: () => PhysicsEngine.getJ2000Days(systemDate),
     getCurrentTarget: () => currentTargetData,
@@ -153,18 +167,39 @@ const interactionController = new InteractionController({
             UI.onFocusBody(data, isHardLock);
         }
     },
-    onTrackingBroken: () => { trackingTargetData = null; },
-    onBodyHovered: (data) => { previewTargetData = data; }
+    onTrackingBroken: () => {
+        trackingTargetData = null;
+    },
+    onBodyHovered: (data) => {
+        previewTargetData = data;
+    },
 });
 
 const renderPipeline = new RenderPipeline({
-    camera, controls, gridMaterial, gpuParticleSystems, UI, savedColors, MAX_WELLS,
-    terrainController, daylightController, eclipseShadowController
+    camera,
+    controls,
+    gridMaterial,
+    gpuParticleSystems,
+    UI,
+    savedColors,
+    MAX_WELLS,
+    terrainController,
+    daylightController,
+    eclipseShadowController,
 });
 
 const tacticalScanner = new TacticalScanner({
-    scene, camera, UI, celestialBodies, pickableObjects, gpuParticleSystems, currentOrigin, dotTexture, savedColors,
-    systemBuilder, bodyRegistry,
+    scene,
+    camera,
+    UI,
+    celestialBodies,
+    pickableObjects,
+    gpuParticleSystems,
+    currentOrigin,
+    dotTexture,
+    savedColors,
+    systemBuilder,
+    bodyRegistry,
     getSystemDate: () => systemDate,
     getCurrentTarget: () => currentTargetData,
     getJ2000Days: (date) => PhysicsEngine.getJ2000Days(date),
@@ -174,45 +209,50 @@ const tacticalScanner = new TacticalScanner({
         interactionController.clearTracking();
         UI.updateTargetPanel(null);
         UI.renderBodyList(celestialBodies, null);
-    }
+    },
 });
 
-const zoomRuler = new ZoomRulerManager({
+new ZoomRulerManager({
     camera: sceneManager.camera,
-    controls: sceneManager.controls
+    controls: sceneManager.controls,
 });
 
 const pinnedStarManager = new PinnedStarManager();
 
 // --- UI CALLBACKS ---
-UI.onTimeChanged = (date) => { systemDate = date; };
-UI.onClearData = () => { systemBuilder.clearSolarSystem(); };
-UI.onRefreshList = () => { UI.renderBodyList(celestialBodies, currentTargetData); };
+UI.onTimeChanged = (date) => {
+    systemDate = date;
+};
+UI.onClearData = () => {
+    systemBuilder.clearSolarSystem();
+};
+UI.onRefreshList = () => {
+    UI.renderBodyList(celestialBodies, currentTargetData);
+};
 
 // Stateful Toggles
-const activeDatasets = new Set(); 
+const activeDatasets = new Set();
 
 UI.onDatasetVisibilityChanged = async (datasetName, isVisible, urls) => {
     if (isVisible) {
-        if (activeDatasets.has(datasetName)) return; 
-        
+        if (activeDatasets.has(datasetName)) return;
+
         const urlArray = Array.isArray(urls) ? urls : [urls];
-        
+
         try {
             // Fetch all chunks in parallel
-            const fetchPromises = urlArray.map(url => DataLoader.fetchJSONDataset(url));
+            const fetchPromises = urlArray.map((url) => DataLoader.fetchJSONDataset(url));
             const chunkResults = await Promise.all(fetchPromises);
-            
+
             // Merge all parsed chunk arrays into single dataset,
             const mergedJSON = chunkResults.flat();
-            
+
             const processedData = DataLoader.processPlanetaryData(mergedJSON, datasetName);
             systemBuilder.buildSolarSystem(processedData);
             activeDatasets.add(datasetName);
         } catch (error) {
             console.error(`Failed to load chunk group for ${datasetName}`, error);
         }
-        
     } else {
         // PURGE SEQUENCE
         activeDatasets.delete(datasetName);
@@ -227,16 +267,18 @@ UI.onDatasetVisibilityChanged = async (datasetName, isVisible, urls) => {
 
 UI.onDatasetColorChanged = (datasetName, colorHex) => {
     if (datasetMaterials[datasetName]) {
-        if (datasetMaterials[datasetName].uniforms && datasetMaterials[datasetName].uniforms.uColor) {
+        if (
+            datasetMaterials[datasetName].uniforms &&
+            datasetMaterials[datasetName].uniforms.uColor
+        ) {
             datasetMaterials[datasetName].uniforms.uColor.value.set(colorHex);
         } else {
             datasetMaterials[datasetName].color.set(colorHex);
         }
     }
     savedColors[datasetName] = colorHex;
-    storage.set('tacticalMapColors', savedColors)
+    storage.set('tacticalMapColors', savedColors);
 };
-
 
 UI.onFocusBody = (data, isHardLock = true) => {
     if (data && data.datasetCategory === 'BACKGROUND_STAR') {
@@ -245,7 +287,9 @@ UI.onFocusBody = (data, isHardLock = true) => {
     }
     if (data.datasetCategory === 'ASTEROID' || data.datasetCategory === 'RADAR_CONTACT') {
         systemBuilder.promoteAsteroidToCPU(data);
-        data = celestialBodies.find(b => b.data.name === data.name && b.data.datasetCategory === 'PROMOTED_ASTEROID').data;
+        data = celestialBodies.find(
+            (b) => b.data.name === data.name && b.data.datasetCategory === 'PROMOTED_ASTEROID'
+        ).data;
     }
 
     currentTargetData = data;
@@ -257,10 +301,12 @@ UI.onFocusBody = (data, isHardLock = true) => {
 };
 
 UI.onPinRequested = (data) => {
-    const b = celestialBodies.find(x => x.data.name === data.name && x.data.datasetCategory === 'PROMOTED_ASTEROID');
+    const b = celestialBodies.find(
+        (x) => x.data.name === data.name && x.data.datasetCategory === 'PROMOTED_ASTEROID'
+    );
     if (b) {
-        b.data.isPinned = !b.data.isPinned; 
-        UI.updateTargetPanel(b.data); 
+        b.data.isPinned = !b.data.isPinned;
+        UI.updateTargetPanel(b.data);
     }
 };
 
@@ -285,7 +331,9 @@ UI.onAsteroidLookup = async (rawQuery) => {
 
     const target = DataLoader.normalizeDesignation(query);
 
-    const tracked = celestialBodies.find(b => DataLoader.normalizeDesignation(b.data.name) === target);
+    const tracked = celestialBodies.find(
+        (b) => DataLoader.normalizeDesignation(b.data.name) === target
+    );
     if (tracked) {
         UI.onFocusBody(tracked.data);
         return;
@@ -294,7 +342,7 @@ UI.onAsteroidLookup = async (rawQuery) => {
     for (const system of gpuParticleSystems) {
         const source = system.userData && system.userData.sourceData;
         if (!source) continue;
-        const hit = source.find(d => DataLoader.normalizeDesignation(d.name) === target);
+        const hit = source.find((d) => DataLoader.normalizeDesignation(d.name) === target);
         if (hit) {
             UI.onFocusBody(hit);
             return;
@@ -320,9 +368,9 @@ UI.onAsteroidLookup = async (rawQuery) => {
     }
 };
 
-UI.onScanRequested = (isActive) => { 
+UI.onScanRequested = (isActive) => {
     if (isActive) {
-        tacticalScanner.performTacticalScan(); 
+        tacticalScanner.performTacticalScan();
     } else {
         tacticalScanner.purgeTacticalClones();
     }
@@ -344,9 +392,17 @@ UI.onDaylightToggleChanged = (isEnabled) => {
 
 UI.onEclipseNavRequested = (direction) => {
     if (!currentTargetData) return;
-    const allBodiesData = [...celestialBodies.map(b => b.data), ...gpuParticleSystems.flatMap(s => s.userData.sourceData || [])];
+    const allBodiesData = [
+        ...celestialBodies.map((b) => b.data),
+        ...gpuParticleSystems.flatMap((s) => s.userData.sourceData || []),
+    ];
     const fromDays = PhysicsEngine.getJ2000Days(systemDate);
-    const event = EclipseEngine.findNextEclipse(currentTargetData, allBodiesData, fromDays, direction);
+    const event = EclipseEngine.findNextEclipse(
+        currentTargetData,
+        allBodiesData,
+        fromDays,
+        direction
+    );
     if (event) {
         const newDate = new Date(Date.UTC(2000, 0, 1, 12, 0, 0) + event.days * 86400000);
         systemDate = newDate;
@@ -415,7 +471,9 @@ async function bootEngine() {
     let asteroidColorIdx = 0;
 
     for (const [groupName, groupData] of Object.entries(manifest.datasets)) {
-        const chunkUrls = (groupData.chunks || []).map(chunkFile => `${DATA_BASE_PATH}${chunkFile}`);
+        const chunkUrls = (groupData.chunks || []).map(
+            (chunkFile) => `${DATA_BASE_PATH}${chunkFile}`
+        );
         if (chunkUrls.length === 0) continue;
 
         // Peek at the first chunk to see what this dataset actually contains.
@@ -432,15 +490,18 @@ async function bootEngine() {
         if (!firstChunkRows || firstChunkRows.length === 0) continue;
 
         const categoriesPresent = new Set(
-            firstChunkRows.map(row => (row.category || '').toString().toUpperCase())
+            firstChunkRows.map((row) => (row.category || '').toString().toUpperCase())
         );
-        const isCore = [...categoriesPresent].some(cat => CORE_CATEGORIES.has(cat));
+        const isCore = [...categoriesPresent].some((cat) => CORE_CATEGORIES.has(cat));
 
         if (isCore) {
             try {
-                const remainingChunks = chunkUrls.length > 1
-                    ? await Promise.all(chunkUrls.slice(1).map(url => DataLoader.fetchJSONDataset(url)))
-                    : [];
+                const remainingChunks =
+                    chunkUrls.length > 1
+                        ? await Promise.all(
+                              chunkUrls.slice(1).map((url) => DataLoader.fetchJSONDataset(url))
+                          )
+                        : [];
                 const mergedJSON = [firstChunkRows, ...remainingChunks].flat();
                 const processedData = DataLoader.processPlanetaryData(mergedJSON, groupName);
 
@@ -452,26 +513,35 @@ async function bootEngine() {
 
                     // Icon/category shown on the toggle -- prefer STAR/PLANET
                     // over MOON so mixed systems read as "planet" toggles.
-                    const iconCategory = (categoriesPresent.has('STAR') || categoriesPresent.has('PLANET'))
-                        ? 'PLANET'
-                        : (categoriesPresent.has('MOON') ? 'MOON' : 'PLANET');
+                    const iconCategory =
+                        categoriesPresent.has('STAR') || categoriesPresent.has('PLANET')
+                            ? 'PLANET'
+                            : categoriesPresent.has('MOON')
+                              ? 'MOON'
+                              : 'PLANET';
 
-                    UI.addDatasetToggle(groupName, iconCategory, savedColors[groupName], true, chunkUrls);
+                    UI.addDatasetToggle(
+                        groupName,
+                        iconCategory,
+                        savedColors[groupName],
+                        true,
+                        chunkUrls
+                    );
                 }
             } catch (err) {
                 console.error(`Failed to load core dataset "${groupName}"`, err);
             }
         } else {
-
             if (!savedColors[groupName]) {
-                savedColors[groupName] = ASTEROID_TOGGLE_COLORS[asteroidColorIdx % ASTEROID_TOGGLE_COLORS.length];
+                savedColors[groupName] =
+                    ASTEROID_TOGGLE_COLORS[asteroidColorIdx % ASTEROID_TOGGLE_COLORS.length];
                 asteroidColorIdx++;
             }
             UI.addDatasetToggle(groupName, 'ASTEROID', savedColors[groupName], false, chunkUrls);
         }
     }
 
-    const tutorialManager = new TutorialManager(storage);
+    new TutorialManager(storage);
 }
 
 // ==========================================
@@ -501,9 +571,9 @@ function runPhysicsStage(bodies, trackingTarget, origin, cam, daysSinceJ2000, pi
 
 function updateHardwareStage(bodies, currentTarget, ui, interactionCtrl, ctrls, cam) {
     if (currentTarget) {
-        const tBody = bodies.find(x => x.data.name === currentTarget.name);
+        const tBody = bodies.find((x) => x.data.name === currentTarget.name);
         if (tBody) {
-            let wDeg = (tBody.W_current * 180 / Math.PI) % 360;
+            let wDeg = ((tBody.W_current * 180) / Math.PI) % 360;
             if (wDeg < 0) wDeg += 360;
             ui.updateLiveTelemetry(wDeg, tBody.RA_current_deg, tBody.DEC_current_deg);
             interactionCtrl.updateCamera(tBody.mesh.position);
@@ -513,8 +583,21 @@ function updateHardwareStage(bodies, currentTarget, ui, interactionCtrl, ctrls, 
     cam.updateMatrixWorld();
 }
 
-function runRenderPrePassStage(pipeline, bodies, currentTarget, origin, previewTarget, daysSinceJ2000) {
-    return pipeline.processScreenProjectionsAndCulling(bodies, currentTarget, origin, previewTarget, daysSinceJ2000);
+function runRenderPrePassStage(
+    pipeline,
+    bodies,
+    currentTarget,
+    origin,
+    previewTarget,
+    daysSinceJ2000
+) {
+    return pipeline.processScreenProjectionsAndCulling(
+        bodies,
+        currentTarget,
+        origin,
+        previewTarget,
+        daysSinceJ2000
+    );
 }
 
 function updateDualGridsStage(bodies, currentTarget, eclipticGrid, eqGrid, eqMat, cam) {
@@ -524,9 +607,9 @@ function updateDualGridsStage(bodies, currentTarget, eclipticGrid, eqGrid, eqMat
 
     // Manage the Targeted Equatorial Grid
     if (currentTarget) {
-        const tBody = bodies.find(x => x.data.name === currentTarget.name);
+        const tBody = bodies.find((x) => x.data.name === currentTarget.name);
 
-        if (tBody) { 
+        if (tBody) {
             const isPlanet = !tBody.isMoon && tBody.data.parent !== tBody.data.name;
             if (tBody.data.parent !== tBody.data.name && (isPlanet || tBody.isMoon)) {
                 eqGrid.visible = true;
@@ -535,7 +618,7 @@ function updateDualGridsStage(bodies, currentTarget, eclipticGrid, eqGrid, eqMat
                 let targetMass = tBody.data.mass;
 
                 if (tBody.isMoon) {
-                    const parentPlanet = bodies.find(x => x.data.name === tBody.data.parent);
+                    const parentPlanet = bodies.find((x) => x.data.name === tBody.data.parent);
                     if (parentPlanet) {
                         anchorPos = parentPlanet.renderPos;
                         anchorQuat = parentPlanet.poleQuaternion;
@@ -547,7 +630,10 @@ function updateDualGridsStage(bodies, currentTarget, eclipticGrid, eqGrid, eqMat
                 eqMat.uniforms.uGridRadius.value = dynamicRadius;
 
                 eqGrid.position.lerp(anchorPos, 0.1);
-                const eclipticQuat = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), -Math.PI / 2);
+                const eclipticQuat = new THREE.Quaternion().setFromAxisAngle(
+                    new THREE.Vector3(1, 0, 0),
+                    -Math.PI / 2
+                );
                 const finalQuat = anchorQuat.clone().multiply(eclipticQuat);
                 eqGrid.quaternion.slerp(finalQuat, 0.1);
                 eqMat.uniforms.cameraPos.value.copy(cam.position);
@@ -562,7 +648,15 @@ function updateDualGridsStage(bodies, currentTarget, eclipticGrid, eqGrid, eqMat
     }
 }
 
-function executeFinalRenderStage(pipeline, webglRenderer, scn, cam, daysSinceJ2000, origin, eclipticGrid) {
+function executeFinalRenderStage(
+    pipeline,
+    webglRenderer,
+    scn,
+    cam,
+    daysSinceJ2000,
+    origin,
+    eclipticGrid
+) {
     pipeline.updateGPU(daysSinceJ2000, origin, eclipticGrid);
     updateStarFieldFarProjection(cam, starFieldMaterial);
     webglRenderer.render(scn, cam);
@@ -576,31 +670,67 @@ function animate() {
     requestAnimationFrame(animate);
     const deltaSec = (performance.now() - lastFrameTime) / 1000;
     lastFrameTime = performance.now();
-    
+
     // 1. Time Update
     const timeData = updateSystemTimeStage(UI, systemDate, deltaSec);
     systemDate = timeData.newDate;
     const daysSinceJ2000 = timeData.daysSinceJ2000;
-    
+
     // 2. Physics & Logic Pipelines
-    runPhysicsStage(celestialBodies, trackingTargetData, currentOrigin, camera, daysSinceJ2000, renderPipeline);
-    
+    runPhysicsStage(
+        celestialBodies,
+        trackingTargetData,
+        currentOrigin,
+        camera,
+        daysSinceJ2000,
+        renderPipeline
+    );
+
     // 3. Hardware Updates (Camera, Telemetry, Shaders)
-    updateHardwareStage(celestialBodies, currentTargetData, UI, interactionController, controls, camera);
-    
+    updateHardwareStage(
+        celestialBodies,
+        currentTargetData,
+        UI,
+        interactionController,
+        controls,
+        camera
+    );
+
     // 4. Render Pre-Pass (Projections, Culling, Matrices)
-    const trackTargetPos = runRenderPrePassStage(renderPipeline, celestialBodies, currentTargetData, currentOrigin, previewTargetData, daysSinceJ2000);
-    
+    runRenderPrePassStage(
+        renderPipeline,
+        celestialBodies,
+        currentTargetData,
+        currentOrigin,
+        previewTargetData,
+        daysSinceJ2000
+    );
+
     // 5. Dual-Grid Architecture Logic
-    updateDualGridsStage(celestialBodies, currentTargetData, gridPlane, equatorialGridPlane, equatorialMaterial, camera);
-    
+    updateDualGridsStage(
+        celestialBodies,
+        currentTargetData,
+        gridPlane,
+        equatorialGridPlane,
+        equatorialMaterial,
+        camera
+    );
+
     measurementManager.update(camera, currentOrigin, daysSinceJ2000);
-    
+
     // 5b. Pinned Star Labels (persist regardless of hover)
     pinnedStarManager.update(camera, currentOrigin, daysSinceJ2000);
-    
+
     // 6. Final GPU Updates
-    executeFinalRenderStage(renderPipeline, renderer, scene, camera, daysSinceJ2000, currentOrigin, gridPlane);
+    executeFinalRenderStage(
+        renderPipeline,
+        renderer,
+        scene,
+        camera,
+        daysSinceJ2000,
+        currentOrigin,
+        gridPlane
+    );
 }
 
 animate();

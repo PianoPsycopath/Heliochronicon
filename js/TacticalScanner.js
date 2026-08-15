@@ -104,7 +104,6 @@ export class TacticalScanner {
 
                 const rawPos = OrbitalMath.calcPosFromM(radarData.a, radarData.e, radarData.i, radarData.w, radarData.Node, M_current);
                 const absolutePos = new THREE.Vector3(rawPos.x, rawPos.y, rawPos.z);
-                const renderPos = absolutePos.clone().sub(this.ctx.currentOrigin);
                 
                 sprite.position.copy(absolutePos.clone().sub(currentOrigin));
                 const scale = 35 / camera.zoom;

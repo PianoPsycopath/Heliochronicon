@@ -3,7 +3,7 @@ export class StorageManager {
     constructor(backend = null) {
         this.memoryFallback = {};
         this.backend = backend;
-        
+
         // Use injected backend (for tests) or default to window.localStorage
         if (!this.backend && typeof window !== 'undefined') {
             try {
@@ -11,8 +11,10 @@ export class StorageManager {
                 window.localStorage.setItem(testKey, testKey);
                 window.localStorage.removeItem(testKey);
                 this.backend = window.localStorage;
-            } catch (e) {
-                console.warn("localStorage unavailable (disabled or quota exceeded). Using memory fallback.");
+            } catch (_e) {
+                console.warn(
+                    'localStorage unavailable (disabled or quota exceeded). Using memory fallback.'
+                );
                 this.backend = null;
             }
         }
@@ -33,16 +35,19 @@ export class StorageManager {
 
     get(key, defaultValue = null) {
         let stringValue = null;
-        
+
         if (this.backend) {
             try {
                 stringValue = this.backend.getItem(key);
-            } catch (e) {
+            } catch (_e) {
                 console.warn(`Storage get failed for "${key}".`);
             }
         }
 
-        if (stringValue === null && Object.prototype.hasOwnProperty.call(this.memoryFallback, key)) {
+        if (
+            stringValue === null &&
+            Object.prototype.hasOwnProperty.call(this.memoryFallback, key)
+        ) {
             stringValue = this.memoryFallback[key];
         }
 
@@ -62,7 +67,7 @@ export class StorageManager {
             try {
                 this.backend.removeItem(key);
                 return;
-            } catch (e) {
+            } catch (_e) {
                 console.warn(`Storage remove failed for "${key}".`);
             }
         }

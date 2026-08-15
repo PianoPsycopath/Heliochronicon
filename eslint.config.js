@@ -25,7 +25,10 @@ export default [
             },
         },
         rules: {
-            'no-unused-vars': ['warn', { args: 'none', varsIgnorePattern: '^_' }],
+            'no-unused-vars': [
+        'warn',
+        { args: 'none', varsIgnorePattern: '^_', caughtErrorsIgnorePattern: '^_' },
+      ],
             'no-undef': 'error',
             'no-useless-assignment': 'off',
         },
