@@ -14,6 +14,7 @@
  * @property {number} [n] - Mean motion (degrees per day)
  */
 import { kmToAU } from './OrbitalMath.js';
+import { logger } from './logger.js';
 
 export class DataLoader {
     static async fetchJSONDataset(url) {
@@ -22,7 +23,7 @@ export class DataLoader {
             if (!response.ok) throw new Error(`HTTP Error: ${response.status}`);
             return await response.json();
         } catch (error) {
-            console.error(`Failed to load dataset from ${url}:`, error);
+            logger.error(`Failed to load dataset from ${url}:`, error);
             return [];
         }
     }

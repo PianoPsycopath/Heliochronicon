@@ -1,6 +1,7 @@
 // js/TerrainController.js
 import * as THREE from 'three';
 import { Shaders } from './Shaders.js';
+import { logger } from './logger.js';
 
 export class TerrainController {
     constructor(ctx, manifestUrl = 'data/heightmaps/manifest.json') {
@@ -16,7 +17,7 @@ export class TerrainController {
                 this.registry = json;
             })
             .catch((err) => {
-                console.warn(
+                logger.warn(
                     'Terrain manifest missing or failed to load -- terrain stays off until public/data/heightmaps/manifest.json exists.',
                     err
                 );
@@ -63,7 +64,7 @@ export class TerrainController {
             },
             undefined,
             (err) => {
-                console.error(`Terrain load failed for ${name}:`, err);
+                logger.error(`Terrain load failed for ${name}:`, err);
                 this.pending.delete(name);
             }
         );

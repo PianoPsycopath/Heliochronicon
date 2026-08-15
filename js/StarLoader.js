@@ -1,5 +1,6 @@
 // js/StarLoader.js
 import * as THREE from 'three';
+import { logger } from './logger.js';
 
 export class StarLoader {
     static async loadStars(basePath, scene) {
@@ -84,7 +85,7 @@ export class StarLoader {
 
             return geometry;
         } catch (error) {
-            console.warn('Star background disabled or missing:', error);
+            logger.warn('Star background disabled or missing:', error);
             return null;
         }
     }

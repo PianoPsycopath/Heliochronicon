@@ -1,4 +1,6 @@
 // js/storage.js
+import { logger } from './logger.js';
+
 export class StorageManager {
     constructor(backend = null) {
         this.memoryFallback = {};
@@ -12,7 +14,7 @@ export class StorageManager {
                 window.localStorage.removeItem(testKey);
                 this.backend = window.localStorage;
             } catch (_e) {
-                console.warn(
+                logger.warn(
                     'localStorage unavailable (disabled or quota exceeded). Using memory fallback.'
                 );
                 this.backend = null;
@@ -27,7 +29,7 @@ export class StorageManager {
                 this.backend.setItem(key, stringValue);
                 return;
             } catch (e) {
-                console.warn(`Storage set failed for "${key}". Falling back to memory.`, e);
+                logger.warn(`Storage set failed for "${key}". Falling back to memory.`, e);
             }
         }
         this.memoryFallback[key] = stringValue;
@@ -40,7 +42,7 @@ export class StorageManager {
             try {
                 stringValue = this.backend.getItem(key);
             } catch (_e) {
-                console.warn(`Storage get failed for "${key}".`);
+                logger.warn(`Storage get failed for "${key}".`);
             }
         }
 
@@ -56,7 +58,7 @@ export class StorageManager {
         try {
             return JSON.parse(stringValue);
         } catch (e) {
-            console.error(`Failed to parse JSON for "${key}". Returning default.`, e);
+            logger.error(`Failed to parse JSON for "${key}". Returning default.`, e);
             return defaultValue;
         }
     }
@@ -68,7 +70,7 @@ export class StorageManager {
                 this.backend.removeItem(key);
                 return;
             } catch (_e) {
-                console.warn(`Storage remove failed for "${key}".`);
+                logger.warn(`Storage remove failed for "${key}".`);
             }
         }
         delete this.memoryFallback[key];

@@ -20,6 +20,7 @@ import { TerrainController } from './TerrainController.js';
 import { DaylightController } from './DaylightController.js';
 import { EclipseEngine } from './EclipseEngine.js';
 import { EclipseShadowController } from './EclipseShadowController.js';
+import { logger } from './logger.js';
 
 import * as THREE from 'three';
 
@@ -52,7 +53,7 @@ window.resetDataSource = function resetDataSource() {
     window.location.reload();
 };
 
-console.log(
+logger.info(
     `[Heliochronicon] Data source: ${DATA_BASE_PATH} (switchDataSource('path/') to change, resetDataSource() to revert)`
 );
 
@@ -251,7 +252,7 @@ UI.onDatasetVisibilityChanged = async (datasetName, isVisible, urls) => {
             systemBuilder.buildSolarSystem(processedData);
             activeDatasets.add(datasetName);
         } catch (error) {
-            console.error(`Failed to load chunk group for ${datasetName}`, error);
+            logger.error(`Failed to load chunk group for ${datasetName}`, error);
         }
     } else {
         // PURGE SEQUENCE
@@ -458,11 +459,11 @@ async function bootEngine() {
     try {
         manifest = await DataLoader.fetchJSONDataset(`${DATA_BASE_PATH}manifest.json`);
     } catch (err) {
-        console.error(`Failed to load manifest.json from ${DATA_BASE_PATH}`, err);
+        logger.error(`Failed to load manifest.json from ${DATA_BASE_PATH}`, err);
     }
 
     if (!manifest || !manifest.datasets || Object.keys(manifest.datasets).length === 0) {
-        console.error(`No datasets found in manifest at ${DATA_BASE_PATH}manifest.json`);
+        logger.error(`No datasets found in manifest at ${DATA_BASE_PATH}manifest.json`);
         new TutorialManager(storage);
         return;
     }
@@ -484,7 +485,7 @@ async function bootEngine() {
         try {
             firstChunkRows = await DataLoader.fetchJSONDataset(chunkUrls[0]);
         } catch (err) {
-            console.error(`Failed to load first chunk for dataset "${groupName}"`, err);
+            logger.error(`Failed to load first chunk for dataset "${groupName}"`, err);
         }
 
         if (!firstChunkRows || firstChunkRows.length === 0) continue;
@@ -529,7 +530,7 @@ async function bootEngine() {
                     );
                 }
             } catch (err) {
-                console.error(`Failed to load core dataset "${groupName}"`, err);
+                logger.error(`Failed to load core dataset "${groupName}"`, err);
             }
         } else {
             if (!savedColors[groupName]) {

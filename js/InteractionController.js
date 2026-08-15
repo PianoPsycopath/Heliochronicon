@@ -1,5 +1,6 @@
 // js/InteractionController.js
 import * as THREE from 'three';
+import { logger } from './logger.js';
 export class InteractionController {
     constructor(ctx) {
         this.ctx = ctx;
@@ -301,7 +302,7 @@ export class InteractionController {
             renderer.readRenderTargetPixels(this.pickingTexture, 0, 0, 1, 1, this.pixelBuffer);
             id = (this.pixelBuffer[0] << 16) | (this.pixelBuffer[1] << 8) | this.pixelBuffer[2];
         } catch (err) {
-            console.warn('Star picking pass failed, skipping this hover:', err);
+            logger.warn('Star picking pass failed, skipping this hover:', err);
             id = 0;
         } finally {
             renderer.setRenderTarget(null);

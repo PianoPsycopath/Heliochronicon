@@ -1,12 +1,13 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { StorageManager } from '../js/storage.js';
+import { logger } from '../js/logger.js';
 
 describe('StorageManager Persistence Abstraction', () => {
     let mockBackend;
 
     beforeEach(() => {
-        vi.spyOn(console, 'warn').mockImplementation(() => {});
-        vi.spyOn(console, 'error').mockImplementation(() => {});
+        vi.spyOn(logger, 'warn').mockImplementation(() => {});
+        vi.spyOn(logger, 'error').mockImplementation(() => {});
 
         let store = {};
         mockBackend = {
@@ -39,6 +40,6 @@ describe('StorageManager Persistence Abstraction', () => {
         const retrieved = storage.get('quota_fail');
         
         expect(retrieved).toBe('safe_data');
-        expect(console.warn).toHaveBeenCalled(); 
+        expect(logger.warn).toHaveBeenCalled(); 
     });
 });
