@@ -25,7 +25,7 @@ import { logger } from './logger.js';
 import * as THREE from 'three';
 
 const storage = new StorageManager();
-// --- DATA SOURCE (switchable at runtime from the browser console) ---
+
 const DATA_SOURCE_STORAGE_KEY = 'heliochronicon_dataSourcePath';
 const DEFAULT_DATA_BASE_PATH = 'data/';
 
@@ -57,7 +57,6 @@ logger.info(
     `[Heliochronicon] Data source: ${DATA_BASE_PATH} (switchDataSource('path/') to change, resetDataSource() to revert)`
 );
 
-// --- INITIALIZE SCENE MANAGER ---
 const sceneManager = new SceneManager('canvas-container');
 const scene = sceneManager.scene;
 const camera = sceneManager.camera;
@@ -65,26 +64,23 @@ const renderer = sceneManager.renderer;
 const controls = sceneManager.controls;
 const frustumSize = sceneManager.frustumSize;
 
-// --- STATE MANAGEMENT ---
 let systemDate = new Date();
 let currentTargetData = null;
 let trackingTargetData = null;
-let previewTargetData = null; // Hover-only preview target - never targeted, never sent to telemetry
+let previewTargetData = null; // hover-only; never sent to telemetry
 
 const celestialBodies = [];
 const pickableObjects = [];
 const gpuParticleSystems = [];
 const currentOrigin = new THREE.Vector3(0, 0, 0);
 
-let assetManifest = null; // cached data/manifest.json, used by the deep asteroid lookup
-let lookupInFlight = false; // guards against overlapping lookups
+let assetManifest = null;
+let lookupInFlight = false;
 
-// --- GLOBAL ASSETS & MEMORY ---
 const dotTexture = Shaders.createDotTexture();
 const datasetMaterials = {};
 const savedColors = storage.get('tacticalMapColors', {});
 
-// --- INITIALIZE UI & MATERIALS ---
 const gridMaterial = Shaders.getGridMaterial(MAX_WELLS);
 const gridPlane = new THREE.Mesh(new THREE.PlaneGeometry(1000000, 1000000, 4, 4), gridMaterial);
 gridPlane.rotation.x = -Math.PI / 2;
@@ -101,18 +97,14 @@ equatorialGridPlane.renderOrder = -1;
 scene.add(equatorialGridPlane);
 
 const measurementManager = new MeasurementManager(scene, camera);
-
 const tacticalMaterial = Shaders.getTacticalMaterial();
 const UI = new UIController();
 
-// --- INITIALIZE SUBSYSTEMS ---
 const terrainController = new TerrainController({ celestialBodies });
 const daylightController = new DaylightController({ scene, celestialBodies });
 const eclipseShadowController = new EclipseShadowController({ scene, celestialBodies });
 
-// Owns the full add/remove/dispose lifecycle for CelestialBody scene-graph,
-// GPU, and DOM resources. SystemBuilder and TacticalScanner both register
-// and remove bodies through this instead of duplicating dispose sequences.
+// Central lifecycle owner for CelestialBody scene/GPU/DOM resources.
 const bodyRegistry = new BodyRegistry({
     scene,
     celestialBodies,
@@ -220,7 +212,6 @@ new ZoomRulerManager({
 
 const pinnedStarManager = new PinnedStarManager();
 
-// --- UI CALLBACKS ---
 UI.onTimeChanged = (date) => {
     systemDate = date;
 };
@@ -231,7 +222,6 @@ UI.onRefreshList = () => {
     UI.renderBodyList(celestialBodies, currentTargetData);
 };
 
-// Stateful Toggles
 const activeDatasets = new Set();
 const inFlightDatasets = new Set();
 
@@ -246,7 +236,7 @@ UI.onDatasetVisibilityChanged = async (datasetName, isVisible, urls) => {
             const fetchPromises = urlArray.map((url) => DataLoader.fetchJSONDataset(url));
             const chunkResults = await Promise.all(fetchPromises);
 
-            // Lifecycle Race Fix: The user toggled this dataset off while chunks were fetching.
+            // Race guard: dataset may have been toggled off while chunks were in flight.
             if (!inFlightDatasets.has(datasetName)) {
                 logger.info(
                     `[Heliochronicon] Load aborted for ${datasetName}; toggled off during fetch.`
@@ -258,18 +248,14 @@ UI.onDatasetVisibilityChanged = async (datasetName, isVisible, urls) => {
             const processedData = DataLoader.processPlanetaryData(mergedJSON, datasetName);
             systemBuilder.buildSolarSystem(processedData);
             activeDatasets.add(datasetName);
-
-            // Clear any previous error states in the UI if applicable
         } catch (error) {
             logger.error(`Failed to load chunk group for ${datasetName}`, error);
-            // Wire user-visible feedback
             UI.showLookupNotFound(`Failed to download ${datasetName} dataset. Check network.`);
         } finally {
             inFlightDatasets.delete(datasetName);
         }
     } else {
-        // PURGE SEQUENCE
-        inFlightDatasets.delete(datasetName); // Immediately cancel pending state
+        inFlightDatasets.delete(datasetName);
         activeDatasets.delete(datasetName);
         bodyRegistry.removeByDataset(datasetName);
 
@@ -333,9 +319,10 @@ UI.onPurgeRequested = (data) => {
     UI.updateTargetPanel(null);
     UI.renderBodyList(celestialBodies, currentTargetData);
 };
+
 UI.onPinStarRequested = (data) => {
     pinnedStarManager.toggle(data);
-    UI.showStarSelection(data); // refresh panel so the button flips PIN/UNPIN
+    UI.showStarSelection(data);
 };
 
 UI.onAsteroidLookup = async (rawQuery) => {
@@ -366,10 +353,7 @@ UI.onAsteroidLookup = async (rawQuery) => {
     lookupInFlight = true;
     UI.showLookupPending(query);
     try {
-        // Skip whatever's already loaded/active -- core datasets (planets,
-        // moons, custom systems) are found earlier in this function via the
-        // celestialBodies/gpuParticleSystems scan, so there's no need to
-        // hardcode specific group names here anymore.
+        // Core bodies (planets/moons) are already covered by the scans above.
         const skipGroups = [...activeDatasets];
         const found = await DataLoader.findAsteroidInManifest(query, assetManifest, skipGroups);
 
@@ -380,7 +364,6 @@ UI.onAsteroidLookup = async (rawQuery) => {
         }
     } catch (error) {
         logger.error(`Asteroid lookup failed due to network or parsing error:`, error);
-        // Distinguishable failure path
         UI.showLookupNotFound(`Network error querying ${query}`);
     } finally {
         lookupInFlight = false;
@@ -394,13 +377,13 @@ UI.onScanRequested = (isActive) => {
         tacticalScanner.purgeTacticalClones();
     }
 };
+
 UI.onSearch = (query) => {
     tacticalScanner.executeSearch(query);
 };
 
 UI.onMeasureModeChanged = (isActive) => {
     if (!isActive) {
-        // Clear all active rulers and the pending node when untoggled
         measurementManager.breakCycleAndClear();
     }
 };
@@ -426,28 +409,28 @@ UI.onEclipseNavRequested = (direction) => {
         const newDate = new Date(Date.UTC(2000, 0, 1, 12, 0, 0) + event.days * 86400000);
         systemDate = newDate;
         UI.updateTimeInput(newDate);
-        UI.timeThrottle.pauseForManualInput(); // <-- breaks live-lock so the jump sticks
+        // Prevent live-time lock from immediately overwriting the jumped date.
+        UI.timeThrottle.pauseForManualInput();
         UI.telemetryManager.renderEclipseResult(event);
     } else {
         UI.telemetryManager.renderEclipseResult(null);
     }
 };
-// ==========================================
-// BACKGROUND STAR FIELD (GPU PARTICLES)
-// ==========================================
+
 let starFieldMaterial = null;
 const STAR_FAR_PLANE_AU = 1e14;
 
 async function initStarField() {
     const starGeometry = await StarLoader.loadStars(STAR_DATA_BASE_PATH, scene);
-    if (!starGeometry) return; // no stars_manifest.json for this data source -- skip silently
+    if (!starGeometry) return; // no stars_manifest for this data source
 
     const starMaterial = Shaders.getStarFieldMaterial();
     const starField = new THREE.Points(starGeometry, starMaterial);
 
-    starField.frustumCulled = false; // positions are computed in-shader (proper motion + origin shift)
+    // Positions are computed in-shader (proper motion + origin shift).
+    starField.frustumCulled = false;
     starField.matrixAutoUpdate = false;
-    starField.renderOrder = -10; // draw behind everything else
+    starField.renderOrder = -10;
     starField.userData = { datasetVisible: true };
 
     scene.add(starField);
@@ -466,9 +449,6 @@ function updateStarFieldFarProjection(cam, material) {
     cam.updateProjectionMatrix();
 }
 
-// ==========================================
-// SYSTEM BOOTLOADER
-// ==========================================
 const CORE_CATEGORIES = new Set(['STAR', 'PLANET', 'DWARF_PLANET', 'MOON']);
 const ASTEROID_TOGGLE_COLORS = ['#ff3333', '#ff8800', '#ffff00', '#00ff00', '#00ffff', '#ff00ff'];
 
@@ -495,10 +475,7 @@ async function bootEngine() {
         );
         if (chunkUrls.length === 0) continue;
 
-        // Peek at the first chunk to see what this dataset actually contains.
-        // The category field on the rows -- not the group/file name -- decides
-        // whether it's a core system to load immediately or an asteroid-style
-        // group the user opts into.
+        // Category of the first chunk decides core vs optional asteroid group.
         let firstChunkRows = [];
         try {
             firstChunkRows = await DataLoader.fetchJSONDataset(chunkUrls[0]);
@@ -530,8 +507,7 @@ async function bootEngine() {
 
                     if (!savedColors[groupName]) savedColors[groupName] = '#ffffff';
 
-                    // Icon/category shown on the toggle -- prefer STAR/PLANET
-                    // over MOON so mixed systems read as "planet" toggles.
+                    // Prefer STAR/PLANET icon over MOON for mixed systems.
                     const iconCategory =
                         categoriesPresent.has('STAR') || categoriesPresent.has('PLANET')
                             ? 'PLANET'
@@ -563,20 +539,13 @@ async function bootEngine() {
     new TutorialManager(storage);
 }
 
-// ==========================================
-// SYSTEM BOOTLOADER
-// ==========================================
 bootEngine();
 let lastFrameTime = performance.now();
-
-// ==========================================
-// FRAME PIPELINE STAGES
-// ==========================================
 
 function updateSystemTimeStage(ui, currentSysDate, deltaSec) {
     let dateToUse = currentSysDate;
     if (ui.timeThrottle.isLiveTime) {
-        dateToUse = new Date(); // Lock strictly to system clock
+        dateToUse = new Date();
     }
     return PhysicsEngine.updateSystemTime(ui, dateToUse, deltaSec);
 }
@@ -620,11 +589,9 @@ function runRenderPrePassStage(
 }
 
 function updateDualGridsStage(bodies, currentTarget, eclipticGrid, eqGrid, eqMat, cam) {
-    // Force the massive Ecliptic Grid to remain perfectly flat at the solar Y=0 baseline
     eclipticGrid.position.set(0, 0, 0);
     eclipticGrid.quaternion.setFromAxisAngle(new THREE.Vector3(1, 0, 0), -Math.PI / 2);
 
-    // Manage the Targeted Equatorial Grid
     if (currentTarget) {
         const tBody = bodies.find((x) => x.data.name === currentTarget.name);
 
@@ -641,7 +608,7 @@ function updateDualGridsStage(bodies, currentTarget, eclipticGrid, eqGrid, eqMat
                     if (parentPlanet) {
                         anchorPos = parentPlanet.renderPos;
                         anchorQuat = parentPlanet.poleQuaternion;
-                        targetMass = parentPlanet.data.mass; // Inherit parent planet's mass size
+                        targetMass = parentPlanet.data.mass;
                     }
                 }
                 const massRatio = targetMass / 5.97;
@@ -681,21 +648,15 @@ function executeFinalRenderStage(
     webglRenderer.render(scn, cam);
 }
 
-// ==========================================
-// THE MAIN LOOP
-// ==========================================
-
 function animate() {
     requestAnimationFrame(animate);
     const deltaSec = (performance.now() - lastFrameTime) / 1000;
     lastFrameTime = performance.now();
 
-    // 1. Time Update
     const timeData = updateSystemTimeStage(UI, systemDate, deltaSec);
     systemDate = timeData.newDate;
     const daysSinceJ2000 = timeData.daysSinceJ2000;
 
-    // 2. Physics & Logic Pipelines
     runPhysicsStage(
         celestialBodies,
         trackingTargetData,
@@ -705,7 +666,6 @@ function animate() {
         renderPipeline
     );
 
-    // 3. Hardware Updates (Camera, Telemetry, Shaders)
     updateHardwareStage(
         celestialBodies,
         currentTargetData,
@@ -715,7 +675,6 @@ function animate() {
         camera
     );
 
-    // 4. Render Pre-Pass (Projections, Culling, Matrices)
     runRenderPrePassStage(
         renderPipeline,
         celestialBodies,
@@ -725,7 +684,6 @@ function animate() {
         daysSinceJ2000
     );
 
-    // 5. Dual-Grid Architecture Logic
     updateDualGridsStage(
         celestialBodies,
         currentTargetData,
@@ -736,11 +694,8 @@ function animate() {
     );
 
     measurementManager.update(camera, currentOrigin, daysSinceJ2000);
-
-    // 5b. Pinned Star Labels (persist regardless of hover)
     pinnedStarManager.update(camera, currentOrigin, daysSinceJ2000);
 
-    // 6. Final GPU Updates
     executeFinalRenderStage(
         renderPipeline,
         renderer,

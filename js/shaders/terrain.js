@@ -82,8 +82,6 @@ export class TerrainShaders {
                 vec3 lineColor = vec3(0.2, 1.0, 0.5);
                 vec3 gridColor = vec3(0.2, 0.2, 0.2);     // NEW: Pure white for the grid
 
-                // NEW: Use the alpha channel to determine if we are rendering liquid.
-                // Note: If your PNG uses 1.0 (opaque) for water, change this to > 0.5
                 bool isLiquid = texData.a < 0.5; 
 
                 // Calculate the planetary grid (36 longitude lines, 18 latitude lines = 10-degree squares)
