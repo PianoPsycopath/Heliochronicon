@@ -258,6 +258,8 @@ UI.onDatasetVisibilityChanged = async (datasetName, isVisible, urls) => {
         inFlightDatasets.delete(datasetName);
         activeDatasets.delete(datasetName);
         bodyRegistry.removeByDataset(datasetName);
+        // Avoid writing into a disposed ShaderMaterial on the next color change.
+        delete datasetMaterials[datasetName];
 
         if (currentTargetData && currentTargetData.datasetName === datasetName) {
             tacticalScanner.onTargetPurged();
@@ -266,18 +268,51 @@ UI.onDatasetVisibilityChanged = async (datasetName, isVisible, urls) => {
 };
 
 UI.onDatasetColorChanged = (datasetName, colorHex) => {
-    if (datasetMaterials[datasetName]) {
-        if (
-            datasetMaterials[datasetName].uniforms &&
-            datasetMaterials[datasetName].uniforms.uColor
-        ) {
-            datasetMaterials[datasetName].uniforms.uColor.value.set(colorHex);
-        } else {
-            datasetMaterials[datasetName].color.set(colorHex);
-        }
-    }
     savedColors[datasetName] = colorHex;
     storage.set('tacticalMapColors', savedColors);
+
+    // Live GPU particle systems + group labels (one-shot; not every frame).
+    for (const system of gpuParticleSystems) {
+        if (system.userData?.datasetName !== datasetName) continue;
+
+        if (system.material?.uniforms?.uColor) {
+            system.material.uniforms.uColor.value.set(colorHex);
+        }
+
+        const label = system.userData.groupLabel;
+        if (label) {
+            // Prefer meanA stashed at build time; fall back to a one-shot reduce.
+            const meanA =
+                system.userData.meanA ??
+                (system.userData.sourceData?.length
+                    ? system.userData.sourceData.reduce((s, d) => s + d.a, 0) /
+                      system.userData.sourceData.length
+                    : 2.5);
+
+            Shaders.updateGroupLabelColor(label, datasetName, colorHex, meanA);
+        }
+    }
+
+    // Keep datasetMaterials in sync only while the material is still live.
+    const mat = datasetMaterials[datasetName];
+    if (mat?.uniforms?.uColor) {
+        mat.uniforms.uColor.value.set(colorHex);
+    } else if (mat?.color) {
+        mat.color.set(colorHex);
+    }
+
+    // Promoted asteroids from this group: update once here (DOM label, sprite, orbit).
+    for (const body of celestialBodies) {
+        if (
+            body.data?.datasetCategory !== 'PROMOTED_ASTEROID' ||
+            body.data?.datasetName !== datasetName
+        ) {
+            continue;
+        }
+        if (body.label) body.label.style.color = colorHex;
+        if (body.sprite?.material?.color) body.sprite.material.color.set(colorHex);
+        if (body.orbitLine?.material?.color) body.orbitLine.material.color.set(colorHex);
+    }
 };
 
 UI.onFocusBody = (data, isHardLock = true) => {

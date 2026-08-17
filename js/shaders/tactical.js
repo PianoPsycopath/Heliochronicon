@@ -249,4 +249,16 @@ export class TacticalShaders {
             side: THREE.DoubleSide,
         });
     }
+    static updateGroupLabelColor(labelMesh, text, colorHex, meanA = 2.5) {
+        if (!labelMesh?.material) return;
+
+        const fresh = TacticalShaders.createGroupLabelMat(text, colorHex, meanA);
+        const oldMap = labelMesh.material.map;
+
+        labelMesh.material.map = fresh.map;
+        labelMesh.material.needsUpdate = true;
+        
+        fresh.dispose();
+        if (oldMap) oldMap.dispose();
+    }
 }

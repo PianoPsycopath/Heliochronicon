@@ -54,6 +54,9 @@ export class Shaders {
     static createGroupLabelMat(text, colorHex = '#ffffff', meanA = 2.5) {
         return TacticalShaders.createGroupLabelMat(text, colorHex, meanA);
     }
+    static updateGroupLabelColor(labelMesh, text, colorHex, meanA = 2.5) {
+        return TacticalShaders.updateGroupLabelColor(labelMesh, text, colorHex, meanA);
+    }
 
     // starField.js
     static getStarFieldMaterial() {
