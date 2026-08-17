@@ -1,10 +1,7 @@
 // js/BodyRegistry.js
 //
-// Owns the full lifecycle of a CelestialBody's scene-graph/GPU/DOM footprint:
-// registration, targeted removal, and dispose. This is the single place body
-// add/remove bookkeeping happens; callers (SystemBuilder, TacticalScanner,
-// main.js) construct the THREE objects and hand them off here rather than
-// duplicating scene.remove()/dispose()/splice() sequences at each call site.
+// Single owner of CelestialBody lifecycle (register / remove / dispose).
+// Callers construct the THREE objects and hand them off here.
 import {
     matchesDataset,
     matchesNameAndCategory,
@@ -29,10 +26,8 @@ export class BodyRegistry {
         return body;
     }
 
-    // Atomically swap out a previous body (matched by name + datasetCategory,
-    // if given) for a newly-constructed one. Used for promotion paths (radar
-    // contact -> promoted asteroid, asteroid -> radar contact) where the old
-    // entry must be fully disposed before the new one is registered.
+    // Dispose previous body (by name + category) then register the new one.
+    // Used by promotion paths (radar → promoted, asteroid → radar).
     promote(newBody, previous = null) {
         if (previous) {
             this.removeByNameAndCategory(previous.name, previous.category);
@@ -44,7 +39,7 @@ export class BodyRegistry {
         if (body.mesh) {
             this.scene.remove(body.mesh);
             if (body.mesh.geometry) body.mesh.geometry.dispose();
-            // Note: Not disposing body.mesh.material as it uses the shared tacticalMaterial
+            // Shared tacticalMaterial is not disposed here.
         }
         if (body.sprite) {
             this.scene.remove(body.sprite);
@@ -90,7 +85,6 @@ export class BodyRegistry {
     }
 
     removeByDataset(datasetName) {
-        // 1. Purge Standard Bodies
         for (let i = this.celestialBodies.length - 1; i >= 0; i--) {
             const b = this.celestialBodies[i];
             if (matchesDataset(b.data, datasetName)) {
@@ -98,7 +92,6 @@ export class BodyRegistry {
             }
         }
 
-        // 2. Handle GPU particle systems
         for (let i = this.gpuParticleSystems.length - 1; i >= 0; i--) {
             const sys = this.gpuParticleSystems[i];
             if (sys.userData && sys.userData.datasetName === datasetName) {
@@ -118,8 +111,7 @@ export class BodyRegistry {
         }
     }
 
-    // Full sweep: every radar contact and every unpinned promoted-asteroid
-    // clone, unconditionally. Used when tactical scanning is toggled off.
+    // Radar contacts + unpinned promoted asteroids. Used when scanning is toggled off.
     purgeTacticalClones() {
         for (let i = this.celestialBodies.length - 1; i >= 0; i--) {
             const b = this.celestialBodies[i];
@@ -129,9 +121,8 @@ export class BodyRegistry {
         }
     }
 
-    // Rescan sweep: same as above, but spares an unpinned clone if it's the
-    // currently protected/targeted body (radar contacts are still always
-    // cleared -- a fresh one gets re-added by the scan if still in range).
+    // Same as purgeTacticalClones, but keeps the currently protected/targeted body.
+    // Radar contacts are still always cleared.
     sweepForRescan(protectedTargetData = null) {
         for (let i = this.celestialBodies.length - 1; i >= 0; i--) {
             const b = this.celestialBodies[i];

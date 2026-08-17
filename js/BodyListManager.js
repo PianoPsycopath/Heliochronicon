@@ -4,7 +4,6 @@ export function getFilteredAndSortedBodies(bodies, currentTargetData, searchStr,
     let targetList = [];
     const query = (searchStr || '').toLowerCase();
 
-    // Filtering
     if (query) {
         targetList = bodies.filter((b) => b.data.name.toLowerCase().includes(query));
     } else if (currentTargetData && currentTargetData.name !== 'SUN') {
@@ -31,12 +30,10 @@ export class BodyListManager {
     constructor(domElements) {
         this.currentSortMode = 'distance';
 
-        // Injected DOM Elements
         this.listContainer = domElements.listContainer;
         this.searchEl = domElements.searchEl;
         this.sortToggleEl = domElements.sortToggleEl;
 
-        // External callbacks
         this.onFocusBody = null;
         this.onRefreshList = null;
         this.onAsteroidLookup = null;
@@ -63,7 +60,6 @@ export class BodyListManager {
     }
 
     render(bodies, currentTargetData) {
-        // 1. Get pure data
         const searchStr = this.searchEl.value;
         const sortedAndFiltered = getFilteredAndSortedBodies(
             bodies,
@@ -72,7 +68,6 @@ export class BodyListManager {
             this.currentSortMode
         );
 
-        // 2. Perform DOM mutations
         this.listContainer.innerHTML = '';
         const MAX_DOM_ITEMS = 100;
         const displayList = sortedAndFiltered.slice(0, MAX_DOM_ITEMS);

@@ -68,7 +68,6 @@ export class ZoomRulerManager {
             const targetZoom = Math.exp(this.logMin + val * this.scale);
             this.camera.zoom = targetZoom;
             this.camera.updateProjectionMatrix();
-            // Note: updateRuler() is automatically handled by the continuous tracking loop
         });
 
         this.slider.addEventListener('change', () => (this.isDragging = false));

@@ -81,7 +81,8 @@ export class RenderPipeline {
         celestialBodies,
         currentTargetData,
         currentOrigin,
-        previewTargetData = null
+        previewTargetData = null,
+        daysSinceJ2000 = 0
     ) {
         const filters = this.UI.getMoonFilters();
         const activeSystemName = getActiveSystemName(currentTargetData);
@@ -92,15 +93,6 @@ export class RenderPipeline {
         const drawnScreenPositions = [];
         const halfW = window.innerWidth * 0.5;
         const halfH = window.innerHeight * 0.5;
-
-        // RECOVER TIME: Safely deduce the current engine time directly from planetary spin
-        let daysSinceJ2000 = 0;
-        const timeRef = celestialBodies.find((b) => b.data && b.data.pm_w_rate !== 0);
-        if (timeRef) {
-            daysSinceJ2000 =
-                (timeRef.W_current - (timeRef.data.pm_w * Math.PI) / 180) /
-                ((timeRef.data.pm_w_rate * Math.PI) / 180);
-        }
 
         celestialBodies.forEach((b) => {
             b.renderPos = b.globalPos.clone().sub(currentOrigin);
@@ -233,16 +225,7 @@ export class RenderPipeline {
             }
             b.sprite.visible = !isOccluded && !isMeshBigger;
 
-            b.orbitLine.position.copy(b.parentPos.clone().sub(currentOrigin));
-
-            // ANALYTICAL QUARANTINE: Don't twist Meeus/VSOP87 coordinates
-            if (b.isMoon) {
-                if (!d.orbit_model || d.orbit_model === 'KEPLER') {
-                    b.orbitLine.quaternion.copy(b.parentQuat);
-                } else {
-                    b.orbitLine.quaternion.identity();
-                }
-            }
+            // Orbit line / curtain placement is handled later after relative geometry is built
 
             if (wellIndex < this.MAX_WELLS && d.mass > 0 && !b.isMoon) {
                 const isBeingRendered = b.mesh.visible || b.sprite.visible;
@@ -292,22 +275,24 @@ export class RenderPipeline {
                     if (d.orbit_model === 'MEEUS' || d.orbit_model === 'VSOP87') {
                         const period = d.period;
                         for (let j = 0; j <= res; j++) {
-                            // Trace strictly forward from the current engine time
-                            const tDays = daysSinceJ2000 + (j / res) * period;
+                            // Previous period so trailing end sits on the body
+                            const tDays = daysSinceJ2000 - period + (j / res) * period;
                             const pos = OrbitalMath.calculatePosition(d, tDays);
                             const lPos = new THREE.Vector3(pos.x, pos.y, pos.z);
                             points.push(lPos.clone());
                             points.push(new THREE.Vector3(lPos.x, 0, lPos.z));
                         }
                     } else {
+                        const M_current = d.M0 + d.n * daysSinceJ2000;
                         for (let j = 0; j <= res; j++) {
+                            const M = M_current - 2 * Math.PI + (j / res) * 2 * Math.PI;
                             const rawPos = OrbitalMath.calcPosFromM(
                                 b.scaledA,
                                 d.e,
                                 d.i,
                                 d.w,
                                 d.Node,
-                                (j / res) * Math.PI * 2
+                                M
                             );
                             let lPos = new THREE.Vector3(rawPos.x, rawPos.y, rawPos.z);
                             points.push(lPos.clone());
@@ -315,8 +300,13 @@ export class RenderPipeline {
                         }
                     }
 
+                    // Make curtain geometry relative to the body → vertices stay small (Float32 safe)
+                    const curtainOrigin = b.localPos;
+                    for (let i = 0; i < points.length; i++) {
+                        points[i].sub(curtainOrigin);
+                    }
                     b.orbitCurtain.geometry.setFromPoints(points);
-                    b.orbitCurtain.position.copy(b.parentPos.clone().sub(currentOrigin));
+                    b.orbitCurtain.position.copy(b.renderPos);
 
                     if (b.isMoon) {
                         if (!d.orbit_model || d.orbit_model === 'KEPLER') {
@@ -324,6 +314,8 @@ export class RenderPipeline {
                         } else {
                             b.orbitCurtain.quaternion.identity();
                         }
+                    } else {
+                        b.orbitCurtain.quaternion.identity();
                     }
                 }
             } else {
@@ -355,18 +347,60 @@ export class RenderPipeline {
                 b.orbitLine.visible = true;
             }
 
-            // ANCHOR ORBIT LINE: Dynamically precesses without a conveyor-belt spin
-            if (b.orbitLine.visible && (d.orbit_model === 'MEEUS' || d.orbit_model === 'VSOP87')) {
-                const period = d.period;
+            // ANCHOR ORBIT LINE – relative geometry so Float32 stays precise
+            // Trailing end of the previous period is forced to (0,0,0) and the
+            // line object is placed at the body's renderPos.
+            if (b.orbitLine.visible) {
                 const res = 720;
                 const pts = [];
-                for (let j = 0; j <= res; j++) {
-                    // Trace strictly forward from the current engine time
-                    const tDays = daysSinceJ2000 + (j / res) * period;
-                    const pos = OrbitalMath.calculatePosition(d, tDays);
-                    pts.push(new THREE.Vector3(pos.x, pos.y, pos.z));
+
+                if (d.orbit_model === 'MEEUS' || d.orbit_model === 'VSOP87') {
+                    const period = d.period;
+                    for (let j = 0; j <= res; j++) {
+                        // Previous period → trailing end = current position
+                        const tDays = daysSinceJ2000 - period + (j / res) * period;
+                        const pos = OrbitalMath.calculatePosition(d, tDays);
+                        pts.push(new THREE.Vector3(pos.x, pos.y, pos.z));
+                    }
+                } else {
+                    // Keplerian: one full period ending at current mean anomaly
+                    const M_current = d.M0 + d.n * daysSinceJ2000;
+                    for (let j = 0; j <= res; j++) {
+                        const M = M_current - 2 * Math.PI + (j / res) * 2 * Math.PI;
+                        const rawPos = OrbitalMath.calcPosFromM(
+                            b.scaledA,
+                            d.e,
+                            d.i,
+                            d.w,
+                            d.Node,
+                            M
+                        );
+                        pts.push(new THREE.Vector3(rawPos.x, rawPos.y, rawPos.z));
+                    }
                 }
+
+                // Relative to body → last point becomes (0,0,0)
+                const originPt = b.localPos;
+                for (let i = 0; i < pts.length; i++) {
+                    pts[i].sub(originPt);
+                }
+                if (pts.length > 0) {
+                    pts[pts.length - 1].set(0, 0, 0);
+                }
+
                 b.orbitLine.geometry.setFromPoints(pts);
+                b.orbitLine.position.copy(b.renderPos);
+
+                // Moons still need parent orientation; heliocentric bodies stay identity
+                if (b.isMoon) {
+                    if (!d.orbit_model || d.orbit_model === 'KEPLER') {
+                        b.orbitLine.quaternion.copy(b.parentQuat);
+                    } else {
+                        b.orbitLine.quaternion.identity();
+                    }
+                } else {
+                    b.orbitLine.quaternion.identity();
+                }
             }
 
             if (b.label) {
