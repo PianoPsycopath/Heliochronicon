@@ -17,6 +17,7 @@ import { MeasurementManager } from './MeasurementManager.js';
 import { StarLoader } from './StarLoader.js';
 import { PinnedStarManager } from './PinnedStarManager.js';
 import { TerrainController } from './TerrainController.js';
+import { CreditsManager } from './CreditsManager.js';
 import { DaylightController } from './DaylightController.js';
 import { EclipseEngine } from './EclipseEngine.js';
 import { EclipseShadowController } from './EclipseShadowController.js';
@@ -67,7 +68,7 @@ const frustumSize = sceneManager.frustumSize;
 let systemDate = new Date();
 let currentTargetData = null;
 let trackingTargetData = null;
-let previewTargetData = null; // hover-only; never sent to telemetry
+let previewTargetData = null; // Track hover state without sending telemetry.
 
 const celestialBodies = [];
 const pickableObjects = [];
@@ -104,7 +105,43 @@ const terrainController = new TerrainController({ celestialBodies });
 const daylightController = new DaylightController({ scene, celestialBodies });
 const eclipseShadowController = new EclipseShadowController({ scene, celestialBodies });
 
-// Central lifecycle owner for CelestialBody scene/GPU/DOM resources.
+// Call update() only from discrete trigger points to preserve performance.
+const creditsManager = new CreditsManager({
+    el: document.getElementById('hud-credits'),
+    terrainController,
+});
+let activeTerrainBodyNames = [];
+let starFieldObject = null; // Set after initStarField() resolves.
+
+// Define macro scale zoom threshold to grant star catalog credit only when zoomed out.
+const STAR_CREDIT_ZOOM_THRESHOLD = 0.075;
+let starsVisibleState = false;
+
+function updateCredits() {
+    creditsManager.update({
+        currentTargetData,
+        activeTerrainBodyNames,
+        starsVisible: starsVisibleState && !!starFieldObject,
+    });
+}
+
+terrainController.onActiveBodiesChanged = (names) => {
+    activeTerrainBodyNames = names;
+    updateCredits();
+};
+
+// Fetch top-level star catalog credit independently of StarLoader module.
+fetch(`${STAR_DATA_BASE_PATH}stars_manifest.json`)
+    .then((res) => (res.ok ? res.json() : null))
+    .then((json) => {
+        if (json && json.credit) {
+            creditsManager.starsCredit = json.credit;
+            updateCredits();
+        }
+    })
+    .catch((err) => logger.warn('Could not load stars_manifest.json credit line', err));
+
+// Manage the lifecycle of CelestialBody scene, GPU, and DOM resources.
 const bodyRegistry = new BodyRegistry({
     scene,
     celestialBodies,
@@ -130,6 +167,7 @@ const systemBuilder = new SystemBuilder({
     onClearTarget: () => {
         currentTargetData = null;
         trackingTargetData = null;
+        updateCredits();
     },
     onClearMemory: () => {},
 });
@@ -202,6 +240,7 @@ const tacticalScanner = new TacticalScanner({
         interactionController.clearTracking();
         UI.updateTargetPanel(null);
         UI.renderBodyList(celestialBodies, null);
+        updateCredits();
     },
 });
 
@@ -236,7 +275,7 @@ UI.onDatasetVisibilityChanged = async (datasetName, isVisible, urls) => {
             const fetchPromises = urlArray.map((url) => DataLoader.fetchJSONDataset(url));
             const chunkResults = await Promise.all(fetchPromises);
 
-            // Race guard: dataset may have been toggled off while chunks were in flight.
+            // Guard against race conditions where users toggle visibility rapidly.
             if (!inFlightDatasets.has(datasetName)) {
                 logger.info(
                     `[Heliochronicon] Load aborted for ${datasetName}; toggled off during fetch.`
@@ -258,7 +297,7 @@ UI.onDatasetVisibilityChanged = async (datasetName, isVisible, urls) => {
         inFlightDatasets.delete(datasetName);
         activeDatasets.delete(datasetName);
         bodyRegistry.removeByDataset(datasetName);
-        // Avoid writing into a disposed ShaderMaterial on the next color change.
+        // Delete the dataset reference to prevent writing into a disposed ShaderMaterial.
         delete datasetMaterials[datasetName];
 
         if (currentTargetData && currentTargetData.datasetName === datasetName) {
@@ -271,7 +310,7 @@ UI.onDatasetColorChanged = (datasetName, colorHex) => {
     savedColors[datasetName] = colorHex;
     storage.set('tacticalMapColors', savedColors);
 
-    // Live GPU particle systems + group labels (one-shot; not every frame).
+    // Update live GPU particle systems and group labels.
     for (const system of gpuParticleSystems) {
         if (system.userData?.datasetName !== datasetName) continue;
 
@@ -281,7 +320,7 @@ UI.onDatasetColorChanged = (datasetName, colorHex) => {
 
         const label = system.userData.groupLabel;
         if (label) {
-            // Prefer meanA stashed at build time; fall back to a one-shot reduce.
+            // Calculate the mean semi-major axis using stored data or fallback computation.
             const meanA =
                 system.userData.meanA ??
                 (system.userData.sourceData?.length
@@ -293,7 +332,7 @@ UI.onDatasetColorChanged = (datasetName, colorHex) => {
         }
     }
 
-    // Keep datasetMaterials in sync only while the material is still live.
+    // Synchronize datasetMaterials while the material remains active.
     const mat = datasetMaterials[datasetName];
     if (mat?.uniforms?.uColor) {
         mat.uniforms.uColor.value.set(colorHex);
@@ -301,7 +340,7 @@ UI.onDatasetColorChanged = (datasetName, colorHex) => {
         mat.color.set(colorHex);
     }
 
-    // Promoted asteroids from this group: update once here (DOM label, sprite, orbit).
+    // Update DOM label, sprite, and orbit for promoted asteroids.
     for (const body of celestialBodies) {
         if (
             body.data?.datasetCategory !== 'PROMOTED_ASTEROID' ||
@@ -330,6 +369,7 @@ UI.onFocusBody = (data, isHardLock = true) => {
     currentTargetData = data;
     UI.updateTargetPanel(data);
     UI.renderBodyList(celestialBodies, currentTargetData);
+    updateCredits();
 
     trackingTargetData = isHardLock ? data : null;
     interactionController.triggerFocus(data, isHardLock, AU_IN_KM);
@@ -353,6 +393,7 @@ UI.onPurgeRequested = (data) => {
     interactionController.clearTracking();
     UI.updateTargetPanel(null);
     UI.renderBodyList(celestialBodies, currentTargetData);
+    updateCredits();
 };
 
 UI.onPinStarRequested = (data) => {
@@ -388,7 +429,7 @@ UI.onAsteroidLookup = async (rawQuery) => {
     lookupInFlight = true;
     UI.showLookupPending(query);
     try {
-        // Core bodies (planets/moons) are already covered by the scans above.
+        // Skip active dataset groups during lookup.
         const skipGroups = [...activeDatasets];
         const found = await DataLoader.findAsteroidInManifest(query, assetManifest, skipGroups);
 
@@ -444,7 +485,7 @@ UI.onEclipseNavRequested = (direction) => {
         const newDate = new Date(Date.UTC(2000, 0, 1, 12, 0, 0) + event.days * 86400000);
         systemDate = newDate;
         UI.updateTimeInput(newDate);
-        // Prevent live-time lock from immediately overwriting the jumped date.
+        // Pause the time throttle to prevent immediate overwrite of the jumped date.
         UI.timeThrottle.pauseForManualInput();
         UI.telemetryManager.renderEclipseResult(event);
     } else {
@@ -457,12 +498,12 @@ const STAR_FAR_PLANE_AU = 1e14;
 
 async function initStarField() {
     const starGeometry = await StarLoader.loadStars(STAR_DATA_BASE_PATH, scene);
-    if (!starGeometry) return; // no stars_manifest for this data source
+    if (!starGeometry) return; // Abort if no stars_manifest exists for this data source.
 
     const starMaterial = Shaders.getStarFieldMaterial();
     const starField = new THREE.Points(starGeometry, starMaterial);
 
-    // Positions are computed in-shader (proper motion + origin shift).
+    // Compute positions in the shader.
     starField.frustumCulled = false;
     starField.matrixAutoUpdate = false;
     starField.renderOrder = -10;
@@ -471,6 +512,8 @@ async function initStarField() {
     scene.add(starField);
     gpuParticleSystems.push(starField);
     starFieldMaterial = starMaterial;
+    starFieldObject = starField;
+    updateCredits();
 }
 initStarField();
 
@@ -501,6 +544,8 @@ async function bootEngine() {
         return;
     }
     assetManifest = manifest;
+    creditsManager.setAssetManifest(assetManifest);
+    updateCredits();
 
     let asteroidColorIdx = 0;
 
@@ -510,7 +555,7 @@ async function bootEngine() {
         );
         if (chunkUrls.length === 0) continue;
 
-        // Category of the first chunk decides core vs optional asteroid group.
+        // Determine if the group is a core or optional asteroid group based on the first chunk.
         let firstChunkRows = [];
         try {
             firstChunkRows = await DataLoader.fetchJSONDataset(chunkUrls[0]);
@@ -542,7 +587,7 @@ async function bootEngine() {
 
                     if (!savedColors[groupName]) savedColors[groupName] = '#ffffff';
 
-                    // Prefer STAR/PLANET icon over MOON for mixed systems.
+                    // Select a core category icon, preferring stars and planets.
                     const iconCategory =
                         categoriesPresent.has('STAR') || categoriesPresent.has('PLANET')
                             ? 'PLANET'
@@ -687,6 +732,16 @@ function animate() {
     requestAnimationFrame(animate);
     const deltaSec = (performance.now() - lastFrameTime) / 1000;
     lastFrameTime = performance.now();
+
+    const perfSample = UI.performanceMonitor.tick(deltaSec);
+    if (perfSample) UI.updatePerf(perfSample);
+
+    // Evaluate star visibility to conditionally trigger the credits update.
+    const starsVisibleNow = camera.zoom <= STAR_CREDIT_ZOOM_THRESHOLD;
+    if (starsVisibleNow !== starsVisibleState) {
+        starsVisibleState = starsVisibleNow;
+        updateCredits();
+    }
 
     const timeData = updateSystemTimeStage(UI, systemDate, deltaSec);
     systemDate = timeData.newDate;

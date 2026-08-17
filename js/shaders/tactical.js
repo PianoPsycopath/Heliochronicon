@@ -257,7 +257,7 @@ export class TacticalShaders {
 
         labelMesh.material.map = fresh.map;
         labelMesh.material.needsUpdate = true;
-        
+
         fresh.dispose();
         if (oldMap) oldMap.dispose();
     }

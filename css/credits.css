@@ -1,0 +1,31 @@
+/* css/credits.css*/
+#hud-credits {
+    position: absolute;
+    right: 16px; /* Tied strictly to the right side */
+    
+    top: -120px;
+    bottom: var(--credits-bottom, 16px);
+    
+    height: var(--daylight-btn-height, auto);
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+
+    z-index: 5;
+    font-family: 'Courier New', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.03em;
+    text-align: right;
+    max-width: 55vw;
+
+    color: rgba(0, 255, 136, 0.45);
+    text-shadow: 0 0 4px rgba(0, 255, 136, 0.15);
+
+    pointer-events: none;
+    user-select: none;
+    white-space: normal;
+}
+
+#hud-credits:empty {
+    display: none;
+}

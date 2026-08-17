@@ -2,21 +2,25 @@
   "EARTH": {
     "url": "data/heightmaps/earth/global_rg.png",
     "elevMin": -450,
-    "elevMax": 6800
+    "elevMax": 6800,
+    "credit": "GTOPO30"
   },
   "JUPITER": {
     "url": "data/heightmaps/jupiter/global_rg.png",
     "elevMin": 0,
-    "elevMax": 255
+    "elevMax": 255,
+    "credit": "Voyager/Cassini Composite"
   },
   "MARS": {
     "url": "data/heightmaps/mars/global_rg.png",
     "elevMin": -9200,
-    "elevMax": 10900
+    "elevMax": 10900,
+    "credit": "MOLA (Mars Global Surveyor)"
   },
   "MOON": {
     "url": "data/heightmaps/moon/global_rg.png",
     "elevMin": -9200,
-    "elevMax": 10900
+    "elevMax": 10900,
+    "credit": "LOLA (Lunar Reconnaissance Orbiter)"
   }
 }

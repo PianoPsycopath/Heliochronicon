@@ -2,30 +2,59 @@
 import { OrbitalMath } from './OrbitalMath.js';
 import * as THREE from 'three';
 
+// --- Constants ---
+const CATEGORY_MOON = 'MOON';
+const CATEGORY_ASTEROID = 'ASTEROID';
+const CATEGORY_PROMOTED_ASTEROID = 'PROMOTED_ASTEROID';
+const CATEGORY_RADAR_CONTACT = 'RADAR_CONTACT';
+const CATEGORY_NONE = 'NONE';
+
+const ORBIT_MODEL_MEEUS = 'MEEUS';
+const ORBIT_MODEL_VSOP87 = 'VSOP87';
+const ORBIT_MODEL_KEPLER = 'KEPLER';
+
+const SUN_MASS_EARTH_MASSES = 1988500;
+const MACRO_SCALE_ZOOM_THRESHOLD = 0.075;
+const ORBIT_LINE_RESOLUTION = 720;
+
+const DEEP_WELL_DEPTH = -60.0;
+const DEEP_WELL_RADIUS = 0.15;
+const PLANET_WELL_DEPTH = -15.0;
+
+const COLOR_TARGET_ORBIT = 0x00aaff;
+const COLOR_PREVIEW_ORBIT = 0xffffff;
+const COLOR_DEFAULT_ORBIT = 0xff1111;
+
 export function getActiveSystemName(currentTargetData) {
-    if (!currentTargetData) return 'NONE';
-    return currentTargetData.category === 'MOON'
-        ? currentTargetData.parent
-        : currentTargetData.name;
+    if (!currentTargetData) {
+        return CATEGORY_NONE;
+    }
+
+    if (currentTargetData.category === CATEGORY_MOON) {
+        return currentTargetData.parent;
+    }
+
+    return currentTargetData.name;
 }
+
 export class RenderPipeline {
-    constructor(ctx) {
-        this.camera = ctx.camera;
-        this.controls = ctx.controls;
-        this.gridMaterial = ctx.gridMaterial;
-        this.gpuParticleSystems = ctx.gpuParticleSystems;
-        this.UI = ctx.UI;
-        this.savedColors = ctx.savedColors;
-        this.MAX_WELLS = ctx.MAX_WELLS;
-        this.terrainController = ctx.terrainController;
-        this.daylightController = ctx.daylightController;
-        this.eclipseShadowController = ctx.eclipseShadowController;
+    constructor(pipelineContext) {
+        this.camera = pipelineContext.camera;
+        this.controls = pipelineContext.controls;
+        this.gridMaterial = pipelineContext.gridMaterial;
+        this.gpuParticleSystems = pipelineContext.gpuParticleSystems;
+        this.uiController = pipelineContext.UI;
+        this.savedColors = pipelineContext.savedColors;
+        this.maximumWells = pipelineContext.MAX_WELLS;
+        this.terrainController = pipelineContext.terrainController;
+        this.daylightController = pipelineContext.daylightController;
+        this.eclipseShadowController = pipelineContext.eclipseShadowController;
 
         this.PLANET_SPRITE_SIZE = 4.5;
         this.MOON_SPRITE_SIZE = 2.5;
         this.ASTEROID_SPRITE_SIZE = 1.2;
         this.STAR_SPRITE_SIZE = 8;
-        this.OCCLUSION_DIST_SQ = 35 * 35;
+        this.OCCLUSION_DISTANCE_SQUARED = 35 * 35;
 
         this.LABEL_SAMPLE_COUNT = 64;
         this.LABEL_ZOOM_FADE_START = 8;
@@ -34,46 +63,61 @@ export class RenderPipeline {
 
         this._xAxis = new THREE.Vector3(1, 0, 0);
         this._yAxis = new THREE.Vector3(0, 1, 0);
-        this._flatQuat = new THREE.Quaternion().setFromAxisAngle(this._xAxis, -Math.PI / 2);
-        this._yawQuat = new THREE.Quaternion();
+        this._flatQuaternion = new THREE.Quaternion().setFromAxisAngle(this._xAxis, -Math.PI / 2);
+        this._yawQuaternion = new THREE.Quaternion();
 
-        this._projVec = new THREE.Vector3();
+        this._projectionVector = new THREE.Vector3();
     }
 
-    hideObject(b) {
-        if (b.sprite.visible) b.sprite.visible = false;
-        if (b.mesh.visible) b.mesh.visible = false;
-        if (b.orbitLine && b.orbitLine.visible) b.orbitLine.visible = false;
-        if (b.orbitCurtain && b.orbitCurtain.visible) b.orbitCurtain.visible = false;
-        if (b.label && b.label.style.display !== 'none') b.label.style.display = 'none';
-        if (this.daylightController) this.daylightController.onMeshVisibilityChange(b, false);
+    _hideBodyResources(celestialBody) {
+        if (celestialBody.sprite.visible) celestialBody.sprite.visible = false;
+        if (celestialBody.mesh.visible) celestialBody.mesh.visible = false;
+        if (celestialBody.orbitLine?.visible) celestialBody.orbitLine.visible = false;
+        if (celestialBody.orbitCurtain?.visible) celestialBody.orbitCurtain.visible = false;
+
+        if (celestialBody.label && celestialBody.label.style.display !== 'none') {
+            celestialBody.label.style.display = 'none';
+        }
+
+        if (this.terrainController)
+            this.terrainController.onMeshVisibilityChange(celestialBody, false);
+        if (this.daylightController)
+            this.daylightController.onMeshVisibilityChange(celestialBody, false);
         if (this.eclipseShadowController)
-            this.eclipseShadowController.onMeshVisibilityChange(b, false);
+            this.eclipseShadowController.onMeshVisibilityChange(celestialBody, false);
     }
 
     processFloatingOrigin(celestialBodies, trackingTargetData, currentOrigin, daysSinceJ2000) {
-        let targetAbsolutePos = new THREE.Vector3(0, 0, 0);
+        let targetAbsolutePosition = new THREE.Vector3(0, 0, 0);
+
         if (trackingTargetData) {
-            const tBody = celestialBodies.find((x) => x.data.name === trackingTargetData.name);
-            if (tBody) {
-                targetAbsolutePos.copy(tBody.globalPos);
-            } else if (trackingTargetData.datasetCategory === 'ASTEROID') {
-                const M_current = trackingTargetData.M0 + trackingTargetData.n * daysSinceJ2000;
-                targetAbsolutePos = OrbitalMath.calcPosFromM(
+            const targetBody = celestialBodies.find(
+                (body) => body.data.name === trackingTargetData.name
+            );
+
+            if (targetBody) {
+                targetAbsolutePosition.copy(targetBody.globalPos);
+            } else if (trackingTargetData.datasetCategory === CATEGORY_ASTEROID) {
+                const currentMeanAnomaly =
+                    trackingTargetData.M0 + trackingTargetData.n * daysSinceJ2000;
+
+                targetAbsolutePosition = OrbitalMath.calcPosFromM(
                     trackingTargetData.a,
                     trackingTargetData.e,
                     trackingTargetData.i,
                     trackingTargetData.w,
                     trackingTargetData.Node,
-                    M_current
+                    currentMeanAnomaly
                 );
             }
         }
-        const shiftDelta = targetAbsolutePos.clone().sub(currentOrigin);
-        if (shiftDelta.lengthSq() > 0) {
-            this.camera.position.sub(shiftDelta);
-            this.controls.target.sub(shiftDelta);
-            currentOrigin.copy(targetAbsolutePos);
+
+        const shiftDeltaVector = targetAbsolutePosition.clone().sub(currentOrigin);
+
+        if (shiftDeltaVector.lengthSq() > 0) {
+            this.camera.position.sub(shiftDeltaVector);
+            this.controls.target.sub(shiftDeltaVector);
+            currentOrigin.copy(targetAbsolutePosition);
         }
     }
 
@@ -84,58 +128,63 @@ export class RenderPipeline {
         previewTargetData = null,
         daysSinceJ2000 = 0
     ) {
-        const filters = this.UI.getMoonFilters();
+        const moonFilters = this.uiController.getMoonFilters();
         const activeSystemName = getActiveSystemName(currentTargetData);
 
-        let wellIndex = 0;
-        let trackTargetPos = new THREE.Vector3(0, 0, 0);
+        let activeWellIndex = 0;
+        let trackingTargetPosition = new THREE.Vector3(0, 0, 0);
 
         const drawnScreenPositions = [];
-        const halfW = window.innerWidth * 0.5;
-        const halfH = window.innerHeight * 0.5;
+        const screenHalfWidth = window.innerWidth * 0.5;
+        const screenHalfHeight = window.innerHeight * 0.5;
 
-        celestialBodies.forEach((b) => {
-            b.renderPos = b.globalPos.clone().sub(currentOrigin);
+        celestialBodies.forEach((celestialBody) => {
+            celestialBody.renderPos = celestialBody.globalPos.clone().sub(currentOrigin);
         });
 
-        celestialBodies.forEach((b) => {
-            const d = b.data;
-            if (b.isCulled) {
-                this.hideObject(b);
+        celestialBodies.forEach((celestialBody) => {
+            const bodyData = celestialBody.data;
+
+            if (celestialBody.isCulled) {
+                this._hideBodyResources(celestialBody);
                 return;
             }
 
-            const isTarget = currentTargetData ? d.name === currentTargetData.name : false;
-            const isPreview = !isTarget && previewTargetData ? d === previewTargetData : false;
+            const isTarget = currentTargetData ? bodyData.name === currentTargetData.name : false;
+            const isPreview =
+                !isTarget && previewTargetData ? bodyData === previewTargetData : false;
 
-            if (b.isMoon) {
-                const isTargetSystem = d.parent === activeSystemName;
-                const rKm = d.radius_km || 0;
+            if (celestialBody.isMoon) {
+                const isTargetSystem = bodyData.parent === activeSystemName;
+                const radiusKilometers = bodyData.radius_km || 0;
                 const passesFilters =
-                    d.a >= filters.distMin &&
-                    d.a <= filters.distMax &&
-                    rKm >= filters.sizeMin &&
-                    rKm <= filters.sizeMax;
+                    bodyData.a >= moonFilters.distMin &&
+                    bodyData.a <= moonFilters.distMax &&
+                    radiusKilometers >= moonFilters.sizeMin &&
+                    radiusKilometers <= moonFilters.sizeMax;
+
                 if (!isTargetSystem || !passesFilters) {
-                    b.isCulled = true;
-                    this.hideObject(b);
+                    celestialBody.isCulled = true;
+                    this._hideBodyResources(celestialBody);
                     return;
                 }
             }
 
-            this._projVec.copy(b.renderPos).project(this.camera);
+            this._projectionVector.copy(celestialBody.renderPos).project(this.camera);
 
-            const screenX = this._projVec.x * halfW + halfW;
-            const screenY = -(this._projVec.y * halfH) + halfH;
-            const isBehindCamera = this._projVec.z > 1;
+            const screenX = this._projectionVector.x * screenHalfWidth + screenHalfWidth;
+            const screenY = -(this._projectionVector.y * screenHalfHeight) + screenHalfHeight;
+            const isBehindCamera = this._projectionVector.z > 1;
 
             let isOccluded = false;
-            if (!isTarget && !isBehindCamera && d.parent !== d.name) {
-                for (let i = 0; i < drawnScreenPositions.length; i++) {
-                    const pos = drawnScreenPositions[i];
-                    const dx = screenX - pos.x;
-                    const dy = screenY - pos.y;
-                    if (dx * dx + dy * dy < this.OCCLUSION_DIST_SQ) {
+
+            if (!isTarget && !isBehindCamera && bodyData.parent !== bodyData.name) {
+                for (let index = 0; index < drawnScreenPositions.length; index++) {
+                    const position = drawnScreenPositions[index];
+                    const deltaX = screenX - position.x;
+                    const deltaY = screenY - position.y;
+
+                    if (deltaX * deltaX + deltaY * deltaY < this.OCCLUSION_DISTANCE_SQUARED) {
                         isOccluded = true;
                         break;
                     }
@@ -144,414 +193,504 @@ export class RenderPipeline {
 
             if (!isOccluded && !isBehindCamera) {
                 if (
-                    d.datasetCategory !== 'PROMOTED_ASTEROID' &&
-                    d.datasetCategory !== 'RADAR_CONTACT'
+                    bodyData.datasetCategory !== CATEGORY_PROMOTED_ASTEROID &&
+                    bodyData.datasetCategory !== CATEGORY_RADAR_CONTACT
                 ) {
                     drawnScreenPositions.push({ x: screenX, y: screenY });
                 }
             }
 
-            b.mesh.quaternion.copy(b.poleQuaternion);
-            b.mesh.rotateY(b.W_current);
+            celestialBody.mesh.quaternion.copy(celestialBody.poleQuaternion);
+            celestialBody.mesh.rotateY(celestialBody.W_current);
 
-            b.sprite.position.copy(b.renderPos);
-            b.mesh.position.copy(b.renderPos);
+            celestialBody.sprite.position.copy(celestialBody.renderPos);
+            celestialBody.mesh.position.copy(celestialBody.renderPos);
 
-            if (d.parent === d.name) {
-                const sunVisSize = b.physicalRadius * 2 * this.camera.zoom;
-                const isSunBigger = sunVisSize >= this.STAR_SPRITE_SIZE;
-                const ZOOM_OUT_THRESHOLD = 0.075;
-                const isMacroScale = this.camera.zoom <= ZOOM_OUT_THRESHOLD;
+            if (bodyData.parent === bodyData.name) {
+                const sunVisibleSize = celestialBody.physicalRadius * 2 * this.camera.zoom;
+                const isSunBigger = sunVisibleSize >= this.STAR_SPRITE_SIZE;
+                const isMacroScale = this.camera.zoom <= MACRO_SCALE_ZOOM_THRESHOLD;
 
-                b.mesh.visible = isSunBigger || isMacroScale;
-                b.sprite.visible = !isOccluded && !isSunBigger && !isMacroScale;
+                celestialBody.mesh.visible = isSunBigger || isMacroScale;
+                celestialBody.sprite.visible = !isOccluded && !isSunBigger && !isMacroScale;
 
                 const starScale = this.STAR_SPRITE_SIZE / this.camera.zoom;
-                b.sprite.scale.set(starScale, starScale, 1);
+                celestialBody.sprite.scale.set(starScale, starScale, 1);
 
-                this.gridMaterial.uniforms.wellPositions.value[wellIndex].set(0, 0);
-                this.gridMaterial.uniforms.wellDepths.value[wellIndex] = -60.0;
-                this.gridMaterial.uniforms.wellRadii.value[wellIndex] = 0.15;
+                this.gridMaterial.uniforms.wellPositions.value[activeWellIndex].set(0, 0);
+                this.gridMaterial.uniforms.wellDepths.value[activeWellIndex] = DEEP_WELL_DEPTH;
+                this.gridMaterial.uniforms.wellRadii.value[activeWellIndex] = DEEP_WELL_RADIUS;
 
-                wellIndex++;
-                if (isTarget) trackTargetPos = b.mesh.position;
+                activeWellIndex++;
+                if (isTarget) trackingTargetPosition = celestialBody.mesh.position;
 
-                if (b.label) {
-                    const vec = b.renderPos.clone();
-                    const starScale = this.STAR_SPRITE_SIZE / this.camera.zoom;
-                    vec.y += starScale * 0.6;
-                    vec.project(this.camera);
-                    if (vec.z < 1 && !isOccluded) {
-                        b.label.style.display = 'block';
-                        b.label.style.left = `${(vec.x * 0.5 + 0.5) * window.innerWidth}px`;
-                        b.label.style.top = `${(vec.y * -0.5 + 0.5) * window.innerHeight}px`;
+                if (celestialBody.label) {
+                    const labelVector = celestialBody.renderPos.clone();
+                    labelVector.y += starScale * 0.6;
+                    labelVector.project(this.camera);
+
+                    if (labelVector.z < 1 && !isOccluded) {
+                        celestialBody.label.style.display = 'block';
+                        celestialBody.label.style.left = `${(labelVector.x * 0.5 + 0.5) * window.innerWidth}px`;
+                        celestialBody.label.style.top = `${(labelVector.y * -0.5 + 0.5) * window.innerHeight}px`;
                     } else {
-                        b.label.style.display = 'none';
+                        celestialBody.label.style.display = 'none';
                     }
                 }
 
-                b.mesh.updateMatrix();
-                b.mesh.updateMatrixWorld();
-                b.sprite.updateMatrix();
-                b.sprite.updateMatrixWorld();
+                celestialBody.mesh.updateMatrix();
+                celestialBody.mesh.updateMatrixWorld();
+                celestialBody.sprite.updateMatrix();
+                celestialBody.sprite.updateMatrixWorld();
                 return;
             }
 
-            let baseSize = this.PLANET_SPRITE_SIZE;
-            if (b.isMoon) {
-                baseSize = this.MOON_SPRITE_SIZE;
+            let baseSpriteSize = this.PLANET_SPRITE_SIZE;
+
+            if (celestialBody.isMoon) {
+                baseSpriteSize = this.MOON_SPRITE_SIZE;
             } else if (
-                d.datasetCategory === 'PROMOTED_ASTEROID' ||
-                d.datasetCategory === 'RADAR_CONTACT'
+                bodyData.datasetCategory === CATEGORY_PROMOTED_ASTEROID ||
+                bodyData.datasetCategory === CATEGORY_RADAR_CONTACT
             ) {
-                baseSize = this.ASTEROID_SPRITE_SIZE;
+                baseSpriteSize = this.ASTEROID_SPRITE_SIZE;
             }
 
-            const spriteScale = baseSize / this.camera.zoom;
-            b.sprite.scale.set(spriteScale, spriteScale, 1);
+            const spriteScale = baseSpriteSize / this.camera.zoom;
+            celestialBody.sprite.scale.set(spriteScale, spriteScale, 1);
 
-            const meshVisSize = b.physicalRadius * 2 * this.camera.zoom;
-            const isMeshBigger = meshVisSize >= baseSize;
+            const meshVisibleSize = celestialBody.physicalRadius * 2 * this.camera.zoom;
+            const isMeshBigger = meshVisibleSize >= baseSpriteSize;
 
-            b.mesh.visible = isMeshBigger;
-            this.terrainController.onMeshVisibilityChange(b, isMeshBigger);
+            celestialBody.mesh.visible = isMeshBigger;
+
+            this.terrainController?.onMeshVisibilityChange(celestialBody, isMeshBigger);
+
             if (this.daylightController) {
-                this.daylightController.onMeshVisibilityChange(b, isMeshBigger);
-                if (isMeshBigger) this.daylightController.updateForBody(b);
+                this.daylightController.onMeshVisibilityChange(celestialBody, isMeshBigger);
+                if (isMeshBigger) this.daylightController.updateForBody(celestialBody);
             }
+
             if (this.eclipseShadowController) {
-                this.eclipseShadowController.onMeshVisibilityChange(b, isMeshBigger);
-                if (isMeshBigger) this.eclipseShadowController.updateForBody(b);
+                this.eclipseShadowController.onMeshVisibilityChange(celestialBody, isMeshBigger);
+                if (isMeshBigger) this.eclipseShadowController.updateForBody(celestialBody);
             }
-            b.sprite.visible = !isOccluded && !isMeshBigger;
 
-            // Orbit line / curtain placement is handled later after relative geometry is built
+            celestialBody.sprite.visible = !isOccluded && !isMeshBigger;
 
-            if (wellIndex < this.MAX_WELLS && d.mass > 0 && !b.isMoon) {
-                const isBeingRendered = b.mesh.visible || b.sprite.visible;
-
-                if (
-                    isBeingRendered &&
-                    wellIndex < this.MAX_WELLS &&
-                    d.mass > 0 &&
-                    d.parent !== d.name
-                ) {
-                    this.gridMaterial.uniforms.wellPositions.value[wellIndex].set(
-                        b.renderPos.x,
-                        b.renderPos.z
-                    );
-
-                    const sunMass = 1988500;
-                    const a = b.scaledA || d.a_au || 1.0;
-                    const hillRadius = a * Math.pow(d.mass / sunMass, 1.0 / 3.0);
-
-                    let targetDepth = b.isMoon ? -4.0 : -15.0;
-                    let targetRadius = Math.max(hillRadius * 2.5, b.isMoon ? 0.005 : 0.05);
-
-                    if (!b.isMoon) {
-                        const zoom = this.camera.zoom;
-                        const fadeFactor = Math.max(
-                            0.0,
-                            Math.min(1.0, 1.0 - (zoom - 50.0) / 150.0)
-                        );
-                        targetDepth *= fadeFactor;
-                    }
-                    this.gridMaterial.uniforms.wellDepths.value[wellIndex] = targetDepth;
-                    this.gridMaterial.uniforms.wellRadii.value[wellIndex] = targetRadius;
-                    wellIndex++;
-                }
+            if (activeWellIndex < this.maximumWells && bodyData.mass > 0 && !celestialBody.isMoon) {
+                activeWellIndex = this._updateGravityWell(celestialBody, bodyData, activeWellIndex);
             }
 
             if (isTarget) {
-                trackTargetPos = b.mesh.position;
-                b.orbitLine.material.color.setHex(0x00aaff);
-                b.orbitLine.material.opacity = 1.0;
+                trackingTargetPosition = celestialBody.mesh.position;
+                celestialBody.orbitLine.material.color.setHex(COLOR_TARGET_ORBIT);
+                celestialBody.orbitLine.material.opacity = 1.0;
 
-                if (b.orbitCurtain) {
-                    b.orbitCurtain.visible = true;
-                    const points = [];
-                    const res = 720; // Unify with OrbitLine
-
-                    if (d.orbit_model === 'MEEUS' || d.orbit_model === 'VSOP87') {
-                        const period = d.period;
-                        for (let j = 0; j <= res; j++) {
-                            // Previous period so trailing end sits on the body
-                            const tDays = daysSinceJ2000 - period + (j / res) * period;
-                            const pos = OrbitalMath.calculatePosition(d, tDays);
-                            const lPos = new THREE.Vector3(pos.x, pos.y, pos.z);
-                            points.push(lPos.clone());
-                            points.push(new THREE.Vector3(lPos.x, 0, lPos.z));
-                        }
-                    } else {
-                        const M_current = d.M0 + d.n * daysSinceJ2000;
-                        for (let j = 0; j <= res; j++) {
-                            const M = M_current - 2 * Math.PI + (j / res) * 2 * Math.PI;
-                            const rawPos = OrbitalMath.calcPosFromM(
-                                b.scaledA,
-                                d.e,
-                                d.i,
-                                d.w,
-                                d.Node,
-                                M
-                            );
-                            let lPos = new THREE.Vector3(rawPos.x, rawPos.y, rawPos.z);
-                            points.push(lPos.clone());
-                            points.push(new THREE.Vector3(lPos.x, 0, lPos.z));
-                        }
-                    }
-
-                    // Make curtain geometry relative to the body → vertices stay small (Float32 safe)
-                    const curtainOrigin = b.localPos;
-                    for (let i = 0; i < points.length; i++) {
-                        points[i].sub(curtainOrigin);
-                    }
-                    b.orbitCurtain.geometry.setFromPoints(points);
-                    b.orbitCurtain.position.copy(b.renderPos);
-
-                    if (b.isMoon) {
-                        if (!d.orbit_model || d.orbit_model === 'KEPLER') {
-                            b.orbitCurtain.quaternion.copy(b.parentQuat);
-                        } else {
-                            b.orbitCurtain.quaternion.identity();
-                        }
-                    } else {
-                        b.orbitCurtain.quaternion.identity();
-                    }
+                if (celestialBody.orbitCurtain) {
+                    celestialBody.orbitCurtain.visible = true;
+                    this._updateOrbitCurtainGeometry(celestialBody, bodyData, daysSinceJ2000);
                 }
             } else {
                 if (isPreview) {
-                    b.orbitLine.material.color.setHex(0xffffff);
-                    b.orbitLine.material.opacity = 0.9;
-                } else if (d.datasetCategory === 'PROMOTED_ASTEROID') {
-                    const dColor = this.savedColors[d.datasetName] || '#00ffff';
-                    b.orbitLine.material.color.set(dColor);
-                    b.orbitLine.material.opacity = b.isMoon ? 0.3 : 0.6;
-                } else if (d.datasetCategory === 'RADAR_CONTACT') {
-                    const dColor = this.savedColors[d.datasetName] || '#00ff00';
-                    b.orbitLine.material.color.set(dColor);
-                    b.orbitLine.material.opacity = b.isMoon ? 0.3 : 0.6;
+                    celestialBody.orbitLine.material.color.setHex(COLOR_PREVIEW_ORBIT);
+                    celestialBody.orbitLine.material.opacity = 0.9;
+                } else if (bodyData.datasetCategory === CATEGORY_PROMOTED_ASTEROID) {
+                    const datasetColor = this.savedColors[bodyData.datasetName] || '#00ffff';
+                    celestialBody.orbitLine.material.color.set(datasetColor);
+                    celestialBody.orbitLine.material.opacity = celestialBody.isMoon ? 0.3 : 0.6;
+                } else if (bodyData.datasetCategory === CATEGORY_RADAR_CONTACT) {
+                    const datasetColor = this.savedColors[bodyData.datasetName] || '#00ff00';
+                    celestialBody.orbitLine.material.color.set(datasetColor);
+                    celestialBody.orbitLine.material.opacity = celestialBody.isMoon ? 0.3 : 0.6;
                 } else {
-                    b.orbitLine.material.color.setHex(0xff1111);
-                    b.orbitLine.material.opacity = b.isMoon ? 0.3 : 0.6;
+                    celestialBody.orbitLine.material.color.setHex(COLOR_DEFAULT_ORBIT);
+                    celestialBody.orbitLine.material.opacity = celestialBody.isMoon ? 0.3 : 0.6;
                 }
-                if (b.orbitCurtain) b.orbitCurtain.visible = false;
+
+                if (celestialBody.orbitCurtain) celestialBody.orbitCurtain.visible = false;
             }
 
-            if (b.isMoon) {
-                b.orbitLine.visible = b.mesh.visible || b.sprite.visible;
-            } else if (d.datasetCategory === 'PROMOTED_ASTEROID') {
-                b.orbitLine.visible = isTarget || d.isPinned || isPreview;
-            } else if (d.datasetCategory === 'RADAR_CONTACT') {
-                b.orbitLine.visible = isPreview;
+            if (celestialBody.isMoon) {
+                celestialBody.orbitLine.visible =
+                    celestialBody.mesh.visible || celestialBody.sprite.visible;
+            } else if (bodyData.datasetCategory === CATEGORY_PROMOTED_ASTEROID) {
+                celestialBody.orbitLine.visible = isTarget || bodyData.isPinned || isPreview;
+            } else if (bodyData.datasetCategory === CATEGORY_RADAR_CONTACT) {
+                celestialBody.orbitLine.visible = isPreview;
             } else {
-                b.orbitLine.visible = true;
+                celestialBody.orbitLine.visible = true;
             }
 
-            // ANCHOR ORBIT LINE – relative geometry so Float32 stays precise
-            // Trailing end of the previous period is forced to (0,0,0) and the
-            // line object is placed at the body's renderPos.
-            if (b.orbitLine.visible) {
-                const res = 720;
-                const pts = [];
-
-                if (d.orbit_model === 'MEEUS' || d.orbit_model === 'VSOP87') {
-                    const period = d.period;
-                    for (let j = 0; j <= res; j++) {
-                        // Previous period → trailing end = current position
-                        const tDays = daysSinceJ2000 - period + (j / res) * period;
-                        const pos = OrbitalMath.calculatePosition(d, tDays);
-                        pts.push(new THREE.Vector3(pos.x, pos.y, pos.z));
-                    }
-                } else {
-                    // Keplerian: one full period ending at current mean anomaly
-                    const M_current = d.M0 + d.n * daysSinceJ2000;
-                    for (let j = 0; j <= res; j++) {
-                        const M = M_current - 2 * Math.PI + (j / res) * 2 * Math.PI;
-                        const rawPos = OrbitalMath.calcPosFromM(
-                            b.scaledA,
-                            d.e,
-                            d.i,
-                            d.w,
-                            d.Node,
-                            M
-                        );
-                        pts.push(new THREE.Vector3(rawPos.x, rawPos.y, rawPos.z));
-                    }
-                }
-
-                // Relative to body → last point becomes (0,0,0)
-                const originPt = b.localPos;
-                for (let i = 0; i < pts.length; i++) {
-                    pts[i].sub(originPt);
-                }
-                if (pts.length > 0) {
-                    pts[pts.length - 1].set(0, 0, 0);
-                }
-
-                b.orbitLine.geometry.setFromPoints(pts);
-                b.orbitLine.position.copy(b.renderPos);
-
-                // Moons still need parent orientation; heliocentric bodies stay identity
-                if (b.isMoon) {
-                    if (!d.orbit_model || d.orbit_model === 'KEPLER') {
-                        b.orbitLine.quaternion.copy(b.parentQuat);
-                    } else {
-                        b.orbitLine.quaternion.identity();
-                    }
-                } else {
-                    b.orbitLine.quaternion.identity();
-                }
+            if (celestialBody.orbitLine.visible) {
+                this._updateOrbitLineGeometry(celestialBody, bodyData, daysSinceJ2000);
             }
 
-            if (b.label) {
+            if (celestialBody.label) {
                 const isInactivePromoted =
-                    d.datasetCategory === 'PROMOTED_ASTEROID' &&
+                    bodyData.datasetCategory === CATEGORY_PROMOTED_ASTEROID &&
                     !isTarget &&
-                    !d.isPinned &&
+                    !bodyData.isPinned &&
                     !isPreview;
+
                 if (
-                    (b.hideLabel && !isPreview) ||
+                    (celestialBody.hideLabel && !isPreview) ||
                     isInactivePromoted ||
                     isOccluded ||
                     isBehindCamera
                 ) {
-                    b.label.style.display = 'none';
+                    celestialBody.label.style.display = 'none';
                 } else {
-                    const vec = b.renderPos.clone();
-                    const verticalOffset = b.sprite.visible
+                    const labelVector = celestialBody.renderPos.clone();
+                    const verticalOffset = celestialBody.sprite.visible
                         ? spriteScale * 0.6
-                        : b.physicalRadius * 1.5;
-                    vec.y += verticalOffset;
-                    vec.project(this.camera);
+                        : celestialBody.physicalRadius * 1.5;
 
-                    if (vec.z < 1) {
-                        b.label.style.display = 'block';
-                        b.label.style.left = `${(vec.x * 0.5 + 0.5) * window.innerWidth}px`;
-                        b.label.style.top = `${(vec.y * -0.5 + 0.5) * window.innerHeight}px`;
+                    labelVector.y += verticalOffset;
+                    labelVector.project(this.camera);
+
+                    if (labelVector.z < 1) {
+                        celestialBody.label.style.display = 'block';
+                        celestialBody.label.style.left = `${(labelVector.x * 0.5 + 0.5) * window.innerWidth}px`;
+                        celestialBody.label.style.top = `${(labelVector.y * -0.5 + 0.5) * window.innerHeight}px`;
                     } else {
-                        b.label.style.display = 'none';
+                        celestialBody.label.style.display = 'none';
                     }
                 }
             }
 
-            b.mesh.updateMatrix();
-            b.mesh.updateMatrixWorld();
-            b.sprite.updateMatrix();
-            b.sprite.updateMatrixWorld();
-            if (b.orbitLine && b.orbitLine.visible) {
-                b.orbitLine.updateMatrix();
-                b.orbitLine.updateMatrixWorld();
+            celestialBody.mesh.updateMatrix();
+            celestialBody.mesh.updateMatrixWorld();
+            celestialBody.sprite.updateMatrix();
+            celestialBody.sprite.updateMatrixWorld();
+
+            if (celestialBody.orbitLine?.visible) {
+                celestialBody.orbitLine.updateMatrix();
+                celestialBody.orbitLine.updateMatrixWorld();
             }
-            if (b.orbitCurtain && b.orbitCurtain.visible) {
-                b.orbitCurtain.updateMatrix();
-                b.orbitCurtain.updateMatrixWorld();
+
+            if (celestialBody.orbitCurtain?.visible) {
+                celestialBody.orbitCurtain.updateMatrix();
+                celestialBody.orbitCurtain.updateMatrixWorld();
             }
         });
 
-        this.gridMaterial.uniforms.numWells.value = wellIndex;
-        return trackTargetPos;
+        this.gridMaterial.uniforms.numWells.value = activeWellIndex;
+        return trackingTargetPosition;
+    }
+
+    _updateGravityWell(celestialBody, bodyData, activeWellIndex) {
+        const isBeingRendered = celestialBody.mesh.visible || celestialBody.sprite.visible;
+
+        if (!isBeingRendered) {
+            return activeWellIndex;
+        }
+
+        this.gridMaterial.uniforms.wellPositions.value[activeWellIndex].set(
+            celestialBody.renderPos.x,
+            celestialBody.renderPos.z
+        );
+
+        const semiMajorAxis = celestialBody.scaledA || bodyData.a_au || 1.0;
+        const hillRadius =
+            semiMajorAxis * Math.pow(bodyData.mass / SUN_MASS_EARTH_MASSES, 1.0 / 3.0);
+
+        let targetDepth = PLANET_WELL_DEPTH;
+        let targetRadius = Math.max(hillRadius * 2.5, 0.05);
+
+        const currentZoom = this.camera.zoom;
+        const fadeFactor = Math.max(0.0, Math.min(1.0, 1.0 - (currentZoom - 50.0) / 150.0));
+        targetDepth *= fadeFactor;
+
+        this.gridMaterial.uniforms.wellDepths.value[activeWellIndex] = targetDepth;
+        this.gridMaterial.uniforms.wellRadii.value[activeWellIndex] = targetRadius;
+
+        return activeWellIndex + 1;
+    }
+
+    // Build orbit line placement after establishing relative geometry.
+    // Use relative geometry for orbit lines to maintain Float32 precision.
+    // Force the trailing end of the previous period to the origin (0,0,0) and place the line object at the render position of the body.
+    _updateOrbitLineGeometry(celestialBody, bodyData, daysSinceJ2000) {
+        const orbitPoints = [];
+
+        if (
+            bodyData.orbit_model === ORBIT_MODEL_MEEUS ||
+            bodyData.orbit_model === ORBIT_MODEL_VSOP87
+        ) {
+            const orbitalPeriod = bodyData.period;
+
+            for (let index = 0; index <= ORBIT_LINE_RESOLUTION; index++) {
+                const timeInDays =
+                    daysSinceJ2000 -
+                    orbitalPeriod +
+                    (index / ORBIT_LINE_RESOLUTION) * orbitalPeriod;
+                const positionVector = OrbitalMath.calculatePosition(bodyData, timeInDays);
+                orbitPoints.push(
+                    new THREE.Vector3(positionVector.x, positionVector.y, positionVector.z)
+                );
+            }
+        } else {
+            const currentMeanAnomaly = bodyData.M0 + bodyData.n * daysSinceJ2000;
+
+            for (let index = 0; index <= ORBIT_LINE_RESOLUTION; index++) {
+                const meanAnomaly =
+                    currentMeanAnomaly -
+                    2 * Math.PI +
+                    (index / ORBIT_LINE_RESOLUTION) * 2 * Math.PI;
+                const rawPosition = OrbitalMath.calcPosFromM(
+                    celestialBody.scaledA,
+                    bodyData.e,
+                    bodyData.i,
+                    bodyData.w,
+                    bodyData.Node,
+                    meanAnomaly
+                );
+                orbitPoints.push(new THREE.Vector3(rawPosition.x, rawPosition.y, rawPosition.z));
+            }
+        }
+
+        const originPoint = celestialBody.localPos;
+
+        for (let i = 0; i < orbitPoints.length; i++) {
+            orbitPoints[i].sub(originPoint);
+        }
+
+        if (orbitPoints.length > 0) {
+            orbitPoints[orbitPoints.length - 1].set(0, 0, 0);
+        }
+
+        celestialBody.orbitLine.geometry.setFromPoints(orbitPoints);
+        celestialBody.orbitLine.position.copy(celestialBody.renderPos);
+
+        // Apply parent orientation to moons. Keep heliocentric bodies at identity.
+        if (celestialBody.isMoon) {
+            if (!bodyData.orbit_model || bodyData.orbit_model === ORBIT_MODEL_KEPLER) {
+                celestialBody.orbitLine.quaternion.copy(celestialBody.parentQuat);
+            } else {
+                celestialBody.orbitLine.quaternion.identity();
+            }
+        } else {
+            celestialBody.orbitLine.quaternion.identity();
+        }
+    }
+
+    // Set curtain geometry relative to the body to keep vertices small and Float32 safe.
+    _updateOrbitCurtainGeometry(celestialBody, bodyData, daysSinceJ2000) {
+        const curtainPoints = [];
+
+        if (
+            bodyData.orbit_model === ORBIT_MODEL_MEEUS ||
+            bodyData.orbit_model === ORBIT_MODEL_VSOP87
+        ) {
+            const orbitalPeriod = bodyData.period;
+
+            for (let index = 0; index <= ORBIT_LINE_RESOLUTION; index++) {
+                const timeInDays =
+                    daysSinceJ2000 -
+                    orbitalPeriod +
+                    (index / ORBIT_LINE_RESOLUTION) * orbitalPeriod;
+                const positionVector = OrbitalMath.calculatePosition(bodyData, timeInDays);
+                const localPosition = new THREE.Vector3(
+                    positionVector.x,
+                    positionVector.y,
+                    positionVector.z
+                );
+
+                curtainPoints.push(localPosition.clone());
+                curtainPoints.push(new THREE.Vector3(localPosition.x, 0, localPosition.z));
+            }
+        } else {
+            const currentMeanAnomaly = bodyData.M0 + bodyData.n * daysSinceJ2000;
+
+            for (let index = 0; index <= ORBIT_LINE_RESOLUTION; index++) {
+                const meanAnomaly =
+                    currentMeanAnomaly -
+                    2 * Math.PI +
+                    (index / ORBIT_LINE_RESOLUTION) * 2 * Math.PI;
+                const rawPosition = OrbitalMath.calcPosFromM(
+                    celestialBody.scaledA,
+                    bodyData.e,
+                    bodyData.i,
+                    bodyData.w,
+                    bodyData.Node,
+                    meanAnomaly
+                );
+                const localPosition = new THREE.Vector3(
+                    rawPosition.x,
+                    rawPosition.y,
+                    rawPosition.z
+                );
+
+                curtainPoints.push(localPosition.clone());
+                curtainPoints.push(new THREE.Vector3(localPosition.x, 0, localPosition.z));
+            }
+        }
+
+        const curtainOrigin = celestialBody.localPos;
+
+        for (let i = 0; i < curtainPoints.length; i++) {
+            curtainPoints[i].sub(curtainOrigin);
+        }
+
+        celestialBody.orbitCurtain.geometry.setFromPoints(curtainPoints);
+        celestialBody.orbitCurtain.position.copy(celestialBody.renderPos);
+
+        if (celestialBody.isMoon) {
+            if (!bodyData.orbit_model || bodyData.orbit_model === ORBIT_MODEL_KEPLER) {
+                celestialBody.orbitCurtain.quaternion.copy(celestialBody.parentQuat);
+            } else {
+                celestialBody.orbitCurtain.quaternion.identity();
+            }
+        } else {
+            celestialBody.orbitCurtain.quaternion.identity();
+        }
     }
 
     _smoothstep(edge0, edge1, x) {
-        const t = Math.min(1, Math.max(0, (x - edge0) / (edge1 - edge0)));
-        return t * t * (3 - 2 * t);
+        const interpolationMultiplier = Math.min(1, Math.max(0, (x - edge0) / (edge1 - edge0)));
+        return (
+            interpolationMultiplier * interpolationMultiplier * (3 - 2 * interpolationMultiplier)
+        );
     }
 
     computeGroupAnchor(sourceData, daysSinceJ2000) {
-        const n = sourceData.length;
-        const step = Math.max(1, Math.floor(n / this.LABEL_SAMPLE_COUNT));
-        let sumR = 0,
-            sumSin = 0,
-            sumCos = 0,
-            sumY = 0,
-            count = 0;
+        const totalItems = sourceData.length;
+        const sampleStep = Math.max(1, Math.floor(totalItems / this.LABEL_SAMPLE_COUNT));
 
-        for (let idx = 0; idx < n; idx += step) {
-            const d = sourceData[idx];
-            const M_current = d.M0 + d.n * daysSinceJ2000;
-            const rawPos = OrbitalMath.calcPosFromM(d.a, d.e, d.i, d.w, d.Node, M_current);
-            let pos = new THREE.Vector3(rawPos.x, rawPos.y, rawPos.z);
-            const r = Math.hypot(pos.x, pos.z);
-            const theta = Math.atan2(pos.z, pos.x);
-            sumR += r;
-            sumSin += Math.sin(theta);
-            sumCos += Math.cos(theta);
-            sumY += pos.y;
-            count++;
+        let sumRadius = 0;
+        let sumSine = 0;
+        let sumCosine = 0;
+        let sumPositionY = 0;
+        let sampleCount = 0;
+
+        for (let index = 0; index < totalItems; index += sampleStep) {
+            const bodyData = sourceData[index];
+            const currentMeanAnomaly = bodyData.M0 + bodyData.n * daysSinceJ2000;
+            const rawPosition = OrbitalMath.calcPosFromM(
+                bodyData.a,
+                bodyData.e,
+                bodyData.i,
+                bodyData.w,
+                bodyData.Node,
+                currentMeanAnomaly
+            );
+
+            const positionVector = new THREE.Vector3(rawPosition.x, rawPosition.y, rawPosition.z);
+            const radius = Math.hypot(positionVector.x, positionVector.z);
+            const thetaAngle = Math.atan2(positionVector.z, positionVector.x);
+
+            sumRadius += radius;
+            sumSine += Math.sin(thetaAngle);
+            sumCosine += Math.cos(thetaAngle);
+            sumPositionY += positionVector.y;
+            sampleCount++;
         }
-        if (count === 0) return new THREE.Vector3();
 
-        const meanR = sumR / count;
-        const meanTheta = Math.atan2(sumSin, sumCos);
-        const meanY = sumY / count;
+        if (sampleCount === 0) {
+            return new THREE.Vector3();
+        }
 
-        return new THREE.Vector3(meanR * Math.cos(meanTheta), meanY, meanR * Math.sin(meanTheta));
+        const meanRadius = sumRadius / sampleCount;
+        const meanThetaAngle = Math.atan2(sumSine, sumCosine);
+        const meanPositionY = sumPositionY / sampleCount;
+
+        return new THREE.Vector3(
+            meanRadius * Math.cos(meanThetaAngle),
+            meanPositionY,
+            meanRadius * Math.sin(meanThetaAngle)
+        );
     }
 
     updateGPU(daysSinceJ2000, currentOrigin) {
         this.gridMaterial.uniforms.zoomScale.value = this.camera.zoom;
         this.gridMaterial.uniforms.cameraPos.value.copy(this.camera.position);
 
-        const zoom = this.camera.zoom;
-        const fade =
-            1.0 - this._smoothstep(this.LABEL_ZOOM_FADE_START, this.LABEL_ZOOM_FADE_END, zoom);
+        const currentZoom = this.camera.zoom;
+        const fadeOpacity =
+            1.0 -
+            this._smoothstep(this.LABEL_ZOOM_FADE_START, this.LABEL_ZOOM_FADE_END, currentZoom);
 
-        this.gpuParticleSystems.forEach((system) => {
-            system.visible = system.userData.datasetVisible !== false;
-            if (system.visible) {
-                system.material.uniforms.uTime.value = daysSinceJ2000;
-                system.material.uniforms.uOrigin.value.copy(currentOrigin);
-                system.material.uniforms.uZoom.value = zoom;
+        this.gpuParticleSystems.forEach((particleSystem) => {
+            particleSystem.visible = particleSystem.userData.datasetVisible !== false;
+
+            if (particleSystem.visible) {
+                particleSystem.material.uniforms.uTime.value = daysSinceJ2000;
+                particleSystem.material.uniforms.uOrigin.value.copy(currentOrigin);
+                particleSystem.material.uniforms.uZoom.value = currentZoom;
             }
 
-            const label = system.userData.groupLabel;
-            if (!label) return;
+            const systemLabel = particleSystem.userData.groupLabel;
+            if (!systemLabel) return;
 
-            if (!system.visible || fade <= 0.01) {
-                label.visible = false;
-                system.userData._labelWasVisible = false;
+            if (!particleSystem.visible || fadeOpacity <= 0.01) {
+                systemLabel.visible = false;
+                particleSystem.userData._labelWasVisible = false;
                 return;
             }
-            label.visible = true;
 
-            const rawAnchor = this.computeGroupAnchor(system.userData.sourceData, daysSinceJ2000);
+            systemLabel.visible = true;
 
-            if (!system.userData._labelWasVisible) {
-                if (!system.userData._smoothAnchor)
-                    system.userData._smoothAnchor = new THREE.Vector3();
-                system.userData._smoothAnchor.copy(rawAnchor);
+            const rawAnchorVector = this.computeGroupAnchor(
+                particleSystem.userData.sourceData,
+                daysSinceJ2000
+            );
+
+            if (!particleSystem.userData._labelWasVisible) {
+                if (!particleSystem.userData._smoothAnchor) {
+                    particleSystem.userData._smoothAnchor = new THREE.Vector3();
+                }
+                particleSystem.userData._smoothAnchor.copy(rawAnchorVector);
             } else {
-                system.userData._smoothAnchor.lerp(rawAnchor, this.LABEL_SMOOTHING);
+                particleSystem.userData._smoothAnchor.lerp(rawAnchorVector, this.LABEL_SMOOTHING);
             }
-            system.userData._labelWasVisible = true;
 
-            const anchor = system.userData._smoothAnchor;
-            label.position.copy(anchor).sub(currentOrigin);
+            particleSystem.userData._labelWasVisible = true;
 
-            const angleFromSun = Math.atan2(anchor.z, anchor.x);
-            const phi = -angleFromSun - Math.PI / 2;
-            this._yawQuat.setFromAxisAngle(this._yAxis, phi);
-            label.quaternion.copy(this._yawQuat).multiply(this._flatQuat);
+            const anchorPosition = particleSystem.userData._smoothAnchor;
+            systemLabel.position.copy(anchorPosition).sub(currentOrigin);
 
-            label.material.opacity = fade;
+            const angleFromSunRadians = Math.atan2(anchorPosition.z, anchorPosition.x);
+            const yawAngle = -angleFromSunRadians - Math.PI / 2;
 
-            label.updateMatrix();
-            label.updateMatrixWorld();
+            this._yawQuaternion.setFromAxisAngle(this._yAxis, yawAngle);
+            systemLabel.quaternion.copy(this._yawQuaternion).multiply(this._flatQuaternion);
+
+            systemLabel.material.opacity = fadeOpacity;
+
+            systemLabel.updateMatrix();
+            systemLabel.updateMatrixWorld();
         });
     }
 
     computeGroupCentroid(sourceData, daysSinceJ2000) {
-        const n = sourceData.length;
-        const step = Math.max(1, Math.floor(n / this.LABEL_SAMPLE_COUNT));
-        const sum = new THREE.Vector3();
-        let count = 0;
+        const totalItems = sourceData.length;
+        const sampleStep = Math.max(1, Math.floor(totalItems / this.LABEL_SAMPLE_COUNT));
+        const sumVector = new THREE.Vector3();
 
-        for (let idx = 0; idx < n; idx += step) {
-            const d = sourceData[idx];
-            const M_current = d.M0 + d.n * daysSinceJ2000;
-            sum.add(OrbitalMath.calcPosFromM(d.a, d.e, d.i, d.w, d.Node, M_current));
-            count++;
+        let sampleCount = 0;
+
+        for (let index = 0; index < totalItems; index += sampleStep) {
+            const bodyData = sourceData[index];
+            const currentMeanAnomaly = bodyData.M0 + bodyData.n * daysSinceJ2000;
+
+            sumVector.add(
+                OrbitalMath.calcPosFromM(
+                    bodyData.a,
+                    bodyData.e,
+                    bodyData.i,
+                    bodyData.w,
+                    bodyData.Node,
+                    currentMeanAnomaly
+                )
+            );
+            sampleCount++;
         }
-        return count > 0 ? sum.divideScalar(count) : sum;
+
+        if (sampleCount > 0) {
+            return sumVector.divideScalar(sampleCount);
+        }
+
+        return sumVector;
     }
 }

@@ -1,211 +1,344 @@
 // js/ChronometerDisplay.js
+
+const CONFIGURATION = {
+    colors: {
+        waveForward: '#ffcc00',
+        waveReverse: '#ff3333',
+        gridForward: '#00ff00',
+        gridReverse: '#ff3333',
+        labelForward: 'rgba(255, 204, 0, 0.6)',
+        labelReverse: 'rgba(255, 51, 51, 0.6)',
+        fpsIndicator: '#3399ff',
+        loadIndicator: '#33ff88',
+        memoryIndicator: 'rgba(51, 255, 136, 0.6)',
+        backgroundScanline: 'rgba(255, 255, 255, 0.03)',
+        scannerFill: 'rgba(255, 255, 255, 0.8)',
+        scannerStroke: 'rgba(255, 255, 255, 0.5)',
+    },
+    labels: [
+        '-100Y',
+        '-10Y',
+        '-1Y',
+        '-6M',
+        '-1M',
+        '-1W',
+        '-1D',
+        '-1H',
+        '-1M',
+        '-1S',
+        'PAUSE',
+        '+1S',
+        '+1M',
+        '+1H',
+        '+1D',
+        '+1W',
+        '+1M',
+        '+6M',
+        '+1Y',
+        '+10Y',
+        '+100Y',
+    ],
+    thresholds: {
+        fastTimeMinimumMultiplier: 3600,
+        thirtyMinutesMilliseconds: 1800000,
+        analogGlitchFrameDuration: 30,
+    },
+};
+
 export class ChronometerDisplay {
     constructor(canvasElement) {
         this.chronoCanvas = canvasElement;
-
-        // Internal State
         this.waveBuffer = [];
         this.activeBlips = [];
         this.lastTimeDirection = undefined;
         this.glitchFrames = 0;
         this.lastSimDate = null;
 
-        // Handle canvas sizing dynamically
-        const resizeCanvas = () => {
-            if (this.chronoCanvas) {
-                this.chronoCanvas.width = this.chronoCanvas.clientWidth;
-                this.chronoCanvas.height = this.chronoCanvas.clientHeight;
-            }
-        };
-        window.addEventListener('resize', resizeCanvas);
-        setTimeout(resizeCanvas, 100);
+        this.fpsBuffer = [];
+        this.loadBuffer = [];
+        this.lastPerformanceSample = { fps: 0, loadPct: 0, memory: null };
+
+        this.handleResize = this.handleResize.bind(this);
+        window.addEventListener('resize', this.handleResize);
+        this.handleResize();
+    }
+
+    /**
+     * Removes event listeners to prevent memory leaks during component destruction.
+     */
+    dispose() {
+        window.removeEventListener('resize', this.handleResize);
+    }
+
+    /**
+     * Resizes internal canvas dimensions and reallocates memory buffers to match the new width.
+     */
+    handleResize() {
+        if (!this.chronoCanvas) {
+            return;
+        }
+
+        this.chronoCanvas.width = this.chronoCanvas.clientWidth;
+        this.chronoCanvas.height = this.chronoCanvas.clientHeight;
+
+        const canvasWidth = this.chronoCanvas.width;
+        this.waveBuffer = new Array(canvasWidth).fill(0);
+        this.fpsBuffer = new Array(canvasWidth).fill(0);
+        this.loadBuffer = new Array(canvasWidth).fill(0);
+    }
+
+    /**
+     * Updates the performance sample buffer.
+     * Called exclusively by UIController upon receiving a throttled sample from PerformanceMonitor.
+     */
+    pushPerfSample(sample) {
+        if (!sample || typeof sample.fps !== 'number' || typeof sample.loadPct !== 'number') {
+            return;
+        }
+        this.lastPerformanceSample = sample;
     }
 
     render(currentSimDate, timeMultiplier) {
-        if (!this.chronoCanvas) return;
-        const ctx = this.chronoCanvas.getContext('2d');
-        const w = this.chronoCanvas.width;
-        const h = this.chronoCanvas.height;
+        if (!this.chronoCanvas || !currentSimDate) {
+            return;
+        }
 
+        const context = this.chronoCanvas.getContext('2d');
+        const canvasWidth = this.chronoCanvas.width;
+        const canvasHeight = this.chronoCanvas.height;
         const isReversed = timeMultiplier < 0;
 
-        // --- 1. DYNAMIC COLORING ---
-        const waveColor = isReversed ? '#ff3333' : '#ffcc00';
-        const crossColor = isReversed ? '#ff3333' : '#00ff00';
-        const labelColor = isReversed ? 'rgba(255, 51, 51, 0.6)' : 'rgba(255, 204, 0, 0.6)';
+        this._clearCanvas(context, canvasWidth, canvasHeight);
+        this._renderGrid(context, canvasWidth, canvasHeight, isReversed);
+        this._renderLabels(context, canvasWidth, canvasHeight, isReversed);
 
-        ctx.clearRect(0, 0, w, h);
-        ctx.fillStyle = 'rgba(255, 255, 255, 0.03)';
-        for (let i = 0; i < h; i += 4) ctx.fillRect(0, i, w, 1);
+        this._detectDirectionFlip(canvasWidth, isReversed);
+        this._detectTimeTriggers(currentSimDate, timeMultiplier);
 
-        // --- 2. DRAW CRT GRID ---
-        ctx.fillStyle = crossColor;
-        ctx.font = '8px monospace';
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'middle';
-        for (let r = 1; r <= 2; r++) {
-            const yPos = (h / 3) * r;
-            for (let c = 0; c <= 20; c++) {
-                ctx.fillText('+', (w / 20) * c, yPos - 5);
+        const currentY = this._calculateSignalShape();
+        this._applyAnalogDecay(canvasWidth);
+        this._shiftBuffers(currentY, isReversed);
+
+        this._renderWaveform(context, canvasWidth, canvasHeight, isReversed);
+        this._renderPerformanceOverlay(context, canvasWidth, canvasHeight);
+        this._renderScannerBracket(context, canvasWidth, canvasHeight, isReversed);
+    }
+
+    _clearCanvas(context, canvasWidth, canvasHeight) {
+        context.clearRect(0, 0, canvasWidth, canvasHeight);
+        context.fillStyle = CONFIGURATION.colors.backgroundScanline;
+
+        for (let index = 0; index < canvasHeight; index += 4) {
+            context.fillRect(0, index, canvasWidth, 1);
+        }
+    }
+
+    _renderGrid(context, canvasWidth, canvasHeight, isReversed) {
+        context.fillStyle = isReversed
+            ? CONFIGURATION.colors.gridReverse
+            : CONFIGURATION.colors.gridForward;
+        context.font = '8px monospace';
+        context.textAlign = 'center';
+        context.textBaseline = 'middle';
+
+        for (let gridRow = 1; gridRow <= 2; gridRow++) {
+            const yPosition = (canvasHeight / 3) * gridRow;
+            for (let gridColumn = 0; gridColumn <= 20; gridColumn++) {
+                context.fillText('+', (canvasWidth / 20) * gridColumn, yPosition - 5);
             }
         }
+    }
 
-        // --- 3. DRAW BOTTOM LABELS ---
-        if (w > 600) {
-            const labels = [
-                '-100Y',
-                '-10Y',
-                '-1Y',
-                '-6M',
-                '-1M',
-                '-1W',
-                '-1D',
-                '-1H',
-                '-1M',
-                '-1S',
-                'PAUSE',
-                '+1S',
-                '+1M',
-                '+1H',
-                '+1D',
-                '+1W',
-                '+1M',
-                '+6M',
-                '+1Y',
-                '+10Y',
-                '+100Y',
-            ];
-            ctx.fillStyle = labelColor;
-            ctx.font = 'bold 9px monospace';
-            ctx.textBaseline = 'bottom';
-            for (let i = 0; i <= 20; i++) {
-                let xPos = (w / 20) * i;
-                if (i === 0) ctx.textAlign = 'left';
-                else if (i === 20) ctx.textAlign = 'right';
-                else ctx.textAlign = 'center';
-                ctx.fillText(labels[i], xPos, h - 2);
+    _renderLabels(context, canvasWidth, canvasHeight, isReversed) {
+        if (canvasWidth <= 600) {
+            return;
+        }
+
+        context.fillStyle = isReversed
+            ? CONFIGURATION.colors.labelReverse
+            : CONFIGURATION.colors.labelForward;
+        context.font = 'bold 9px monospace';
+        context.textBaseline = 'bottom';
+
+        for (let index = 0; index <= 20; index++) {
+            const xPosition = (canvasWidth / 20) * index;
+
+            if (index === 0) {
+                context.textAlign = 'left';
+            } else if (index === 20) {
+                context.textAlign = 'right';
+            } else {
+                context.textAlign = 'center';
             }
+
+            context.fillText(CONFIGURATION.labels[index], xPosition, canvasHeight - 2);
         }
+    }
 
-        if (!currentSimDate) return;
-
-        // --- 4. SYSTEM STATE INITIALIZATION ---
-        if (!this.waveBuffer || this.waveBuffer.length !== w) {
-            this.waveBuffer = new Array(w).fill(0);
-        }
-        if (!this.activeBlips) this.activeBlips = [];
-
-        // --- 5. DIRECTION FLIP DETECTION (CRT DEGAUSS EFFECT) ---
+    _detectDirectionFlip(canvasWidth, isReversed) {
         if (this.lastTimeDirection !== undefined && this.lastTimeDirection !== isReversed) {
             this.activeBlips = [];
-            for (let i = 0; i < w; i++) {
-                this.waveBuffer[i] = (Math.random() - 0.5) * 50;
+
+            for (let index = 0; index < canvasWidth; index++) {
+                this.waveBuffer[index] = (Math.random() - 0.5) * 50;
             }
-            this.glitchFrames = 30; // 30 frames of analog decay
+
+            this.glitchFrames = CONFIGURATION.thresholds.analogGlitchFrameDuration;
         }
         this.lastTimeDirection = isReversed;
+    }
 
-        // --- 6. DUAL-SCALE HIERARCHICAL TIME TRIGGER DETECTION ---
-        if (this.lastSimDate && currentSimDate.getTime() !== this.lastSimDate.getTime()) {
-            const t1 = this.lastSimDate.getTime();
-            const t2 = currentSimDate.getTime();
-
-            const y1 = this.lastSimDate.getUTCFullYear();
-            const y2 = currentSimDate.getUTCFullYear();
-            const m1 = this.lastSimDate.getUTCMonth();
-            const m2 = currentSimDate.getUTCMonth();
-            const d1 = this.lastSimDate.getUTCDate();
-            const d2 = currentSimDate.getUTCDate();
-
-            // Anything > 3600 (1 Hour/Sec) uses Fast Time. Otherwise, Slow Time.
-            const absMult = Math.abs(timeMultiplier);
-            const isFastTime = absMult > 3600;
-
-            if (isFastTime) {
-                // === FAST TIME MODE (>= 1 Day/Sec) ===
-                if (y1 !== y2) {
-                    const isLeap = y2 % 4 === 0 && (y2 % 100 !== 0 || y2 % 400 === 0);
-                    this.activeBlips.push({
-                        life: 1.0,
-                        amp: isLeap ? -20 : 20,
-                        shape: 'peak',
-                        decay: 0.2,
-                    });
-                } else if (m1 !== m2) {
-                    const daysInMonth = new Date(Date.UTC(y2, m2 + 1, 0)).getUTCDate();
-                    this.activeBlips.push({
-                        life: 1.0,
-                        amp: daysInMonth === 31 ? 8 : -8,
-                        shape: 'hill',
-                        decay: 0.1,
-                    });
-                } else if (d1 !== d2) {
-                    this.activeBlips.push({
-                        life: 1.0,
-                        amp: d2 % 2 === 0 ? 4 : -4,
-                        shape: 'bump',
-                        decay: 0.25,
-                    });
-                }
-            } else {
-                // === SLOW TIME MODE (<= 1 Hour/Sec) ===
-                const h1 = this.lastSimDate.getUTCHours();
-                const h2 = currentSimDate.getUTCHours();
-                const halfHour1 = Math.floor(t1 / 1800000); // Unix timestamp divided by 30 mins
-                const halfHour2 = Math.floor(t2 / 1800000);
-                const sec1 = Math.floor(t1 / 1000);
-                const sec2 = Math.floor(t2 / 1000);
-
-                if (d1 !== d2) {
-                    // Day
-                    this.activeBlips.push({ life: 1.0, amp: 20, shape: 'peak', decay: 0.2 });
-                } else if (h1 !== h2) {
-                    // Hour
-                    this.activeBlips.push({ life: 1.0, amp: -12, shape: 'peak', decay: 0.15 });
-                } else if (halfHour1 !== halfHour2) {
-                    // 30-Minute
-                    this.activeBlips.push({ life: 1.0, amp: 8, shape: 'hill', decay: 0.1 });
-                } else if (sec1 !== sec2) {
-                    // 1 Second
-                    this.activeBlips.push({
-                        life: 1.0,
-                        amp: sec2 % 2 === 0 ? 4 : -4,
-                        shape: 'bump',
-                        decay: 0.25,
-                    });
-                }
-            }
+    _detectTimeTriggers(currentSimDate, timeMultiplier) {
+        if (!this.lastSimDate) {
+            this.lastSimDate = new Date(currentSimDate.getTime());
+            return;
         }
+
+        if (currentSimDate.getTime() === this.lastSimDate.getTime()) {
+            return;
+        }
+
+        const previousTimestampMs = this.lastSimDate.getTime();
+        const currentTimestampMs = currentSimDate.getTime();
+
+        const previousYear = this.lastSimDate.getUTCFullYear();
+        const currentYear = currentSimDate.getUTCFullYear();
+        const previousMonth = this.lastSimDate.getUTCMonth();
+        const currentMonth = currentSimDate.getUTCMonth();
+        const previousDate = this.lastSimDate.getUTCDate();
+        const currentDate = currentSimDate.getUTCDate();
+
+        const absoluteTimeMultiplier = Math.abs(timeMultiplier);
+        const isFastTime =
+            absoluteTimeMultiplier > CONFIGURATION.thresholds.fastTimeMinimumMultiplier;
+
+        if (isFastTime) {
+            this._processFastTimeTriggers(
+                previousYear,
+                currentYear,
+                previousMonth,
+                currentMonth,
+                previousDate,
+                currentDate
+            );
+        } else {
+            this._processSlowTimeTriggers(
+                previousTimestampMs,
+                currentTimestampMs,
+                previousDate,
+                currentDate
+            );
+        }
+
         this.lastSimDate = new Date(currentSimDate.getTime());
+    }
 
-        // --- 7. SIGNAL SHAPE GENERATOR ---
+    _processFastTimeTriggers(
+        previousYear,
+        currentYear,
+        previousMonth,
+        currentMonth,
+        previousDate,
+        currentDate
+    ) {
+        if (previousYear !== currentYear) {
+            const isLeapYear =
+                currentYear % 4 === 0 && (currentYear % 100 !== 0 || currentYear % 400 === 0);
+            this.activeBlips.push({
+                life: 1.0,
+                amplitude: isLeapYear ? -20 : 20,
+                shape: 'peak',
+                decay: 0.2,
+            });
+        } else if (previousMonth !== currentMonth) {
+            const daysInMonth = new Date(Date.UTC(currentYear, currentMonth + 1, 0)).getUTCDate();
+            this.activeBlips.push({
+                life: 1.0,
+                amplitude: daysInMonth === 31 ? 8 : -8,
+                shape: 'hill',
+                decay: 0.1,
+            });
+        } else if (previousDate !== currentDate) {
+            this.activeBlips.push({
+                life: 1.0,
+                amplitude: currentDate % 2 === 0 ? 4 : -4,
+                shape: 'bump',
+                decay: 0.25,
+            });
+        }
+    }
+
+    _processSlowTimeTriggers(previousTimestampMs, currentTimestampMs, previousDate, currentDate) {
+        const previousHour = new Date(previousTimestampMs).getUTCHours();
+        const currentHour = new Date(currentTimestampMs).getUTCHours();
+        const previousHalfHour = Math.floor(
+            previousTimestampMs / CONFIGURATION.thresholds.thirtyMinutesMilliseconds
+        );
+        const currentHalfHour = Math.floor(
+            currentTimestampMs / CONFIGURATION.thresholds.thirtyMinutesMilliseconds
+        );
+        const previousSecond = Math.floor(previousTimestampMs / 1000);
+        const currentSecond = Math.floor(currentTimestampMs / 1000);
+
+        if (previousDate !== currentDate) {
+            this.activeBlips.push({ life: 1.0, amplitude: 20, shape: 'peak', decay: 0.2 });
+        } else if (previousHour !== currentHour) {
+            this.activeBlips.push({ life: 1.0, amplitude: -12, shape: 'peak', decay: 0.15 });
+        } else if (previousHalfHour !== currentHalfHour) {
+            this.activeBlips.push({ life: 1.0, amplitude: 8, shape: 'hill', decay: 0.1 });
+        } else if (previousSecond !== currentSecond) {
+            this.activeBlips.push({
+                life: 1.0,
+                amplitude: currentSecond % 2 === 0 ? 4 : -4,
+                shape: 'bump',
+                decay: 0.25,
+            });
+        }
+    }
+
+    _calculateSignalShape() {
         let currentY = 0;
-        for (let i = this.activeBlips.length - 1; i >= 0; i--) {
-            const b = this.activeBlips[i];
-            const t = 1.0 - b.life;
 
-            if (b.shape === 'peak') currentY += b.amp * Math.pow(Math.sin(t * Math.PI), 4);
-            else if (b.shape === 'hill') currentY += b.amp * Math.sin(t * Math.PI);
-            else if (b.shape === 'bump') currentY += b.amp * Math.sin(t * Math.PI);
+        for (let index = this.activeBlips.length - 1; index >= 0; index--) {
+            const blip = this.activeBlips[index];
+            const timeFactor = 1.0 - blip.life;
 
-            b.life -= b.decay;
-            if (b.life <= 0) this.activeBlips.splice(i, 1);
+            if (blip.shape === 'peak') {
+                currentY += blip.amplitude * Math.pow(Math.sin(timeFactor * Math.PI), 4);
+            } else if (blip.shape === 'hill' || blip.shape === 'bump') {
+                currentY += blip.amplitude * Math.sin(timeFactor * Math.PI);
+            }
+
+            blip.life -= blip.decay;
+            if (blip.life <= 0) {
+                this.activeBlips.splice(index, 1);
+            }
         }
 
-        // --- 8. ANALOG STATIC DECAY ENGINE ---
-        if (this.glitchFrames > 0) {
-            this.glitchFrames--;
-            for (let i = 0; i < w; i++) {
-                this.waveBuffer[i] *= 0.85;
-            }
-            if (this.glitchFrames === 0) {
-                for (let i = 0; i < w; i++) {
-                    if (Math.abs(this.waveBuffer[i]) < 1) this.waveBuffer[i] = 0;
+        return currentY;
+    }
+
+    _applyAnalogDecay(canvasWidth) {
+        if (this.glitchFrames <= 0) {
+            return;
+        }
+
+        this.glitchFrames--;
+
+        for (let index = 0; index < canvasWidth; index++) {
+            this.waveBuffer[index] *= 0.85;
+        }
+
+        if (this.glitchFrames === 0) {
+            for (let index = 0; index < canvasWidth; index++) {
+                if (Math.abs(this.waveBuffer[index]) < 1) {
+                    this.waveBuffer[index] = 0;
                 }
             }
         }
+    }
 
-        // --- 9. CONSTANT REAL-TIME BUFFER SHIFT ---
+    _shiftBuffers(currentY, isReversed) {
         if (isReversed) {
             this.waveBuffer.pop();
             this.waveBuffer.unshift(currentY);
@@ -214,34 +347,104 @@ export class ChronometerDisplay {
             this.waveBuffer.push(currentY);
         }
 
-        // --- 10. RENDER THE WAVEFORM (WITH INVERSION) ---
-        ctx.beginPath();
-        ctx.strokeStyle = waveColor;
-        ctx.lineWidth = 1.5;
-        ctx.lineJoin = 'round';
-        const centerY = h / 2 - 5;
+        this.fpsBuffer.shift();
+        this.fpsBuffer.push(this.lastPerformanceSample.fps);
 
-        for (let x = 0; x < w; x++) {
-            const displayY = isReversed ? -this.waveBuffer[x] : this.waveBuffer[x];
+        this.loadBuffer.shift();
+        this.loadBuffer.push(this.lastPerformanceSample.loadPct);
+    }
+
+    _renderWaveform(context, canvasWidth, canvasHeight, isReversed) {
+        context.beginPath();
+        context.strokeStyle = isReversed
+            ? CONFIGURATION.colors.waveReverse
+            : CONFIGURATION.colors.waveForward;
+        context.lineWidth = 1.5;
+        context.lineJoin = 'round';
+
+        const centerY = canvasHeight / 2 - 5;
+
+        for (let xPosition = 0; xPosition < canvasWidth; xPosition++) {
+            const displayY = isReversed ? -this.waveBuffer[xPosition] : this.waveBuffer[xPosition];
             const drawY = centerY - displayY;
 
-            if (x === 0) ctx.moveTo(x, drawY);
-            else ctx.lineTo(x, drawY);
+            if (xPosition === 0) {
+                context.moveTo(xPosition, drawY);
+            } else {
+                context.lineTo(xPosition, drawY);
+            }
         }
-        ctx.stroke();
 
-        // --- 11. DYNAMIC SCANNER BRACKET ---
-        const scanX = isReversed ? 1 : w - 2;
-        ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
-        ctx.fillRect(scanX, 0, 2, h - 12);
+        context.stroke();
+    }
 
-        ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
-        ctx.beginPath();
-        const dir = isReversed ? 1 : -1;
-        ctx.moveTo(scanX + dir * 10, centerY - 10);
-        ctx.lineTo(scanX, centerY - 10);
-        ctx.moveTo(scanX + dir * 10, centerY + 10);
-        ctx.lineTo(scanX, centerY + 10);
-        ctx.stroke();
+    _renderPerformanceOverlay(context, canvasWidth, canvasHeight) {
+        context.beginPath();
+        context.strokeStyle = CONFIGURATION.colors.fpsIndicator;
+        context.lineWidth = 1;
+        const fpsScale = canvasHeight / 120;
+
+        for (let xPosition = 0; xPosition < canvasWidth; xPosition++) {
+            const fpsValue = this.fpsBuffer[xPosition] || 0;
+            const drawY = canvasHeight - fpsValue * fpsScale;
+
+            if (xPosition === 0) {
+                context.moveTo(xPosition, drawY);
+            } else {
+                context.lineTo(xPosition, drawY);
+            }
+        }
+        context.stroke();
+
+        context.beginPath();
+        context.strokeStyle = CONFIGURATION.colors.loadIndicator;
+        context.lineWidth = 1;
+        const loadScale = canvasHeight / 100;
+
+        for (let xPosition = 0; xPosition < canvasWidth; xPosition++) {
+            const loadValue = Math.min(this.loadBuffer[xPosition] || 0, 100);
+            const drawY = canvasHeight - loadValue * loadScale;
+
+            if (xPosition === 0) {
+                context.moveTo(xPosition, drawY);
+            } else {
+                context.lineTo(xPosition, drawY);
+            }
+        }
+        context.stroke();
+
+        context.textAlign = 'left';
+        context.textBaseline = 'top';
+        context.font = 'bold 9px monospace';
+
+        context.fillStyle = CONFIGURATION.colors.fpsIndicator;
+        context.fillText(`${Math.round(this.lastPerformanceSample.fps)} FPS`, 2, 2);
+
+        context.fillStyle = CONFIGURATION.colors.loadIndicator;
+        context.fillText(`${Math.round(this.lastPerformanceSample.loadPct)}% LOAD`, 2, 12);
+
+        if (this.lastPerformanceSample.memory) {
+            context.fillStyle = CONFIGURATION.colors.memoryIndicator;
+            context.fillText(`${this.lastPerformanceSample.memory.pctOfLimit}% RAM`, 2, 22);
+        }
+    }
+
+    _renderScannerBracket(context, canvasWidth, canvasHeight, isReversed) {
+        const scanXPosition = isReversed ? 1 : canvasWidth - 2;
+        const centerY = canvasHeight / 2 - 5;
+
+        context.fillStyle = CONFIGURATION.colors.scannerFill;
+        context.fillRect(scanXPosition, 0, 2, canvasHeight - 12);
+
+        context.strokeStyle = CONFIGURATION.colors.scannerStroke;
+        context.beginPath();
+
+        const direction = isReversed ? 1 : -1;
+        context.moveTo(scanXPosition + direction * 10, centerY - 10);
+        context.lineTo(scanXPosition, centerY - 10);
+        context.moveTo(scanXPosition + direction * 10, centerY + 10);
+        context.lineTo(scanXPosition, centerY + 10);
+
+        context.stroke();
     }
 }

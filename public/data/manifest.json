@@ -2,11 +2,17 @@
   "datasets": {
     "planets": {
       "totalRecords": 9,
-      "chunks": ["planets.json"]
+      "chunks": [
+        "planets.json"
+      ],
+      "credit": "JPL Horizons"
     },
     "moons": {
       "totalRecords": 460,
-      "chunks": ["moons.json"]
+      "chunks": [
+        "moons.json"
+      ],
+      "credit": "JPL Horizons"
     },
     "amor": {
       "totalRecords": 14645,
@@ -14,7 +20,8 @@
         "amor_chunk_0.json",
         "amor_chunk_1.json",
         "amor_chunk_2.json"
-      ]
+      ],
+      "credit": "IAU Minor Planet Center"
     },
     "apollo": {
       "totalRecords": 23906,
@@ -24,25 +31,29 @@
         "apollo_chunk_2.json",
         "apollo_chunk_3.json",
         "apollo_chunk_4.json"
-      ]
+      ],
+      "credit": "IAU Minor Planet Center"
     },
     "aten": {
       "totalRecords": 3421,
       "chunks": [
         "aten_chunk_0.json"
-      ]
+      ],
+      "credit": "IAU Minor Planet Center"
     },
     "atira": {
       "totalRecords": 38,
       "chunks": [
         "atira_chunk_0.json"
-      ]
+      ],
+      "credit": "IAU Minor Planet Center"
     },
     "centaur": {
       "totalRecords": 1036,
       "chunks": [
         "centaur_chunk_0.json"
-      ]
+      ],
+      "credit": "IAU Minor Planet Center"
     },
     "inner-belt": {
       "totalRecords": 32821,
@@ -54,7 +65,8 @@
         "inner-belt_chunk_4.json",
         "inner-belt_chunk_5.json",
         "inner-belt_chunk_6.json"
-      ]
+      ],
+      "credit": "IAU Minor Planet Center"
     },
     "main-belt": {
       "totalRecords": 1374548,
@@ -334,7 +346,8 @@
         "main-belt_chunk_272.json",
         "main-belt_chunk_273.json",
         "main-belt_chunk_274.json"
-      ]
+      ],
+      "credit": "IAU Minor Planet Center"
     },
     "martian": {
       "totalRecords": 29700,
@@ -345,13 +358,15 @@
         "martian_chunk_3.json",
         "martian_chunk_4.json",
         "martian_chunk_5.json"
-      ]
+      ],
+      "credit": "IAU Minor Planet Center"
     },
     "other": {
       "totalRecords": 152,
       "chunks": [
         "other_chunk_0.json"
-      ]
+      ],
+      "credit": "IAU Minor Planet Center"
     },
     "outer-belt": {
       "totalRecords": 49935,
@@ -366,14 +381,16 @@
         "outer-belt_chunk_7.json",
         "outer-belt_chunk_8.json",
         "outer-belt_chunk_9.json"
-      ]
+      ],
+      "credit": "IAU Minor Planet Center"
     },
     "transneptunian": {
       "totalRecords": 6388,
       "chunks": [
         "transneptunian_chunk_0.json",
         "transneptunian_chunk_1.json"
-      ]
+      ],
+      "credit": "IAU Minor Planet Center"
     },
     "trojans": {
       "totalRecords": 16357,
@@ -382,7 +399,8 @@
         "trojans_chunk_1.json",
         "trojans_chunk_2.json",
         "trojans_chunk_3.json"
-      ]
+      ],
+      "credit": "IAU Minor Planet Center"
     }
   }
 }

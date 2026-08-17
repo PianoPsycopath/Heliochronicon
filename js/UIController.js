@@ -1,5 +1,6 @@
 // js/UIController.js
 import { ChronometerDisplay } from './ChronometerDisplay.js';
+import { PerformanceMonitor } from './PerformanceMonitor.js';
 import { TimeThrottle } from './TimeThrottle.js';
 import { BodyListManager } from './BodyListManager.js';
 import { TelemetryManager } from './TelemetryManager.js';
@@ -107,6 +108,7 @@ export class UIController {
         this.timeInput = document.getElementById('time-input-bottom');
         this.chronoCanvas = document.getElementById('chrono-canvas');
         this.chronometerDisplay = new ChronometerDisplay(this.chronoCanvas);
+        this.performanceMonitor = new PerformanceMonitor();
 
         // --- MEASUREMENT TOGGLE ---
         this.btnMeasure = document.getElementById('btn-measure');
@@ -327,6 +329,14 @@ export class UIController {
         }
         if (this.chronometerDisplay) {
             this.chronometerDisplay.render(date, this.timeMultiplier);
+        }
+    }
+
+    // Passthrough consistent with updateTimeInput(): main.js only calls this
+    // on PerformanceMonitor's throttled samples, not every animate() frame.
+    updatePerf(perfSample) {
+        if (this.chronometerDisplay) {
+            this.chronometerDisplay.pushPerfSample(perfSample);
         }
     }
 }
