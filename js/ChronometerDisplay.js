@@ -399,7 +399,7 @@ export class ChronometerDisplay {
         context.beginPath();
         context.strokeStyle = CONFIGURATION.colors.loadIndicator;
         context.lineWidth = 1;
-        const loadScale = canvasHeight / 100;
+        const loadScale = canvasHeight / 200;
 
         for (let xPosition = 0; xPosition < canvasWidth; xPosition++) {
             const loadValue = Math.min(this.loadBuffer[xPosition] || 0, 100);
