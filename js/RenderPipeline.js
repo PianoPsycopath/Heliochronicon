@@ -61,6 +61,10 @@ export class RenderPipeline {
         this.LABEL_ZOOM_FADE_END = 30;
         this.LABEL_SMOOTHING = 0.05;
 
+        // --- TIME-SLICING QUEUE ---
+        this.activationQueue = new Set();
+        this.MAX_ACTIVATIONS_PER_FRAME = 3;
+
         this._xAxis = new THREE.Vector3(1, 0, 0);
         this._yAxis = new THREE.Vector3(0, 1, 0);
         this._flatQuaternion = new THREE.Quaternion().setFromAxisAngle(this._xAxis, -Math.PI / 2);
@@ -79,12 +83,18 @@ export class RenderPipeline {
             celestialBody.label.style.display = 'none';
         }
 
-        if (this.terrainController)
-            this.terrainController.onMeshVisibilityChange(celestialBody, false);
-        if (this.daylightController)
-            this.daylightController.onMeshVisibilityChange(celestialBody, false);
-        if (this.eclipseShadowController)
-            this.eclipseShadowController.onMeshVisibilityChange(celestialBody, false);
+        if (this.activationQueue) this.activationQueue.delete(celestialBody);
+
+        if (celestialBody._isMeshControllersActive !== false) {
+            if (this.terrainController)
+                this.terrainController.onMeshVisibilityChange(celestialBody, false);
+            if (this.daylightController)
+                this.daylightController.onMeshVisibilityChange(celestialBody, false);
+            if (this.eclipseShadowController)
+                this.eclipseShadowController.onMeshVisibilityChange(celestialBody, false);
+
+            celestialBody._isMeshControllersActive = false;
+        }
     }
 
     processFloatingOrigin(celestialBodies, trackingTargetData, currentOrigin, daysSinceJ2000) {
@@ -261,22 +271,40 @@ export class RenderPipeline {
 
             const meshVisibleSize = celestialBody.physicalRadius * 2 * this.camera.zoom;
             const isMeshBigger = meshVisibleSize >= baseSpriteSize;
+            const isMeshDetailed = meshVisibleSize >= 25.0;
 
             celestialBody.mesh.visible = isMeshBigger;
-
-            this.terrainController?.onMeshVisibilityChange(celestialBody, isMeshBigger);
-
-            if (this.daylightController) {
-                this.daylightController.onMeshVisibilityChange(celestialBody, isMeshBigger);
-                if (isMeshBigger) this.daylightController.updateForBody(celestialBody);
-            }
-
-            if (this.eclipseShadowController) {
-                this.eclipseShadowController.onMeshVisibilityChange(celestialBody, isMeshBigger);
-                if (isMeshBigger) this.eclipseShadowController.updateForBody(celestialBody);
-            }
-
             celestialBody.sprite.visible = !isOccluded && !isMeshBigger;
+
+            if (isMeshBigger) {
+                if (
+                    !celestialBody._isMeshControllersActive &&
+                    !this.activationQueue.has(celestialBody)
+                ) {
+                    this.activationQueue.add(celestialBody);
+                } else if (celestialBody._isMeshControllersActive) {
+                    if (isMeshDetailed) {
+                        if (this.daylightController)
+                            this.daylightController.updateForBody(celestialBody);
+                        if (this.eclipseShadowController)
+                            this.eclipseShadowController.updateForBody(celestialBody);
+                    }
+                }
+            } else {
+                if (this.activationQueue.has(celestialBody)) {
+                    this.activationQueue.delete(celestialBody);
+                }
+
+                if (celestialBody._isMeshControllersActive) {
+                    if (this.terrainController)
+                        this.terrainController.onMeshVisibilityChange(celestialBody, false);
+                    if (this.daylightController)
+                        this.daylightController.onMeshVisibilityChange(celestialBody, false);
+                    if (this.eclipseShadowController)
+                        this.eclipseShadowController.onMeshVisibilityChange(celestialBody, false);
+                    celestialBody._isMeshControllersActive = false;
+                }
+            }
 
             if (activeWellIndex < this.maximumWells && bodyData.mass > 0 && !celestialBody.isMoon) {
                 activeWellIndex = this._updateGravityWell(celestialBody, bodyData, activeWellIndex);
@@ -323,7 +351,22 @@ export class RenderPipeline {
             }
 
             if (celestialBody.orbitLine.visible) {
-                this._updateOrbitLineGeometry(celestialBody, bodyData, daysSinceJ2000);
+                if (!celestialBody._orbitGenerated || isTarget) {
+                    this._updateOrbitLineGeometry(celestialBody, bodyData, daysSinceJ2000);
+                    if (celestialBody.orbitCurtain)
+                        this._updateOrbitCurtainGeometry(celestialBody, bodyData, daysSinceJ2000);
+                    celestialBody._orbitGenerated = true;
+                }
+                const parentBody = celestialBodies.find((b) => b.data.name === bodyData.parent);
+                if (parentBody && bodyData.parent !== bodyData.name) {
+                    celestialBody.orbitLine.position.copy(parentBody.renderPos);
+                    if (celestialBody.orbitCurtain)
+                        celestialBody.orbitCurtain.position.copy(parentBody.renderPos);
+                } else {
+                    celestialBody.orbitLine.position.set(0, 0, 0);
+                    if (celestialBody.orbitCurtain)
+                        celestialBody.orbitCurtain.position.set(0, 0, 0);
+                }
             }
 
             if (celestialBody.label) {
@@ -374,6 +417,27 @@ export class RenderPipeline {
                 celestialBody.orbitCurtain.updateMatrixWorld();
             }
         });
+
+        let activationsThisFrame = 0;
+        for (const body of this.activationQueue) {
+            if (activationsThisFrame >= this.MAX_ACTIVATIONS_PER_FRAME) break;
+
+            if (this.terrainController) this.terrainController.onMeshVisibilityChange(body, true);
+
+            if (this.daylightController) {
+                this.daylightController.onMeshVisibilityChange(body, true);
+                this.daylightController.updateForBody(body);
+            }
+
+            if (this.eclipseShadowController) {
+                this.eclipseShadowController.onMeshVisibilityChange(body, true);
+                this.eclipseShadowController.updateForBody(body);
+            }
+
+            body._isMeshControllersActive = true;
+            this.activationQueue.delete(body);
+            activationsThisFrame++;
+        }
 
         this.gridMaterial.uniforms.numWells.value = activeWellIndex;
         return trackingTargetPosition;
@@ -450,18 +514,7 @@ export class RenderPipeline {
             }
         }
 
-        const originPoint = celestialBody.localPos;
-
-        for (let i = 0; i < orbitPoints.length; i++) {
-            orbitPoints[i].sub(originPoint);
-        }
-
-        if (orbitPoints.length > 0) {
-            orbitPoints[orbitPoints.length - 1].set(0, 0, 0);
-        }
-
         celestialBody.orbitLine.geometry.setFromPoints(orbitPoints);
-        celestialBody.orbitLine.position.copy(celestialBody.renderPos);
 
         // Apply parent orientation to moons. Keep heliocentric bodies at identity.
         if (celestialBody.isMoon) {
