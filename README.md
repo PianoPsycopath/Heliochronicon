@@ -174,7 +174,6 @@ See `docs/` for sequence and flow diagrams for a visual understanding.
 
 - Finalize CSS Flexbox/Grid layout architecture.
 - Add tactical hover previews with raycast tooltips.
-- Add NASA credits and performance monitor (GPU/CPU/FPS) to telemetry.
 
 ### Phase 2: Next Big Features (Astrodynamics & Advanced Graphics)
 
