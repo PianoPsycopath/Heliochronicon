@@ -88,6 +88,9 @@ export class BodyRegistry {
         for (let i = this.celestialBodies.length - 1; i >= 0; i--) {
             const b = this.celestialBodies[i];
             if (matchesDataset(b.data, datasetName)) {
+                if (b.data.datasetCategory === 'PROMOTED_ASTEROID' && b.data.isPinned) {
+                    continue;
+                }
                 this.removeBody(b);
             }
         }

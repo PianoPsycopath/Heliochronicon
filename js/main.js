@@ -265,6 +265,8 @@ UI.onTimeChanged = (date) => {
 };
 UI.onClearData = () => {
     systemBuilder.clearSolarSystem();
+    activeDatasets.clear();
+    storage.set('activeDatasets', []);
 };
 UI.onRefreshList = () => {
     UI.renderBodyList(celestialBodies, currentTargetData);
@@ -284,11 +286,8 @@ UI.onDatasetVisibilityChanged = async (datasetName, isVisible, urls) => {
             const fetchPromises = urlArray.map((url) => DataLoader.fetchJSONDataset(url));
             const chunkResults = await Promise.all(fetchPromises);
 
-            // Guard against race conditions where users toggle visibility rapidly.
             if (!inFlightDatasets.has(datasetName)) {
-                logger.info(
-                    `[Heliochronicon] Load aborted for ${datasetName}; toggled off during fetch.`
-                );
+                logger.info(`[Heliochronicon] Load aborted for ${datasetName}; toggled off during fetch.`);
                 return;
             }
 
@@ -296,6 +295,9 @@ UI.onDatasetVisibilityChanged = async (datasetName, isVisible, urls) => {
             const processedData = DataLoader.processPlanetaryData(mergedJSON, datasetName);
             systemBuilder.buildSolarSystem(processedData);
             activeDatasets.add(datasetName);
+            
+            storage.set('activeDatasets', Array.from(activeDatasets));
+
         } catch (error) {
             logger.error(`Failed to load chunk group for ${datasetName}`, error);
             UI.showLookupNotFound(`Failed to download ${datasetName} dataset. Check network.`);
@@ -305,8 +307,10 @@ UI.onDatasetVisibilityChanged = async (datasetName, isVisible, urls) => {
     } else {
         inFlightDatasets.delete(datasetName);
         activeDatasets.delete(datasetName);
+        
+        storage.set('activeDatasets', Array.from(activeDatasets));
+        
         bodyRegistry.removeByDataset(datasetName);
-        // Delete the dataset reference to prevent writing into a disposed ShaderMaterial.
         delete datasetMaterials[datasetName];
 
         if (currentTargetData && currentTargetData.datasetName === datasetName) {
@@ -584,13 +588,14 @@ async function bootEngine() {
 
     let asteroidColorIdx = 0;
 
+    const savedActiveDatasets = storage.get('activeDatasets', null);
+
     for (const [groupName, groupData] of Object.entries(manifest.datasets)) {
         const chunkUrls = (groupData.chunks || []).map(
             (chunkFile) => `${DATA_BASE_PATH}${chunkFile}`
         );
         if (chunkUrls.length === 0) continue;
 
-        // Determine if the group is a core or optional asteroid group based on the first chunk.
         let firstChunkRows = [];
         try {
             firstChunkRows = await DataLoader.fetchJSONDataset(chunkUrls[0]);
@@ -605,7 +610,24 @@ async function bootEngine() {
         );
         const isCore = [...categoriesPresent].some((cat) => CORE_CATEGORIES.has(cat));
 
-        if (isCore) {
+        const shouldBeActive = savedActiveDatasets !== null 
+            ? savedActiveDatasets.includes(groupName) 
+            : isCore;
+
+        const iconCategory = isCore 
+            ? (categoriesPresent.has('STAR') || categoriesPresent.has('PLANET') ? 'PLANET' : categoriesPresent.has('MOON') ? 'MOON' : 'PLANET')
+            : 'ASTEROID';
+
+        if (!savedColors[groupName]) {
+            if (isCore) {
+                savedColors[groupName] = '#ffffff';
+            } else {
+                savedColors[groupName] = ASTEROID_TOGGLE_COLORS[asteroidColorIdx % ASTEROID_TOGGLE_COLORS.length];
+                asteroidColorIdx++;
+            }
+        }
+
+        if (shouldBeActive) {
             try {
                 const remainingChunks =
                     chunkUrls.length > 1
@@ -620,16 +642,6 @@ async function bootEngine() {
                     systemBuilder.buildSolarSystem(processedData);
                     activeDatasets.add(groupName);
 
-                    if (!savedColors[groupName]) savedColors[groupName] = '#ffffff';
-
-                    // Select a core category icon, preferring stars and planets.
-                    const iconCategory =
-                        categoriesPresent.has('STAR') || categoriesPresent.has('PLANET')
-                            ? 'PLANET'
-                            : categoriesPresent.has('MOON')
-                              ? 'MOON'
-                              : 'PLANET';
-
                     UI.addDatasetToggle(
                         groupName,
                         iconCategory,
@@ -639,15 +651,10 @@ async function bootEngine() {
                     );
                 }
             } catch (err) {
-                logger.error(`Failed to load core dataset "${groupName}"`, err);
+                logger.error(`Failed to load dataset "${groupName}"`, err);
             }
         } else {
-            if (!savedColors[groupName]) {
-                savedColors[groupName] =
-                    ASTEROID_TOGGLE_COLORS[asteroidColorIdx % ASTEROID_TOGGLE_COLORS.length];
-                asteroidColorIdx++;
-            }
-            UI.addDatasetToggle(groupName, 'ASTEROID', savedColors[groupName], false, chunkUrls);
+            UI.addDatasetToggle(groupName, iconCategory, savedColors[groupName], false, chunkUrls);
         }
     }
     const pinnedAsteroids = storage.get('pinnedAsteroids', []);
