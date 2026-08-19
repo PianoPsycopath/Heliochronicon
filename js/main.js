@@ -669,7 +669,7 @@ function runRenderPrePassStage(
 }
 
 function updateDualGridsStage(bodies, currentTarget, eclipticGrid, eqGrid, eqMat, cam) {
-    eclipticGrid.position.set(0, 0, 0);
+    eclipticGrid.position.set(-currentOrigin.x, -currentOrigin.y, -currentOrigin.z);
     eclipticGrid.quaternion.setFromAxisAngle(new THREE.Vector3(1, 0, 0), -Math.PI / 2);
 
     if (currentTarget) {
@@ -780,7 +780,8 @@ function animate() {
         gridPlane,
         equatorialGridPlane,
         equatorialMaterial,
-        camera
+        camera,
+        currentOrigin
     );
 
     measurementManager.update(camera, currentOrigin, daysSinceJ2000);
