@@ -24,6 +24,7 @@ const PLANET_WELL_DEPTH = -15.0;
 const COLOR_TARGET_ORBIT = 0x00aaff;
 const COLOR_PREVIEW_ORBIT = 0xffffff;
 const COLOR_DEFAULT_ORBIT = 0xff1111;
+const COLOR_ECLIPTIC_CURTAIN = 0xffaa00;
 
 export function getActiveSystemName(currentTargetData) {
     if (!currentTargetData) {
@@ -71,6 +72,10 @@ export class RenderPipeline {
         this._yawQuaternion = new THREE.Quaternion();
 
         this._projectionVector = new THREE.Vector3();
+        this.curtainMode = 0;
+    }
+    setCurtainMode(mode) {
+        this.curtainMode = mode;
     }
 
     _hideBodyResources(celestialBody) {
@@ -78,6 +83,8 @@ export class RenderPipeline {
         if (celestialBody.mesh.visible) celestialBody.mesh.visible = false;
         if (celestialBody.orbitLine?.visible) celestialBody.orbitLine.visible = false;
         if (celestialBody.orbitCurtain?.visible) celestialBody.orbitCurtain.visible = false;
+        if (celestialBody.orbitCurtainEcliptic?.visible)
+            celestialBody.orbitCurtainEcliptic.visible = false;
 
         if (celestialBody.label && celestialBody.label.style.display !== 'none') {
             celestialBody.label.style.display = 'none';
@@ -314,7 +321,15 @@ export class RenderPipeline {
                 trackingTargetPosition = celestialBody.mesh.position;
                 celestialBody.orbitLine.material.color.setHex(COLOR_TARGET_ORBIT);
                 celestialBody.orbitLine.material.opacity = 1.0;
-                if (celestialBody.orbitCurtain) celestialBody.orbitCurtain.visible = true;
+
+                if (celestialBody.isMoon) {
+                    if (celestialBody.orbitCurtain)
+                        celestialBody.orbitCurtain.visible = this.curtainMode !== 2;
+                    if (celestialBody.orbitCurtainEcliptic)
+                        celestialBody.orbitCurtainEcliptic.visible = this.curtainMode !== 0;
+                } else {
+                    if (celestialBody.orbitCurtain) celestialBody.orbitCurtain.visible = true;
+                }
             } else {
                 if (isPreview) {
                     celestialBody.orbitLine.material.color.setHex(COLOR_PREVIEW_ORBIT);
@@ -333,6 +348,8 @@ export class RenderPipeline {
                 }
 
                 if (celestialBody.orbitCurtain) celestialBody.orbitCurtain.visible = false;
+                if (celestialBody.orbitCurtainEcliptic)
+                    celestialBody.orbitCurtainEcliptic.visible = false;
             }
 
             if (celestialBody.isMoon) {
@@ -348,7 +365,8 @@ export class RenderPipeline {
 
             if (
                 celestialBody.orbitLine.visible ||
-                (celestialBody.orbitCurtain && celestialBody.orbitCurtain.visible)
+                (celestialBody.orbitCurtain && celestialBody.orbitCurtain.visible) ||
+                (celestialBody.orbitCurtainEcliptic && celestialBody.orbitCurtainEcliptic.visible)
             ) {
                 const isAnalytical =
                     bodyData.orbit_model === ORBIT_MODEL_MEEUS ||
@@ -358,6 +376,10 @@ export class RenderPipeline {
                 const parentPoleQuat =
                     parentBody && parentBody.poleQuaternion ? parentBody.poleQuaternion : null;
 
+                const usesParentPoleRotation =
+                    celestialBody.isMoon &&
+                    (!bodyData.orbit_model || bodyData.orbit_model === ORBIT_MODEL_KEPLER);
+
                 if (!celestialBody._orbitGenerated || isTarget || isAnalytical) {
                     this._updateOrbitLineGeometry(celestialBody, bodyData, daysSinceJ2000);
                     if (celestialBody.orbitCurtain) {
@@ -365,7 +387,18 @@ export class RenderPipeline {
                             celestialBody,
                             bodyData,
                             daysSinceJ2000,
-                            parentPoleQuat
+                            parentPoleQuat,
+                            celestialBody.orbitCurtain
+                        );
+                    }
+                    if (celestialBody.orbitCurtainEcliptic) {
+                        this._updateOrbitCurtainGeometry(
+                            celestialBody,
+                            bodyData,
+                            daysSinceJ2000,
+                            null,
+                            celestialBody.orbitCurtainEcliptic,
+                            usesParentPoleRotation ? parentPoleQuat : null
                         );
                     }
                     celestialBody._orbitGenerated = true;
@@ -375,10 +408,10 @@ export class RenderPipeline {
                     celestialBody.orbitLine.position.copy(parentBody.renderPos);
                     if (celestialBody.orbitCurtain)
                         celestialBody.orbitCurtain.position.copy(parentBody.renderPos);
-                    if (
-                        celestialBody.isMoon &&
-                        (!bodyData.orbit_model || bodyData.orbit_model === ORBIT_MODEL_KEPLER)
-                    ) {
+                    if (celestialBody.orbitCurtainEcliptic)
+                        celestialBody.orbitCurtainEcliptic.position.copy(parentBody.renderPos);
+
+                    if (usesParentPoleRotation) {
                         celestialBody.orbitLine.quaternion.copy(parentBody.poleQuaternion);
                         if (celestialBody.orbitCurtain)
                             celestialBody.orbitCurtain.quaternion.copy(parentBody.poleQuaternion);
@@ -387,15 +420,21 @@ export class RenderPipeline {
                         if (celestialBody.orbitCurtain)
                             celestialBody.orbitCurtain.quaternion.identity();
                     }
+                    if (celestialBody.orbitCurtainEcliptic)
+                        celestialBody.orbitCurtainEcliptic.quaternion.identity();
                 } else {
                     const originOffset = new THREE.Vector3().copy(currentOrigin).negate();
                     celestialBody.orbitLine.position.copy(originOffset);
                     if (celestialBody.orbitCurtain)
                         celestialBody.orbitCurtain.position.copy(originOffset);
+                    if (celestialBody.orbitCurtainEcliptic)
+                        celestialBody.orbitCurtainEcliptic.position.copy(originOffset);
 
                     celestialBody.orbitLine.quaternion.identity();
                     if (celestialBody.orbitCurtain)
                         celestialBody.orbitCurtain.quaternion.identity();
+                    if (celestialBody.orbitCurtainEcliptic)
+                        celestialBody.orbitCurtainEcliptic.quaternion.identity();
                 }
             }
 
@@ -445,6 +484,11 @@ export class RenderPipeline {
             if (celestialBody.orbitCurtain?.visible) {
                 celestialBody.orbitCurtain.updateMatrix();
                 celestialBody.orbitCurtain.updateMatrixWorld();
+            }
+
+            if (celestialBody.orbitCurtainEcliptic?.visible) {
+                celestialBody.orbitCurtainEcliptic.updateMatrix();
+                celestialBody.orbitCurtainEcliptic.updateMatrixWorld();
             }
         });
 
@@ -549,8 +593,13 @@ export class RenderPipeline {
         celestialBody,
         bodyData,
         daysSinceJ2000,
-        parentPoleQuaternion = null
+        parentPoleQuaternion = null,
+        targetCurtain = null,
+        bakeQuaternion = null
     ) {
+        const curtain = targetCurtain || celestialBody.orbitCurtain;
+        if (!curtain) return;
+
         const curtainPoints = [];
 
         const isAnalytical =
@@ -568,6 +617,17 @@ export class RenderPipeline {
             return eq.applyQuaternion(parentPoleQuaternion); // back to ecliptic / world
         };
 
+        const emit = (p) => {
+            if (bakeQuaternion) {
+                const worldPoint = p.clone().applyQuaternion(bakeQuaternion);
+                curtainPoints.push(worldPoint);
+                curtainPoints.push(new THREE.Vector3(worldPoint.x, 0, worldPoint.z));
+            } else {
+                curtainPoints.push(p);
+                curtainPoints.push(projectToEquator(p));
+            }
+        };
+
         if (isAnalytical) {
             const orbitalPeriod = bodyData.period;
             for (let index = 0; index <= ORBIT_LINE_RESOLUTION; index++) {
@@ -577,8 +637,7 @@ export class RenderPipeline {
                     (index / ORBIT_LINE_RESOLUTION) * orbitalPeriod;
                 const positionVector = OrbitalMath.calculatePosition(bodyData, timeInDays);
                 const p = new THREE.Vector3(positionVector.x, positionVector.y, positionVector.z);
-                curtainPoints.push(p);
-                curtainPoints.push(projectToEquator(p));
+                emit(p);
             }
         } else {
             const currentMeanAnomaly = bodyData.M0 + bodyData.n * daysSinceJ2000;
@@ -596,12 +655,11 @@ export class RenderPipeline {
                     meanAnomaly
                 );
                 const p = new THREE.Vector3(rawPosition.x, rawPosition.y, rawPosition.z);
-                curtainPoints.push(p);
-                curtainPoints.push(projectToEquator(p)); // still the simple y=0 path
+                emit(p);
             }
         }
 
-        celestialBody.orbitCurtain.geometry.setFromPoints(curtainPoints);
+        curtain.geometry.setFromPoints(curtainPoints);
     }
 
     _smoothstep(edge0, edge1, x) {

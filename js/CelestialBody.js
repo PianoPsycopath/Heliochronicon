@@ -12,6 +12,7 @@ export class CelestialBody {
         this.sprite = params.sprite || null;
         this.orbitLine = params.orbitLine || null;
         this.orbitCurtain = params.orbitCurtain || null;
+        this.orbitCurtainEcliptic = params.orbitCurtainEcliptic || null;
 
         // HTML UI Elements
         this.label = params.label || null;

@@ -54,9 +54,9 @@ export class SystemBuilder {
         return line;
     }
 
-    createOrbitCurtain() {
+    createOrbitCurtain(color = 0x00aaff) {
         const mat = new THREE.LineBasicMaterial({
-            color: 0x00aaff,
+            color,
             transparent: true,
             opacity: 0.2,
             depthTest: false,
@@ -261,6 +261,7 @@ export class SystemBuilder {
 
                 let orbitLine = null;
                 let orbitCurtain = null;
+                let orbitCurtainEcliptic = null;
                 if (!isSun) {
                     mesh.visible = false;
                     orbitLine = this.createOrbitPath(d, scaledA);
@@ -268,12 +269,17 @@ export class SystemBuilder {
 
                     orbitCurtain = this.createOrbitCurtain();
                     scene.add(orbitCurtain);
+                    if (isMoon) {
+                        orbitCurtainEcliptic = this.createOrbitCurtain(0xffaa00);
+                        scene.add(orbitCurtainEcliptic);
+                    }
                 }
 
                 mesh.matrixAutoUpdate = false;
                 sprite.matrixAutoUpdate = false;
                 if (orbitLine) orbitLine.matrixAutoUpdate = false;
                 if (orbitCurtain) orbitCurtain.matrixAutoUpdate = false;
+                if (orbitCurtainEcliptic) orbitCurtainEcliptic.matrixAutoUpdate = false;
 
                 bodyRegistry.registerBody(
                     new CelestialBody({
@@ -282,6 +288,7 @@ export class SystemBuilder {
                         sprite,
                         orbitLine,
                         orbitCurtain,
+                        orbitCurtainEcliptic,
                         label,
                         isMoon,
                         scaledA,

@@ -468,6 +468,10 @@ UI.onDaylightToggleChanged = (isEnabled) => {
     daylightController.setEnabled(isEnabled);
 };
 
+UI.onCurtainDisplayModeChanged = (mode) => {
+    renderPipeline.setCurtainMode(mode);
+};
+
 UI.onEclipseNavRequested = (direction) => {
     if (!currentTargetData) return;
     const allBodiesData = [

@@ -6,6 +6,12 @@ import { BodyListManager } from './BodyListManager.js';
 import { TelemetryManager } from './TelemetryManager.js';
 import { VisibilityTreeManager } from './VisibilityTreeManager.js';
 
+const CURTAIN_MODE_TITLES = [
+    'Inclination Mode 1 [Equatorial]',
+    'Inclination Mode 2 [Equatorial + Ecliptic]',
+    'Inclination Mode 3 [Ecliptic]',
+];
+
 export class UIController {
     constructor() {
         this.datasets = new Set();
@@ -103,6 +109,15 @@ export class UIController {
         return this.timeThrottle.isLiveTime;
     }
 
+    _applyCurtainModeVisuals(mode) {
+        if (!this.btnEclipticToggle) return;
+        this.btnEclipticToggle.classList.remove('mode-both', 'mode-ecliptic');
+        this.btnEclipticToggle.classList.toggle('active', mode !== 0);
+        if (mode === 1) this.btnEclipticToggle.classList.add('mode-both');
+        if (mode === 2) this.btnEclipticToggle.classList.add('mode-ecliptic');
+        this.btnEclipticToggle.title = CURTAIN_MODE_TITLES[mode];
+    }
+
     initBindings() {
         // --- Manual Time Input ---
         this.timeInput = document.getElementById('time-input-bottom');
@@ -118,6 +133,10 @@ export class UIController {
         this.btnDaylightToggle = document.getElementById('btn-daylight-toggle');
         this.isDaylightEnabled = true;
         this.onDaylightToggleChanged = null;
+
+        this.btnEclipticToggle = document.getElementById('btn-ecliptic-toggle');
+        this.curtainDisplayMode = 0;
+        this.onCurtainDisplayModeChanged = null;
 
         const applyManualTime = () => {
             const parsed = new Date(this.timeInput.value + 'Z');
@@ -209,18 +228,40 @@ export class UIController {
             });
         }
 
-        if (this.btnMeasure && this.btnDaylightToggle) {
+        if (this.btnEclipticToggle) {
+            this._applyCurtainModeVisuals(this.curtainDisplayMode);
+
+            this.btnEclipticToggle.addEventListener('click', () => {
+                this.curtainDisplayMode = (this.curtainDisplayMode + 1) % 3;
+                this._applyCurtainModeVisuals(this.curtainDisplayMode);
+
+                if (this.onCurtainDisplayModeChanged) {
+                    this.onCurtainDisplayModeChanged(this.curtainDisplayMode);
+                }
+            });
+        }
+
+        if (this.btnMeasure && (this.btnDaylightToggle || this.btnEclipticToggle)) {
             const bottomDeck = document.getElementById('bottom-deck');
+            const iconToggleButtons = [this.btnDaylightToggle, this.btnEclipticToggle].filter(
+                Boolean
+            );
             const syncToggleLayout = () => {
                 const measureRect = this.btnMeasure.getBoundingClientRect();
                 if (measureRect.height > 0) {
-                    this.btnDaylightToggle.style.height = `${measureRect.height}px`;
-                    this.btnDaylightToggle.style.width = `${measureRect.height}px`;
+                    iconToggleButtons.forEach((btn) => {
+                        btn.style.height = `${measureRect.height}px`;
+                        btn.style.width = `${measureRect.height}px`;
+                    });
                 }
                 if (bottomDeck) {
                     const deckRect = bottomDeck.getBoundingClientRect();
                     const gap = measureRect.left - deckRect.left;
-                    if (gap > 0) this.btnDaylightToggle.style.marginLeft = `${gap}px`;
+                    if (gap > 0) {
+                        iconToggleButtons.forEach((btn) => {
+                            btn.style.marginLeft = `${gap}px`;
+                        });
+                    }
                 }
             };
             syncToggleLayout();

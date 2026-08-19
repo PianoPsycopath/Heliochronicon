@@ -131,6 +131,26 @@ button:hover, button.active {
     color: #ffcc00;
     filter: brightness(1.2);
 }
+.icon-toggle-btn.mode-both {
+    background: #110800;
+    border-color: #ffffff;
+    color: #ffffff;
+}
+.icon-toggle-btn.mode-both:hover {
+    background: #110800;
+    color: #ffffff;
+    filter: brightness(1.2);
+}
+.icon-toggle-btn.mode-ecliptic {
+    background: #110800;
+    border-color: #ffaa00;
+    color: #ffaa00;
+}
+.icon-toggle-btn.mode-ecliptic:hover {
+    background: #110800;
+    color: #ffaa00;
+    filter: brightness(1.2);
+}
 .flex-row { 
     display: flex;
     justify-content: space-between;
