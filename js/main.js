@@ -21,6 +21,7 @@ import { CreditsManager } from './CreditsManager.js';
 import { DaylightController } from './DaylightController.js';
 import { EclipseEngine } from './EclipseEngine.js';
 import { EclipseShadowController } from './EclipseShadowController.js';
+import { SeasonMarkerController } from './SeasonMarkerController.js';
 import { logger } from './logger.js';
 
 import * as THREE from 'three';
@@ -168,6 +169,7 @@ const systemBuilder = new SystemBuilder({
         currentTargetData = null;
         trackingTargetData = null;
         updateCredits();
+        seasonMarkerController.setTarget(null);
     },
     onClearMemory: () => {},
 });
@@ -219,6 +221,12 @@ const renderPipeline = new RenderPipeline({
     eclipseShadowController,
 });
 
+const seasonMarkerController = new SeasonMarkerController({
+    scene,
+    celestialBodies,
+    camera,
+});
+
 const tacticalScanner = new TacticalScanner({
     scene,
     camera,
@@ -241,6 +249,7 @@ const tacticalScanner = new TacticalScanner({
         UI.updateTargetPanel(null);
         UI.renderBodyList(celestialBodies, null);
         updateCredits();
+        seasonMarkerController.setTarget(null);
     },
 });
 
@@ -370,6 +379,7 @@ UI.onFocusBody = (data, isHardLock = true) => {
     UI.updateTargetPanel(data);
     UI.renderBodyList(celestialBodies, currentTargetData);
     updateCredits();
+    seasonMarkerController.setTarget(currentTargetData);
 
     trackingTargetData = isHardLock ? data : null;
     interactionController.triggerFocus(data, isHardLock, AU_IN_KM);
@@ -394,6 +404,7 @@ UI.onPurgeRequested = (data) => {
     UI.updateTargetPanel(null);
     UI.renderBodyList(celestialBodies, currentTargetData);
     updateCredits();
+    seasonMarkerController.setTarget(null);
 };
 
 UI.onPinStarRequested = (data) => {
@@ -790,6 +801,7 @@ function animate() {
 
     measurementManager.update(camera, currentOrigin, daysSinceJ2000);
     pinnedStarManager.update(camera, currentOrigin, daysSinceJ2000);
+    seasonMarkerController.update(systemDate, daysSinceJ2000, currentOrigin);
 
     executeFinalRenderStage(
         renderPipeline,

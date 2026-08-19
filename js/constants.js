@@ -1,29 +1,43 @@
 // js/constants.js
-// Astronomical unit, in kilometers.
+
 export const AU_IN_KM = 149597870.7;
 
-// Days in a Julian century. Used to convert daysSinceJ2000 into centuries
-// for pole-precession rate calculations (pole_ra_rate / pole_dec_rate are
-// expressed as deg/century).
+// Convert daysSinceJ2000 to centuries for pole-precession rates (deg/century).
 export const JULIAN_CENTURY_DAYS = 36525.0;
 
-// Earth/Moon system mass ratio (Earth mass / Moon mass). Used as the
-// default Earth-Moon barycenter correction weight when a body's data
-// doesn't supply its own barycenter_mass_ratio.
+// Default Earth-Moon barycenter weight when body data omits barycenter_mass_ratio.
 export const EARTH_MOON_MASS_RATIO = 82.30059;
 
-// Fixed size of the gravity-well uniform arrays in GridShaders.getGridMaterial.
-// Must match the array length main.js allocates and the loop bound baked
-// into the fragment shader at material-creation time.
+// Must match array length in main.js and shader loop bound in GridShaders.getGridMaterial.
 export const MAX_WELLS = 35;
 
-// Fixed size of the multi-shadow uniform arrays in EclipseShaders.createEclipseShadowMat.
-// Must match the cap EclipseShadowController applies when it ranks and
-// truncates eclipse candidates before uploading them to the shader.
+// Must match the candidate cap applied by EclipseShadowController.
 export const MAX_SHADOWS = 8;
 
-// Maximum number of moons that can be considered for a moon-moon eclipse
-// calculation. This is a hard cap to avoid combinatorial explosion in the
-// moon-moon eclipse search. The actual number of moons considered is the
-// minimum of this constant and the number of moons in the scene.
+// Hard cap to prevent combinatorial explosion in moon-moon eclipse search.
 export const MAX_MOON_MOON_MEMBERS = 8;
+
+// --- SEASON MARKERS ---
+
+// Gate 1: small bodies never receive tilt-based seasons.
+export const SEASON_MIN_RADIUS_KM = 1000;
+
+// Gate 2: distance-driven climate threshold (Gate 4 = negligible below this).
+export const SEASON_ECCENTRICITY_THRESHOLD = 0.05;
+
+// Gate 3: tilt-dominated seasons threshold.
+export const SEASON_TILT_THRESHOLD_DEG = 10.0;
+
+// True-anomaly window that triggers distance/node label modifiers.
+export const SEASON_DISTANCE_MODIFIER_DEG = 15;
+
+export const SEASON_SYMBOLS = {
+    FIRE: '\u{1F702}', // Summer
+    WATER: '\u{1F704}', // Winter
+    AIR: '\u{1F701}', // Spring
+    EARTH: '\u{1F703}', // Autumn
+    PERI: 'P',
+    APO: 'A',
+    PERI_HOT: 'P\u{1F702}',
+    APO_COLD: 'A\u{1F704}',
+};
