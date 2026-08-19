@@ -558,8 +558,7 @@ export class RenderPipeline {
             bodyData.orbit_model === ORBIT_MODEL_VSOP87;
 
         const projectToEquator = (p) => {
-            if (!parentPoleQuaternion || !isAnalytical) {
-                // Kepler path (or no parent) – geometry is already equatorial → simple drop
+            if (!parentPoleQuaternion || !isAnalytical || !celestialBody.isMoon) {
                 return new THREE.Vector3(p.x, 0, p.z);
             }
             // Transform into the parent's equatorial frame (pole maps to +Y)
