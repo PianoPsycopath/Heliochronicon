@@ -101,6 +101,33 @@ See [CHANGELOG.md](CHANGELOG.md) for the full list.
   </tr>
 </table>
 
+**Seasons**
+<table width="100%">
+  <tr>
+    <td width="50%" align="center">
+      <img src="https://github.com/user-attachments/assets/b254abdb-a0f9-4776-b6d8-f15f38d947a1" width="100%" alt="Solar Eclipse 1"><br>
+      <em>Earth Seasons marked on orbite</em>
+    </td>
+    <td width="50%" align="center">
+      <img src="https://github.com/user-attachments/assets/43f007c4-b2af-4771-908d-fa2f18c8c4e4"><br>
+      <em>Mercurian Seasons</em>
+    </td>
+  </tr>
+  <tr>
+    <td width="50%" align="center">
+      <img src="https://github.com/user-attachments/assets/4f02b6e1-c452-4409-b077-02113d5d9553" width="100%" alt="Solar Eclipse 3"><br>
+      <em>Asteroid Thermal Season</em>
+    </td>
+    <td width="50%" align="center">
+      <img src="https://github.com/user-attachments/assets/5ae39b7c-31d9-4fb7-9f78-c27d68f6c30e"><br>
+      <em>Neptune Perihelion Countdown</em>
+    </td>
+  </tr>
+</table>
+
+
+
+
 
 ## Technical Highlights
 
