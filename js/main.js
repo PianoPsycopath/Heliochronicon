@@ -394,15 +394,15 @@ UI.onPinRequested = (data) => {
         UI.updateTargetPanel(b.data);
 
         let pinned = storage.get('pinnedAsteroids', []);
-        
+
         if (b.data.isPinned) {
-            if (!pinned.some(p => p.name === b.data.name)) {
+            if (!pinned.some((p) => p.name === b.data.name)) {
                 pinned.push(b.data);
             }
         } else {
-            pinned = pinned.filter(p => p.name !== b.data.name);
+            pinned = pinned.filter((p) => p.name !== b.data.name);
         }
-        
+
         storage.set('pinnedAsteroids', pinned);
     }
 };
@@ -412,8 +412,8 @@ UI.onPurgeRequested = (data) => {
 
     let pinned = storage.get('pinnedAsteroids', []);
     const initialLength = pinned.length;
-    pinned = pinned.filter(p => p.name !== data.name);
-    
+    pinned = pinned.filter((p) => p.name !== data.name);
+
     if (pinned.length !== initialLength) {
         storage.set('pinnedAsteroids', pinned);
     }
@@ -651,9 +651,9 @@ async function bootEngine() {
         }
     }
     const pinnedAsteroids = storage.get('pinnedAsteroids', []);
-    
-    pinnedAsteroids.forEach(astData => {
-        astData.isPinned = true; 
+
+    pinnedAsteroids.forEach((astData) => {
+        astData.isPinned = true;
         systemBuilder.promoteAsteroidToCPU(astData);
     });
 
