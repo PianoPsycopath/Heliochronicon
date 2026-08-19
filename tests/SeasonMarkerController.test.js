@@ -23,10 +23,13 @@ describe('SeasonMarkerController', () => {
             camera: { zoom: 1 },
             celestialBodies: [
                 { data: { name: 'Mars', parent: 'Sol' }, isMoon: false }
-            ]
+            ],
+            tooltipManager: { 
+                show: vi.fn(), 
+                hide: vi.fn() 
+            }
         };
         
-        // Ensures a clean DOM state to prevent tooltip contamination between isolated test runs.
         document.body.innerHTML = '';
         controller = new SeasonMarkerController(mockCtx);
     });
@@ -36,10 +39,9 @@ describe('SeasonMarkerController', () => {
         vi.clearAllMocks();
     });
 
-    it('should build a tooltip element and attach it to the DOM on instantiation', () => {
-        const tooltip = document.querySelector('.season-marker-tooltip');
-        expect(tooltip).not.toBeNull();
-        expect(tooltip.style.display).toBe('none');
+    it('should initialize and properly assign the tooltipManager from context', () => {
+        expect(controller.tooltipManager).toBeDefined();
+        expect(controller.tooltipManager).toBe(mockCtx.tooltipManager);
     });
 
     it('should clear target state if setTarget is called with null', () => {
@@ -52,10 +54,10 @@ describe('SeasonMarkerController', () => {
         expect(controller.parentBody).toBeNull();
     });
 
-    it('should update tooltip display when hover index changes', () => {
+    it('should call tooltipManager.show with updated html when hover index changes', () => {
         // Injects synthetic marker data to simulate an active visualization state.
         controller.markers = [
-            { label: 'Summer Solstice', date: new Date(), countdownText: 'in 5 d' }
+            { label: 'Summer Solstice', date: new Date('2026-06-21T12:00:00Z'), countdownText: 'in 5 d' }
         ];
         controller.seasonBody = { data: { name: 'Mars' } };
         
@@ -63,9 +65,11 @@ describe('SeasonMarkerController', () => {
         controller._hoveredIndex = 0;
         controller._updateTooltip();
 
-        const tooltip = document.querySelector('.season-marker-tooltip');
-        expect(tooltip.style.display).toBe('block');
-        expect(tooltip.innerHTML).toContain('Summer Solstice');
-        expect(tooltip.innerHTML).toContain('Mars');
+        expect(mockCtx.tooltipManager.show).toHaveBeenCalled();
+        const showArgs = mockCtx.tooltipManager.show.mock.calls[0];
+        const htmlPayload = showArgs[1].html;
+        
+        expect(htmlPayload).toContain('Summer Solstice');
+        expect(htmlPayload).toContain('Mars');
     });
 });
