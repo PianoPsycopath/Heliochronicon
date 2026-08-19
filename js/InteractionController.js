@@ -1,6 +1,11 @@
 // js/InteractionController.js
 import * as THREE from 'three';
 import { logger } from './logger.js';
+
+function escapeHtml(str) {
+    return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
 export class InteractionController {
     constructor(ctx) {
         this.ctx = ctx;
@@ -16,6 +21,8 @@ export class InteractionController {
         this.onTrackingBroken = ctx.onTrackingBroken;
         this.onBodyHovered = ctx.onBodyHovered || (() => {});
 
+        this.tooltipManager = ctx.tooltipManager;
+
         this.isCameraTracking = false;
         this.flyPanActive = false;
         this.panFrames = 0;
@@ -27,28 +34,6 @@ export class InteractionController {
 
         this._hoveredData = null;
         this._hoverRAFPending = false;
-
-        this._starHoverLabel = document.createElement('div');
-        this._starHoverLabel.className = 'star-hover-label';
-        Object.assign(this._starHoverLabel.style, {
-            position: 'fixed',
-            pointerEvents: 'none',
-            zIndex: '9999',
-            padding: '4px 10px',
-            background: 'rgba(0, 0, 0, 0.82)',
-            border: '1px solid #ffcc00',
-            color: '#ffcc00',
-            fontFamily: "monospace, 'Courier New', Courier",
-            fontSize: '12px',
-            fontWeight: 'bold',
-            letterSpacing: '0.04em',
-            borderRadius: '2px',
-            display: 'none',
-            whiteSpace: 'nowrap',
-            textShadow: '0 0 6px rgba(255,204,0,0.45)',
-            transform: 'translate(12px, 14px)',
-        });
-        document.body.appendChild(this._starHoverLabel);
         this._lastHoverClientX = 0;
         this._lastHoverClientY = 0;
 
@@ -228,9 +213,10 @@ export class InteractionController {
         if (newKey !== oldKey) {
             this._hoveredData = newData;
             this.onBodyHovered(newData);
-            this._updateStarHoverLabel(newData, clientX, clientY);
-        } else if (newData && newData.datasetCategory === 'BACKGROUND_STAR') {
-            this._positionStarHoverLabel(clientX, clientY);
+            this._updateHoverTooltip(newData, clientX, clientY);
+        } else if (this.tooltipManager && this.tooltipManager.isOwnedBy(this)) {
+            // Same object still hovered — just keep the tooltip glued to the cursor.
+            this.tooltipManager.move(clientX, clientY);
         }
     }
 
@@ -245,22 +231,49 @@ export class InteractionController {
             null;
         return raw === null || raw === undefined || raw === '' ? null : String(raw);
     }
-    _updateStarHoverLabel(data, clientX, clientY) {
-        if (data && data.datasetCategory === 'BACKGROUND_STAR') {
+
+    static TACTICAL_HOVER_CATEGORIES = new Set(['RADAR_CONTACT', 'PROMOTED_ASTEROID', 'ASTEROID']);
+
+    _updateHoverTooltip(data, clientX, clientY) {
+        if (!this.tooltipManager) return;
+
+        if (!data) {
+            this.tooltipManager.hide(this);
+            return;
+        }
+
+        if (data.datasetCategory === 'BACKGROUND_STAR') {
             const name = InteractionController.starDisplayName(data);
             const cls = InteractionController.starClass(data);
             const suffix = cls ? `  ·  ${cls}` : '';
             const pinMark = data.isPinned ? '  📌' : '';
-            this._starHoverLabel.textContent = name + suffix + pinMark;
-            this._starHoverLabel.style.display = 'block';
-            this._positionStarHoverLabel(clientX, clientY);
-        } else {
-            this._starHoverLabel.style.display = 'none';
+            this.tooltipManager.show(this, name + suffix + pinMark, clientX, clientY, 'star');
+            return;
         }
+
+        if (InteractionController.TACTICAL_HOVER_CATEGORIES.has(data.datasetCategory)) {
+            this.tooltipManager.show(
+                this,
+                this._buildTacticalTooltip(data),
+                clientX,
+                clientY,
+                'tactical'
+            );
+            return;
+        }
+
+        this.tooltipManager.hide(this);
     }
-    _positionStarHoverLabel(clientX, clientY) {
-        this._starHoverLabel.style.left = `${clientX}px`;
-        this._starHoverLabel.style.top = `${clientY}px`;
+
+    _buildTacticalTooltip(data) {
+        const name = (data.name || 'UNKNOWN CONTACT').toString();
+        const category = (data.datasetCategory || '').replace(/_/g, ' ');
+        const rows = [`<div class="hc-tooltip-title">${escapeHtml(name)}</div>`];
+        if (category) rows.push(`<div class="hc-tooltip-sub">${escapeHtml(category)}</div>`);
+        if (typeof data.a === 'number' && isFinite(data.a)) {
+            rows.push(`<div>a = ${data.a.toFixed(3)} AU</div>`);
+        }
+        return { html: rows.join('') };
     }
 
     _pickStar(clientX, clientY) {
@@ -324,9 +337,7 @@ export class InteractionController {
             this._hoveredData = null;
             this.onBodyHovered(null);
         }
-        if (this._starHoverLabel) {
-            this._starHoverLabel.style.display = 'none';
-        }
+        if (this.tooltipManager) this.tooltipManager.hide(this);
     }
 
     initHooks() {

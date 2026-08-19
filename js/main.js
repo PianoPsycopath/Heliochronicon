@@ -22,6 +22,7 @@ import { DaylightController } from './DaylightController.js';
 import { EclipseEngine } from './EclipseEngine.js';
 import { EclipseShadowController } from './EclipseShadowController.js';
 import { SeasonMarkerController } from './SeasonMarkerController.js';
+import { TooltipManager } from './TooltipManager.js';
 import { logger } from './logger.js';
 
 import * as THREE from 'three';
@@ -69,7 +70,7 @@ const frustumSize = sceneManager.frustumSize;
 let systemDate = new Date();
 let currentTargetData = null;
 let trackingTargetData = null;
-let previewTargetData = null; // Track hover state without sending telemetry.
+let previewTargetData = null; // Hover state without sending telemetry.
 
 const celestialBodies = [];
 const pickableObjects = [];
@@ -100,21 +101,24 @@ scene.add(equatorialGridPlane);
 
 const measurementManager = new MeasurementManager(scene, camera);
 const tacticalMaterial = Shaders.getTacticalMaterial();
-const UI = new UIController();
+
+// Shared tooltip for world-space hover and button tooltips.
+const tooltipManager = new TooltipManager();
+
+const UI = new UIController({ tooltipManager });
+tooltipManager.attachButtonTooltips();
 
 const terrainController = new TerrainController({ celestialBodies });
 const daylightController = new DaylightController({ scene, celestialBodies });
 const eclipseShadowController = new EclipseShadowController({ scene, celestialBodies });
 
-// Call update() only from discrete trigger points to preserve performance.
 const creditsManager = new CreditsManager({
     el: document.getElementById('hud-credits'),
     terrainController,
 });
 let activeTerrainBodyNames = [];
-let starFieldObject = null; // Set after initStarField() resolves.
+let starFieldObject = null;
 
-// Define macro scale zoom threshold to grant star catalog credit only when zoomed out.
 const STAR_CREDIT_ZOOM_THRESHOLD = 0.075;
 let starsVisibleState = false;
 
@@ -131,7 +135,6 @@ terrainController.onActiveBodiesChanged = (names) => {
     updateCredits();
 };
 
-// Fetch top-level star catalog credit independently of StarLoader module.
 fetch(`${STAR_DATA_BASE_PATH}stars_manifest.json`)
     .then((res) => (res.ok ? res.json() : null))
     .then((json) => {
@@ -142,7 +145,6 @@ fetch(`${STAR_DATA_BASE_PATH}stars_manifest.json`)
     })
     .catch((err) => logger.warn('Could not load stars_manifest.json credit line', err));
 
-// Manage the lifecycle of CelestialBody scene, GPU, and DOM resources.
 const bodyRegistry = new BodyRegistry({
     scene,
     celestialBodies,
@@ -182,6 +184,7 @@ const interactionController = new InteractionController({
     gpuParticleSystems,
     UI,
     renderer,
+    tooltipManager,
     getCurrentOrigin: () => currentOrigin,
     getDaysSinceJ2000: () => PhysicsEngine.getJ2000Days(systemDate),
     getCurrentTarget: () => currentTargetData,
@@ -225,6 +228,7 @@ const seasonMarkerController = new SeasonMarkerController({
     scene,
     celestialBodies,
     camera,
+    tooltipManager,
 });
 
 const tacticalScanner = new TacticalScanner({
@@ -287,7 +291,9 @@ UI.onDatasetVisibilityChanged = async (datasetName, isVisible, urls) => {
             const chunkResults = await Promise.all(fetchPromises);
 
             if (!inFlightDatasets.has(datasetName)) {
-                logger.info(`[Heliochronicon] Load aborted for ${datasetName}; toggled off during fetch.`);
+                logger.info(
+                    `[Heliochronicon] Load aborted for ${datasetName}; toggled off during fetch.`
+                );
                 return;
             }
 
@@ -295,9 +301,8 @@ UI.onDatasetVisibilityChanged = async (datasetName, isVisible, urls) => {
             const processedData = DataLoader.processPlanetaryData(mergedJSON, datasetName);
             systemBuilder.buildSolarSystem(processedData);
             activeDatasets.add(datasetName);
-            
-            storage.set('activeDatasets', Array.from(activeDatasets));
 
+            storage.set('activeDatasets', Array.from(activeDatasets));
         } catch (error) {
             logger.error(`Failed to load chunk group for ${datasetName}`, error);
             UI.showLookupNotFound(`Failed to download ${datasetName} dataset. Check network.`);
@@ -307,9 +312,9 @@ UI.onDatasetVisibilityChanged = async (datasetName, isVisible, urls) => {
     } else {
         inFlightDatasets.delete(datasetName);
         activeDatasets.delete(datasetName);
-        
+
         storage.set('activeDatasets', Array.from(activeDatasets));
-        
+
         bodyRegistry.removeByDataset(datasetName);
         delete datasetMaterials[datasetName];
 
@@ -323,7 +328,6 @@ UI.onDatasetColorChanged = (datasetName, colorHex) => {
     savedColors[datasetName] = colorHex;
     storage.set('tacticalMapColors', savedColors);
 
-    // Update live GPU particle systems and group labels.
     for (const system of gpuParticleSystems) {
         if (system.userData?.datasetName !== datasetName) continue;
 
@@ -333,7 +337,6 @@ UI.onDatasetColorChanged = (datasetName, colorHex) => {
 
         const label = system.userData.groupLabel;
         if (label) {
-            // Calculate the mean semi-major axis using stored data or fallback computation.
             const meanA =
                 system.userData.meanA ??
                 (system.userData.sourceData?.length
@@ -345,7 +348,6 @@ UI.onDatasetColorChanged = (datasetName, colorHex) => {
         }
     }
 
-    // Synchronize datasetMaterials while the material remains active.
     const mat = datasetMaterials[datasetName];
     if (mat?.uniforms?.uColor) {
         mat.uniforms.uColor.value.set(colorHex);
@@ -353,7 +355,6 @@ UI.onDatasetColorChanged = (datasetName, colorHex) => {
         mat.color.set(colorHex);
     }
 
-    // Update DOM label, sprite, and orbit for promoted asteroids.
     for (const body of celestialBodies) {
         if (
             body.data?.datasetCategory !== 'PROMOTED_ASTEROID' ||
@@ -464,7 +465,6 @@ UI.onAsteroidLookup = async (rawQuery) => {
     lookupInFlight = true;
     UI.showLookupPending(query);
     try {
-        // Skip active dataset groups during lookup.
         const skipGroups = [...activeDatasets];
         const found = await DataLoader.findAsteroidInManifest(query, assetManifest, skipGroups);
 
@@ -524,7 +524,7 @@ UI.onEclipseNavRequested = (direction) => {
         const newDate = new Date(Date.UTC(2000, 0, 1, 12, 0, 0) + event.days * 86400000);
         systemDate = newDate;
         UI.updateTimeInput(newDate);
-        // Pause the time throttle to prevent immediate overwrite of the jumped date.
+        // Pause so the jumped date is not immediately overwritten.
         UI.timeThrottle.pauseForManualInput();
         UI.telemetryManager.renderEclipseResult(event);
     } else {
@@ -537,12 +537,11 @@ const STAR_FAR_PLANE_AU = 1e14;
 
 async function initStarField() {
     const starGeometry = await StarLoader.loadStars(STAR_DATA_BASE_PATH, scene);
-    if (!starGeometry) return; // Abort if no stars_manifest exists for this data source.
+    if (!starGeometry) return;
 
     const starMaterial = Shaders.getStarFieldMaterial();
     const starField = new THREE.Points(starGeometry, starMaterial);
 
-    // Compute positions in the shader.
     starField.frustumCulled = false;
     starField.matrixAutoUpdate = false;
     starField.renderOrder = -10;
@@ -610,19 +609,23 @@ async function bootEngine() {
         );
         const isCore = [...categoriesPresent].some((cat) => CORE_CATEGORIES.has(cat));
 
-        const shouldBeActive = savedActiveDatasets !== null 
-            ? savedActiveDatasets.includes(groupName) 
-            : isCore;
+        const shouldBeActive =
+            savedActiveDatasets !== null ? savedActiveDatasets.includes(groupName) : isCore;
 
-        const iconCategory = isCore 
-            ? (categoriesPresent.has('STAR') || categoriesPresent.has('PLANET') ? 'PLANET' : categoriesPresent.has('MOON') ? 'MOON' : 'PLANET')
+        const iconCategory = isCore
+            ? categoriesPresent.has('STAR') || categoriesPresent.has('PLANET')
+                ? 'PLANET'
+                : categoriesPresent.has('MOON')
+                  ? 'MOON'
+                  : 'PLANET'
             : 'ASTEROID';
 
         if (!savedColors[groupName]) {
             if (isCore) {
                 savedColors[groupName] = '#ffffff';
             } else {
-                savedColors[groupName] = ASTEROID_TOGGLE_COLORS[asteroidColorIdx % ASTEROID_TOGGLE_COLORS.length];
+                savedColors[groupName] =
+                    ASTEROID_TOGGLE_COLORS[asteroidColorIdx % ASTEROID_TOGGLE_COLORS.length];
                 asteroidColorIdx++;
             }
         }
@@ -784,7 +787,6 @@ function animate() {
     const perfSample = UI.performanceMonitor.tick(deltaSec);
     if (perfSample) UI.updatePerf(perfSample);
 
-    // Evaluate star visibility to conditionally trigger the credits update.
     const starsVisibleNow = camera.zoom <= STAR_CREDIT_ZOOM_THRESHOLD;
     if (starsVisibleNow !== starsVisibleState) {
         starsVisibleState = starsVisibleNow;

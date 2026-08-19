@@ -47,6 +47,7 @@ export class SeasonMarkerController {
         this.scene = ctx.scene;
         this.celestialBodies = ctx.celestialBodies;
         this.camera = ctx.camera;
+        this.tooltipManager = ctx.tooltipManager;
 
         this.seasonBody = null;
         this.markers = [];
@@ -59,34 +60,8 @@ export class SeasonMarkerController {
         this._lastClientX = 0;
         this._lastClientY = 0;
 
-        this._buildTooltip();
-
         this._onPointerMove = (event) => this._handlePointerMove(event);
         window.addEventListener('pointermove', this._onPointerMove);
-    }
-
-    _buildTooltip() {
-        this.tooltip = document.createElement('div');
-        this.tooltip.className = 'season-marker-tooltip';
-        Object.assign(this.tooltip.style, {
-            position: 'fixed',
-            pointerEvents: 'none',
-            zIndex: '9999',
-            padding: '6px 10px',
-            background: 'rgba(0, 0, 0, 0.85)',
-            border: '1px solid #ffaa00',
-            color: '#ffcc66',
-            fontFamily: "monospace, 'Courier New', Courier",
-            fontSize: '12px',
-            lineHeight: '1.5',
-            letterSpacing: '0.03em',
-            borderRadius: '2px',
-            display: 'none',
-            whiteSpace: 'nowrap',
-            textShadow: '0 0 6px rgba(255,170,0,0.4)',
-            transform: 'translate(12px, 14px)',
-        });
-        document.body.appendChild(this.tooltip);
     }
 
     // Pass null to clear. targetBodyData matches UI.onFocusBody shape.
@@ -217,7 +192,7 @@ export class SeasonMarkerController {
 
     _hideTooltip() {
         this._hoveredIndex = -1;
-        if (this.tooltip) this.tooltip.style.display = 'none';
+        if (this.tooltipManager) this.tooltipManager.hide(this);
     }
 
     _handlePointerMove(event) {
@@ -259,13 +234,15 @@ export class SeasonMarkerController {
         }
 
         this._hoveredIndex = closestIndex;
-        if (closestIndex === -1) this.tooltip.style.display = 'none';
+        if (closestIndex === -1 && this.tooltipManager) this.tooltipManager.hide(this);
     }
 
     // Keep countdown ticking while pointer is still.
     _updateTooltip() {
+        if (!this.tooltipManager) return;
+
         if (this._hoveredIndex === -1 || !this.markers[this._hoveredIndex]) {
-            this.tooltip.style.display = 'none';
+            this.tooltipManager.hide(this);
             return;
         }
 
@@ -273,22 +250,17 @@ export class SeasonMarkerController {
         const bodyName = (this.seasonBody?.data?.name || '').toString();
         const dateStr = `${marker.date.toISOString().replace('T', ' ').substring(0, 19)} UTC`;
 
-        this.tooltip.innerHTML = `
-            <div style="color:#ffcc00; font-weight:bold;">${bodyName} &ndash; ${marker.label}</div>
+        const html = `
+            <div class="hc-tooltip-title">${bodyName} &ndash; ${marker.label}</div>
             <div>${dateStr}</div>
-            <div style="color:#aaa;">${marker.countdownText}</div>
+            <div class="hc-tooltip-sub">${marker.countdownText}</div>
         `;
-        this.tooltip.style.left = `${this._lastClientX}px`;
-        this.tooltip.style.top = `${this._lastClientY}px`;
-        this.tooltip.style.display = 'block';
+        this.tooltipManager.show(this, { html }, this._lastClientX, this._lastClientY, 'marker');
     }
 
     dispose() {
         window.removeEventListener('pointermove', this._onPointerMove);
         this._clearTarget();
         this._syncSprites();
-        if (this.tooltip && this.tooltip.parentNode) {
-            this.tooltip.parentNode.removeChild(this.tooltip);
-        }
     }
 }

@@ -218,3 +218,59 @@ button:hover, button.active {
 .tab-content.active {
     display: flex; 
 }
+/* =========================================
+   CENTRALIZED HOVER TOOLTIP (js/TooltipManager.js)
+========================================= */
+.hc-tooltip {
+    position: fixed;
+    pointer-events: none;
+    z-index: 9999;
+    padding: 6px 10px;
+    background: rgba(0, 0, 0, 0.85);
+    border: 1px solid #ffcc00;
+    color: #ffcc00;
+    font-family: monospace, 'Courier New', Courier;
+    font-size: 12px;
+    line-height: 1.5;
+    letter-spacing: 0.03em;
+    border-radius: 2px;
+    white-space: nowrap;
+    text-shadow: 0 0 6px rgba(255, 204, 0, 0.4);
+    transform: translate(12px, 14px);
+}
+.hc-tooltip-title {
+    font-weight: bold;
+    color: #ffcc00;
+}
+.hc-tooltip-sub {
+    color: #aaa;
+    text-shadow: none;
+}
+/* Background-star hover (InteractionController). */
+.hc-tooltip--star {
+    border-color: #ffcc00;
+    color: #ffcc00;
+    font-weight: bold;
+}
+/* Tactical scan hover: radar contacts + promoted/plain asteroids picked
+   off the GPU particle field (InteractionController). Green to match
+   TacticalShaders' default dot/scan-rim color. */
+.hc-tooltip--tactical {
+    border-color: #33ff66;
+    color: #a8ffb8;
+    text-shadow: 0 0 6px rgba(51, 255, 102, 0.4);
+}
+/* Season/orbit marker hover (SeasonMarkerController). */
+.hc-tooltip--marker {
+    border-color: #ffaa00;
+    color: #ffcc66;
+    text-shadow: 0 0 6px rgba(255, 170, 0, 0.4);
+}
+/* Generic button / HUD-element tooltip, replacing the native `title`
+   attribute so it appears instantly and matches the HUD styling. */
+.hc-tooltip--button {
+    border-color: #ffaa00;
+    color: #ffcc66;
+    font-weight: normal;
+    text-shadow: none;
+}

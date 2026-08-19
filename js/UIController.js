@@ -13,7 +13,10 @@ const CURTAIN_MODE_TITLES = [
 ];
 
 export class UIController {
-    constructor() {
+    constructor(ctx = {}) {
+        // Optional so UIController works standalone; falls back to native title.
+        this.tooltipManager = ctx.tooltipManager || null;
+
         this.datasets = new Set();
         this.timeThrottle = new TimeThrottle({
             timeSlider: document.getElementById('time-slider'),
@@ -47,9 +50,9 @@ export class UIController {
         this.sizeValEl = document.getElementById('size-val');
 
         this.btnScan = document.getElementById('btn-scan');
+        if (this.btnScan) this.btnScan.dataset.tooltipLive = '';
         this.isScanActive = false;
 
-        // Callbacks from main.js
         this.onFocusBody = null;
         this.onTimeChanged = null;
         this.onClearData = null;
@@ -62,7 +65,6 @@ export class UIController {
         this.onAsteroidLookup = null;
         this.onPinStarRequested = null;
 
-        // Route internal manager events to UIController callbacks
         this.bodyListManager.onFocusBody = (data) => {
             if (this.onFocusBody) this.onFocusBody(data);
         };
@@ -109,32 +111,44 @@ export class UIController {
         return this.timeThrottle.isLiveTime;
     }
 
+    // Refresh through TooltipManager when present; otherwise use native title.
+    _setTooltip(el, text) {
+        if (!el) return;
+        if (this.tooltipManager) {
+            this.tooltipManager.setButtonTooltip(el, text);
+        } else {
+            el.title = text;
+        }
+    }
+
     _applyCurtainModeVisuals(mode) {
         if (!this.btnEclipticToggle) return;
         this.btnEclipticToggle.classList.remove('mode-both', 'mode-ecliptic');
         this.btnEclipticToggle.classList.toggle('active', mode !== 0);
         if (mode === 1) this.btnEclipticToggle.classList.add('mode-both');
         if (mode === 2) this.btnEclipticToggle.classList.add('mode-ecliptic');
-        this.btnEclipticToggle.title = CURTAIN_MODE_TITLES[mode];
+        this._setTooltip(this.btnEclipticToggle, CURTAIN_MODE_TITLES[mode]);
     }
 
     initBindings() {
-        // --- Manual Time Input ---
         this.timeInput = document.getElementById('time-input-bottom');
         this.chronoCanvas = document.getElementById('chrono-canvas');
         this.chronometerDisplay = new ChronometerDisplay(this.chronoCanvas);
         this.performanceMonitor = new PerformanceMonitor();
 
-        // --- MEASUREMENT TOGGLE ---
         this.btnMeasure = document.getElementById('btn-measure');
+        // Live tooltips survive click so state changes refresh immediately.
+        if (this.btnMeasure) this.btnMeasure.dataset.tooltipLive = '';
         this.isMeasureMode = false;
         this.onMeasureModeChanged = null;
 
         this.btnDaylightToggle = document.getElementById('btn-daylight-toggle');
+        if (this.btnDaylightToggle) this.btnDaylightToggle.dataset.tooltipLive = '';
         this.isDaylightEnabled = true;
         this.onDaylightToggleChanged = null;
 
         this.btnEclipticToggle = document.getElementById('btn-ecliptic-toggle');
+        if (this.btnEclipticToggle) this.btnEclipticToggle.dataset.tooltipLive = '';
         this.curtainDisplayMode = 0;
         this.onCurtainDisplayModeChanged = null;
 
@@ -167,7 +181,6 @@ export class UIController {
             el.addEventListener('input', updateSliders)
         );
 
-        // Scan For Nearby Asteroids
         this.btnScan.addEventListener('click', () => {
             this.isScanActive = !this.isScanActive;
             this.btnScan.classList.toggle('active', this.isScanActive);
@@ -176,7 +189,6 @@ export class UIController {
             }
         });
 
-        // --- Mobile UI Cycling Logic ---
         if (this.btnMobileToggle) {
             this.btnMobileToggle.addEventListener('click', () => {
                 this.mobileUiState = (this.mobileUiState + 1) % 3;
@@ -203,14 +215,7 @@ export class UIController {
         if (this.btnMeasure) {
             this.btnMeasure.addEventListener('click', () => {
                 this.isMeasureMode = !this.isMeasureMode;
-
-                // Pure CSS class toggle (HTML/CSS handles the visuals)
-                if (this.isMeasureMode) {
-                    this.btnMeasure.classList.add('active');
-                } else {
-                    this.btnMeasure.classList.remove('active');
-                }
-
+                this.btnMeasure.classList.toggle('active', this.isMeasureMode);
                 if (this.onMeasureModeChanged) {
                     this.onMeasureModeChanged(this.isMeasureMode);
                 }
@@ -221,7 +226,6 @@ export class UIController {
             this.btnDaylightToggle.addEventListener('click', () => {
                 this.isDaylightEnabled = !this.isDaylightEnabled;
                 this.btnDaylightToggle.classList.toggle('active', this.isDaylightEnabled);
-
                 if (this.onDaylightToggleChanged) {
                     this.onDaylightToggleChanged(this.isDaylightEnabled);
                 }
@@ -234,7 +238,6 @@ export class UIController {
             this.btnEclipticToggle.addEventListener('click', () => {
                 this.curtainDisplayMode = (this.curtainDisplayMode + 1) % 3;
                 this._applyCurtainModeVisuals(this.curtainDisplayMode);
-
                 if (this.onCurtainDisplayModeChanged) {
                     this.onCurtainDisplayModeChanged(this.curtainDisplayMode);
                 }
@@ -268,20 +271,16 @@ export class UIController {
             window.addEventListener('resize', syncToggleLayout);
         }
 
-        // --- PURGE SYSTEM MEMORY ---
         document.getElementById('btn-clear-map').addEventListener('click', () => {
             if (this.onClearData) {
                 this.onClearData();
                 this.datasets.clear();
-
                 this.visibilityTreeManager.clearTrees();
-
                 this.isScanActive = false;
                 this.btnScan.classList.remove('active');
             }
         });
 
-        // --- Tab Navigation Logic ---
         const btnTabSearch = document.getElementById('btn-tab-search');
         const btnTabVis = document.getElementById('btn-tab-vis');
         const tabSearch = document.getElementById('tab-search');
@@ -304,7 +303,7 @@ export class UIController {
         }
     }
 
-    // --- Sub-manager Passthroughs ---
+    // Re-wire tooltips after dynamic content is inserted (idempotent).
     addDatasetToggle(datasetName, category, colorHex, isChecked = false, urls = []) {
         this.visibilityTreeManager.addDatasetToggle(
             datasetName,
@@ -313,6 +312,7 @@ export class UIController {
             isChecked,
             urls
         );
+        if (this.tooltipManager) this.tooltipManager.attachButtonTooltips();
     }
 
     updateTargetPanel(data) {
@@ -333,6 +333,7 @@ export class UIController {
 
     renderBodyList(bodies, currentTargetData) {
         this.bodyListManager.render(bodies, currentTargetData);
+        if (this.tooltipManager) this.tooltipManager.attachButtonTooltips();
     }
 
     showLookupPending(query) {
@@ -373,8 +374,7 @@ export class UIController {
         }
     }
 
-    // Passthrough consistent with updateTimeInput(): main.js only calls this
-    // on PerformanceMonitor's throttled samples, not every animate() frame.
+    // Called only on PerformanceMonitor throttled samples, not every frame.
     updatePerf(perfSample) {
         if (this.chronometerDisplay) {
             this.chronometerDisplay.pushPerfSample(perfSample);
