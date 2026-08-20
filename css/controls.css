@@ -43,6 +43,10 @@ input[type="text"] {
     font-size: 1.2rem;
     letter-spacing: 1px;
 }
+input[type="text"]:focus-visible {
+    outline: 2px solid #00ffff;
+    outline-offset: 2px;
+}
 input[type="range"] { 
    width: 48%;
    accent-color: #ffcc00;
@@ -170,16 +174,29 @@ button:hover, button.active {
     scrollbar-width: thin;
     scrollbar-color: #ffcc00 #110800;
 }
-.list-item { 
+.list-item {
+    all: unset;
+    box-sizing: border-box;
+    width: 100%;
     padding: 6px;
     cursor: pointer;
     font-size: 0.75rem;
+    font-family: inherit;
+    letter-spacing: normal;
+    text-transform: none;
+    color: #ffcc00;
     border-bottom: 1px solid rgba(255, 204, 0, 0.1);
     display: flex;
     justify-content: space-between;
     align-items: center;
 }
 .list-item:hover { 
+    background: rgba(255, 204, 0, 0.3);
+    color: #fff;
+}
+.list-item:focus-visible {
+    outline: 2px solid #00ffff;
+    outline-offset: -2px;
     background: rgba(255, 204, 0, 0.3);
     color: #fff;
 }

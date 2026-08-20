@@ -43,14 +43,23 @@ describe('TimeThrottle Class State & DOM Mutations', () => {
     
     // A helper to generate isolated mock elements for each test
     const createMockElements = () => ({
-        timeSlider: { value: 0, addEventListener: vi.fn(), classList: { add: vi.fn(), remove: vi.fn() } },
+        timeSlider: { 
+            value: 0, 
+            addEventListener: vi.fn(), 
+            classList: { add: vi.fn(), remove: vi.fn() },
+            setAttribute: vi.fn()
+        },
         throttleLabel: { innerText: '', style: {} },
         chronoWrapper: { classList: { add: vi.fn(), remove: vi.fn() } },
         btnRev: { addEventListener: vi.fn() },
         btnFwd: { addEventListener: vi.fn() },
         btnPause: { addEventListener: vi.fn() },
         btn1x: { addEventListener: vi.fn() },
-        btnLive: { addEventListener: vi.fn(), classList: { add: vi.fn(), remove: vi.fn() } }
+        btnLive: { 
+            addEventListener: vi.fn(), 
+            classList: { add: vi.fn(), remove: vi.fn() },
+            setAttribute: vi.fn()
+        }
     });
 
     it('toggles live time state and correctly triggers DOM mutations', () => {

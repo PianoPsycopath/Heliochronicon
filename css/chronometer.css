@@ -70,6 +70,10 @@
     box-sizing: border-box;
     line-height: 1;
 }
+#time-input-bottom:focus-visible {
+    outline: 2px solid #00ffff;
+    outline-offset: 2px;
+}
 /* Time Controls */
 .throttle-container { 
     display: flex;
@@ -132,8 +136,13 @@
 #time-slider.reversed {
     --chrono-color: #ff3333; 
 }
-#time-slider:focus { 
-    outline: none; 
+#time-slider:focus {
+    outline: none;
+}
+#time-slider:focus-visible {
+    outline: 2px solid #00ffff;
+    outline-offset: 2px;
+    box-shadow: 0 0 8px rgba(0, 255, 255, 0.6);
 }
 #time-slider::-webkit-slider-runnable-track {
     background: transparent;
@@ -209,6 +218,10 @@
     box-shadow: 0 0 8px rgba(0, 255, 0, 0.2), inset 0 0 10px rgba(0, 255, 0, 0.1);
     transition: all 0.3s ease;
     flex-shrink: 0;
+}
+.radar-btn:focus-visible {
+    outline: 2px solid #00ffff;
+    outline-offset: 3px;
 }
 .radar-btn:hover {
     border-color: #00ff00;

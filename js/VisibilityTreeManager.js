@@ -9,13 +9,15 @@ export class VisibilityTreeManager {
     initMasterToggle() {
         const rowMaster = document.getElementById('row-master-toggle');
         if (rowMaster) {
-            rowMaster.addEventListener('click', async () => {
+            const activate = async () => {
                 if (rowMaster.classList.contains('loading')) return;
 
                 const newState = !rowMaster.classList.contains('checked');
 
                 rowMaster.classList.toggle('checked', newState);
+                rowMaster.setAttribute('aria-checked', newState ? 'true' : 'false');
                 rowMaster.classList.add('loading');
+                rowMaster.setAttribute('aria-busy', 'true');
 
                 const allAsteroids = document.querySelectorAll('#dataset-list-asteroids .magi-row');
                 const loadingPromises = [];
@@ -31,6 +33,15 @@ export class VisibilityTreeManager {
                 await Promise.all(loadingPromises);
 
                 rowMaster.classList.remove('loading');
+                rowMaster.removeAttribute('aria-busy');
+            };
+
+            rowMaster.addEventListener('click', activate);
+            rowMaster.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' || e.key === ' ' || e.key === 'Spacebar') {
+                    e.preventDefault();
+                    activate();
+                }
             });
         }
     }
@@ -47,6 +58,10 @@ export class VisibilityTreeManager {
         const row = document.createElement('div');
         row.className = `magi-row ${isPlanet ? 'planet-row' : ''} ${isMoon ? 'moon-row' : ''} ${isChecked ? 'checked' : ''}`;
         row.dataset.category = category;
+        row.setAttribute('role', 'checkbox');
+        row.setAttribute('aria-checked', isChecked ? 'true' : 'false');
+        row.setAttribute('aria-label', `${datasetName} visibility`);
+        row.tabIndex = 0;
 
         const SVG_NS = 'http://www.w3.org/2000/svg';
         let wire = null;
@@ -118,6 +133,7 @@ export class VisibilityTreeManager {
             colorPicker.type = 'color';
             colorPicker.value = colorHex || '#ffffff';
             colorPicker.className = 'magi-color-picker';
+            colorPicker.setAttribute('aria-label', `Color for ${datasetName}`);
             bar.appendChild(colorPicker);
 
             colorPicker.addEventListener('input', (e) => {
@@ -147,19 +163,21 @@ export class VisibilityTreeManager {
             row.appendChild(wire);
         }
 
-        row.addEventListener('click', async (e) => {
-            if (colorPicker && e.target === colorPicker) return;
+        const toggleRow = async (eventTarget) => {
+            if (colorPicker && eventTarget === colorPicker) return;
 
             if (row.classList.contains('loading')) return;
 
             const newState = !row.classList.contains('checked');
             row.classList.toggle('checked', newState);
+            row.setAttribute('aria-checked', newState ? 'true' : 'false');
 
             if (bar) {
                 bar.style.backgroundColor = newState ? colorPicker.value : '#330000';
             }
 
             row.classList.add('loading');
+            row.setAttribute('aria-busy', 'true');
 
             row.togglePromise = (async () => {
                 try {
@@ -182,10 +200,20 @@ export class VisibilityTreeManager {
                     }
                 } finally {
                     row.classList.remove('loading');
+                    row.removeAttribute('aria-busy');
                 }
             })();
 
             await row.togglePromise;
+        };
+
+        row.addEventListener('click', (e) => toggleRow(e.target));
+        row.addEventListener('keydown', (e) => {
+            if (colorPicker && e.target === colorPicker) return;
+            if (e.key === 'Enter' || e.key === ' ' || e.key === 'Spacebar') {
+                e.preventDefault();
+                toggleRow(row);
+            }
         });
 
         list.appendChild(row);
@@ -199,7 +227,10 @@ export class VisibilityTreeManager {
 
         const rowMaster = document.getElementById('row-master-toggle');
         const magiTrunk = document.getElementById('magi-trunk');
-        if (rowMaster) rowMaster.classList.remove('checked');
+        if (rowMaster) {
+            rowMaster.classList.remove('checked');
+            rowMaster.setAttribute('aria-checked', 'false');
+        }
         if (magiTrunk) magiTrunk.classList.remove('checked');
     }
 }

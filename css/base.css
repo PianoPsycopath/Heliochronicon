@@ -39,6 +39,15 @@ canvas {
     50% { opacity: 0.85; } 
     100% { opacity: 0.95; } 
 }
+/* =========================================
+   ACCESSIBILITY
+========================================= */
+:focus-visible {
+    outline: 2px solid #00ffff;
+    outline-offset: 2px;
+    box-shadow: 0 0 8px rgba(0, 255, 255, 0.6);
+}
+
 .tactical-label { 
     position: absolute;
     color: #ffcc00;

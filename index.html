@@ -24,9 +24,9 @@
         <link rel="stylesheet" href="css/credits.css" />
     </head>
     <body oncontextmenu="return false;">
-        <div id="crt-overlay"></div>
+        <div id="crt-overlay" aria-hidden="true"></div>
         <div id="tactical-zoom-ruler">
-            <div class="ruler-landmarks">
+            <div class="ruler-landmarks" aria-hidden="true">
                 <span class="landmark" data-val="0.00001" title="Galaxy (Deep Space)">
                     <svg viewBox="0 0 24 24">
                         <!-- spiral arms -->
@@ -104,27 +104,81 @@
                 </span>
             </div>
             <div id="ruler-interactive-zone">
-                <canvas id="tactical-ruler-canvas"></canvas>
-                <input type="range" id="zoom-slider" min="0" max="1000" value="500" />
+                <canvas id="tactical-ruler-canvas" aria-hidden="true"></canvas>
+                <input
+                    type="range"
+                    id="zoom-slider"
+                    min="0"
+                    max="1000"
+                    value="500"
+                    aria-label="Zoom level"
+                />
             </div>
         </div>
-        <button id="btn-mobile-toggle">ACCESS TERMINAL</button>
-        <div id="panel-left" class="panel">
-            <h2>System Status</h2>
+        <button id="btn-mobile-toggle" aria-label="Toggle terminal panels" aria-expanded="false">
+            ACCESS TERMINAL
+        </button>
+        <div
+            id="panel-left"
+            class="panel"
+            role="complementary"
+            aria-labelledby="panel-left-heading"
+        >
+            <h2 id="panel-left-heading">System Status</h2>
             <p style="color: #ffcc00; font-weight: bold; margin-bottom: 5px">
-                TARGET: <span id="current-target">NONE</span>
+                TARGET: <span id="current-target" aria-live="polite" aria-atomic="true">NONE</span>
             </p>
-            <div class="tab-nav flex-row">
-                <button id="btn-tab-search" class="tab-btn active">SEARCH</button>
-                <button id="btn-tab-vis" class="tab-btn">VISIBILITY</button>
+            <div class="tab-nav flex-row" role="tablist" aria-label="System Status views">
+                <button
+                    id="btn-tab-search"
+                    class="tab-btn active"
+                    role="tab"
+                    aria-selected="true"
+                    aria-controls="tab-search"
+                    tabindex="0"
+                >
+                    SEARCH
+                </button>
+                <button
+                    id="btn-tab-vis"
+                    class="tab-btn"
+                    role="tab"
+                    aria-selected="false"
+                    aria-controls="tab-visibility"
+                    tabindex="-1"
+                >
+                    VISIBILITY
+                </button>
             </div>
 
-            <div id="tab-search" class="tab-content active">
+            <div
+                id="tab-search"
+                class="tab-content active"
+                role="tabpanel"
+                aria-labelledby="btn-tab-search"
+                tabindex="0"
+            >
                 <div class="control-group" style="margin-top: 10px">
-                    <label>TACTICAL DATABASE</label>
-                    <input type="text" id="search-input" placeholder="SEARCH ALL (TEXT)..." />
-                    <button id="sort-toggle" class="full-btn">SORT: DIST</button>
-                    <div id="body-list" class="scrollable-list" style="max-height: 50vh"></div>
+                    <label id="search-label" for="search-input">TACTICAL DATABASE</label>
+                    <input
+                        type="text"
+                        id="search-input"
+                        placeholder="SEARCH ALL (TEXT)..."
+                        aria-describedby="search-label"
+                    />
+                    <button
+                        id="sort-toggle"
+                        class="full-btn"
+                        aria-label="Change list sort order, currently sorted by distance"
+                    >
+                        SORT: DIST
+                    </button>
+                    <div
+                        id="body-list"
+                        class="scrollable-list"
+                        style="max-height: 50vh"
+                        aria-label="Celestial body results"
+                    ></div>
                 </div>
             </div>
 
@@ -132,6 +186,10 @@
             <div
                 id="tab-visibility"
                 class="tab-content"
+                role="tabpanel"
+                aria-labelledby="btn-tab-vis"
+                tabindex="0"
+                hidden
                 style="overflow-y: auto; padding-right: 5px"
             >
                 <!-- MAGI CIRCUIT BOARD -->
@@ -145,6 +203,7 @@
                             id="btn-clear-map"
                             class="danger-btn"
                             style="width: auto; margin: 0; font-size: 0.7rem; padding: 2px 5px"
+                            aria-label="Purge memory: remove all loaded datasets"
                         >
                             PURGE MEMORY
                         </button>
@@ -159,6 +218,10 @@
                                 class="magi-row master-row"
                                 id="row-master-toggle"
                                 style="margin-bottom: 8px; justify-content: flex-end"
+                                role="checkbox"
+                                aria-checked="false"
+                                aria-label="Toggle visibility of all asteroid datasets"
+                                tabindex="0"
                             >
                                 <div class="magi-btn">
                                     <div
@@ -173,7 +236,7 @@
                                     </div>
                                 </div>
                                 <!-- Root SVG Stub -->
-                                <svg class="magi-svg-wire">
+                                <svg class="magi-svg-wire" aria-hidden="true">
                                     <polyline points="0,1 15,1" />
                                     <circle cx="0" cy="1" r="1.5" />
                                     <circle cx="15" cy="1" r="1.5" />
@@ -184,6 +247,8 @@
                             <div
                                 id="dataset-list-asteroids"
                                 style="display: flex; flex-direction: column; gap: 8px"
+                                role="group"
+                                aria-label="Asteroid datasets"
                             ></div>
                         </div>
 
@@ -192,13 +257,15 @@
                             id="dataset-list-planets"
                             class="magi-column right-col"
                             style="gap: 8px"
+                            role="group"
+                            aria-label="Planet and moon datasets"
                         ></div>
                     </div>
                 </div>
 
                 <!-- MOON FILTERS -->
                 <div class="control-group">
-                    <label
+                    <label id="moon-dist-label"
                         >MOON VIS (DIST AU)
                         <span id="dist-val" style="float: right; color: #ffcc00"
                             >0.000 - 0.300</span
@@ -212,6 +279,8 @@
                             max="0.3"
                             step="0.001"
                             value="0"
+                            aria-label="Minimum moon visibility distance in AU"
+                            aria-describedby="moon-dist-label"
                         />
                         <input
                             type="range"
@@ -220,10 +289,12 @@
                             max="0.3"
                             step="0.001"
                             value="0.3"
+                            aria-label="Maximum moon visibility distance in AU"
+                            aria-describedby="moon-dist-label"
                         />
                     </div>
 
-                    <label style="margin-top: 10px"
+                    <label id="moon-size-label" style="margin-top: 10px"
                         >MOON VIS (SIZE KM)
                         <span id="size-val" style="float: right; color: #ffcc00"
                             >0 - 5000</span
@@ -237,6 +308,8 @@
                             max="5000"
                             step="1"
                             value="0"
+                            aria-label="Minimum moon visibility size in kilometers"
+                            aria-describedby="moon-size-label"
                         />
                         <input
                             type="range"
@@ -245,21 +318,34 @@
                             max="5000"
                             step="1"
                             value="5000"
+                            aria-label="Maximum moon visibility size in kilometers"
+                            aria-describedby="moon-size-label"
                         />
                     </div>
                 </div>
             </div>
         </div>
 
-        <div id="panel-right" class="panel" id="telemetry">
-            <h2>Telemetry</h2>
-            <div id="telemetry-data">
+        <div
+            id="panel-right"
+            class="panel"
+            role="complementary"
+            aria-labelledby="panel-right-heading"
+        >
+            <h2 id="panel-right-heading">Telemetry</h2>
+            <div id="telemetry-data" aria-live="polite" aria-atomic="true">
                 <p>AWAITING DATA INPUT...</p>
             </div>
         </div>
-        <div id="bottom-deck">
+        <div id="bottom-deck" role="region" aria-label="Chronometer and tactical controls">
             <div id="tactical-tools">
-                <button id="btn-measure" class="tactical-tool-btn" title="Toggle Spatial Ruler">
+                <button
+                    id="btn-measure"
+                    class="tactical-tool-btn"
+                    title="Toggle Spatial Ruler"
+                    aria-label="Toggle spatial ruler"
+                    aria-pressed="false"
+                >
                     <div class="stby-content">
                         SPATIAL RULER <span style="color: #ffffff; margin-left: 8px">[ STBY ]</span>
                     </div>
@@ -275,8 +361,10 @@
                     id="btn-daylight-toggle"
                     class="icon-toggle-btn active"
                     title="Toggle Night-Side Overlay"
+                    aria-label="Toggle night-side overlay"
+                    aria-pressed="true"
                 >
-                    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
                         <circle cx="12" cy="12" r="5" />
                         <line x1="12" y1="1" x2="12" y2="4" />
                         <line x1="12" y1="20" x2="12" y2="23" />
@@ -292,18 +380,35 @@
                     id="btn-ecliptic-toggle"
                     class="icon-toggle-btn ecliptic-toggle-btn"
                     title="Inclination Mode [Equatorial + Ecliptic]"
+                    aria-label="Inclination Mode [Equatorial + Ecliptic]"
+                    aria-pressed="false"
                 >
-                    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
                         <ellipse cx="12" cy="12" rx="10" ry="4" transform="rotate(-20 12 12)" />
                         <circle cx="12" cy="12" r="1.6" fill="currentColor" stroke="none" />
                     </svg>
                 </button>
             </div>
-            <div id="hud-credits"></div>
+            <div id="hud-credits" aria-hidden="true"></div>
             <div class="chrono-header">
-                <button id="btn-live" class="active">LIVE</button>
-                <textarea id="time-input-bottom"></textarea>
-                <button id="btn-scan" class="radar-btn">
+                <button
+                    id="btn-live"
+                    class="active"
+                    aria-pressed="true"
+                    aria-label="Jump to live time"
+                >
+                    LIVE
+                </button>
+                <textarea
+                    id="time-input-bottom"
+                    aria-label="Simulation date and time, UTC. Edit and press Enter to apply."
+                ></textarea>
+                <button
+                    id="btn-scan"
+                    class="radar-btn"
+                    aria-label="Scan for nearby asteroids"
+                    aria-pressed="false"
+                >
                     <div class="ring outer"></div>
                     <div class="ring inner"></div>
                     <div class="sweep"></div>
@@ -311,35 +416,67 @@
             </div>
 
             <div class="throttle-container">
-                <button id="btn-time-rev" class="throttle-btn">◀◀</button>
-                <button id="btn-time-pause" class="throttle-btn">▐▐</button>
+                <button id="btn-time-rev" class="throttle-btn" aria-label="Decrease time scale">
+                    ◀◀
+                </button>
+                <button id="btn-time-pause" class="throttle-btn" aria-label="Pause simulation time">
+                    ▐▐
+                </button>
 
                 <div id="chrono-slider-wrapper">
-                    <canvas id="chrono-canvas"></canvas>
-                    <input type="range" id="time-slider" min="0" max="20" step="1" value="11" />
+                    <canvas id="chrono-canvas" aria-hidden="true"></canvas>
+                    <input
+                        type="range"
+                        id="time-slider"
+                        min="0"
+                        max="20"
+                        step="1"
+                        value="11"
+                        aria-label="Time scale"
+                        aria-describedby="throttle-label"
+                        aria-valuetext="1 SEC / SEC"
+                    />
                 </div>
 
-                <button id="btn-time-fwd" class="throttle-btn">▶▶</button>
-                <button id="btn-time-1x" class="throttle-btn">1X</button>
+                <button id="btn-time-fwd" class="throttle-btn" aria-label="Increase time scale">
+                    ▶▶
+                </button>
+                <button
+                    id="btn-time-1x"
+                    class="throttle-btn"
+                    aria-label="Set time scale to 1x real-time"
+                >
+                    1X
+                </button>
             </div>
             <div id="throttle-label">1 SEC / SEC</div>
         </div>
         <div id="canvas-container"></div>
 
-        <button id="btn-tutorial" title="Open Tutorial">?</button>
+        <button id="btn-tutorial" title="Open Tutorial" aria-label="Open tutorial">?</button>
 
-        <div id="tutorial-overlay">
-            <svg id="tutorial-svg">
+        <div
+            id="tutorial-overlay"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="tutorial-title"
+            aria-describedby="tutorial-text"
+        >
+            <svg id="tutorial-svg" aria-hidden="true">
                 <line id="tutorial-line" x1="0" y1="0" x2="0" y2="0" />
                 <circle id="tutorial-dot" cx="0" cy="0" r="4" fill="#00ffff" />
             </svg>
 
-            <div id="tutorial-box">
-                <h3 id="tutorial-title">SYSTEM INIT</h3>
-                <p id="tutorial-text">Welcome to the Heliochronicon.</p>
+            <div id="tutorial-box" tabindex="0">
+                <h3 id="tutorial-title" aria-live="polite" aria-atomic="true">SYSTEM INIT</h3>
+                <p id="tutorial-text" aria-live="polite" aria-atomic="true">
+                    Welcome to the Heliochronicon.
+                </p>
                 <div class="tutorial-controls">
-                    <span class="tutorial-hint">[CLICK/TAP TO CONTINUE]</span>
-                    <button id="btn-skip-tutorial">SKIP</button>
+                    <span class="tutorial-hint"
+                        >[CLICK, TAP, OR PRESS ENTER TO CONTINUE — ESC TO EXIT]</span
+                    >
+                    <button id="btn-skip-tutorial" aria-label="Skip tutorial">SKIP</button>
                 </div>
             </div>
         </div>

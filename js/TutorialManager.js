@@ -49,6 +49,20 @@ export class TutorialManager {
                 this.nextStep();
             }
         });
+
+        this.box.addEventListener('keydown', (e) => {
+            if (!this.isActive) return;
+            if (e.target === this.btnSkip) return; // Let the skip button handle its own activation.
+
+            if (e.key === 'Enter' || e.key === ' ' || e.key === 'Spacebar') {
+                e.preventDefault();
+                this.nextStep();
+            } else if (e.key === 'Escape') {
+                e.preventDefault();
+                this.endTutorial();
+            }
+        });
+
         this.btnSkip.addEventListener('click', () => this.endTutorial());
     }
     checkFirstRun() {
@@ -61,11 +75,16 @@ export class TutorialManager {
         if (this.isActive) return; // Prevent double-starts
         this.currentStep = 0;
         this.isActive = true;
+        this.returnFocusEl =
+            document.activeElement && document.activeElement !== document.body
+                ? document.activeElement
+                : this.btnStart;
         this.overlay.classList.add('active');
         this.storage.set('heliochronicon_tutorial', 'true');
 
         this.renderStep();
         this.trackTarget();
+        this.box.focus();
     }
     nextStep() {
         this.currentStep++;
@@ -126,6 +145,12 @@ export class TutorialManager {
             if (panelLeft) panelLeft.classList.remove('mobile-active');
             document.body.classList.remove('panels-open');
         }
+
+        const target = this.returnFocusEl || this.btnStart;
+        if (target && typeof target.focus === 'function') {
+            target.focus();
+        }
+        this.returnFocusEl = null;
     }
     positionOverlay() {
         const boxWidth = this.box.offsetWidth || 320;

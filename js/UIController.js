@@ -125,9 +125,11 @@ export class UIController {
         if (!this.btnEclipticToggle) return;
         this.btnEclipticToggle.classList.remove('mode-both', 'mode-ecliptic');
         this.btnEclipticToggle.classList.toggle('active', mode !== 0);
+        this.btnEclipticToggle.setAttribute('aria-pressed', mode !== 0 ? 'true' : 'false');
         if (mode === 1) this.btnEclipticToggle.classList.add('mode-both');
         if (mode === 2) this.btnEclipticToggle.classList.add('mode-ecliptic');
         this._setTooltip(this.btnEclipticToggle, CURTAIN_MODE_TITLES[mode]);
+        this.btnEclipticToggle.setAttribute('aria-label', CURTAIN_MODE_TITLES[mode]);
     }
 
     initBindings() {
@@ -184,6 +186,7 @@ export class UIController {
         this.btnScan.addEventListener('click', () => {
             this.isScanActive = !this.isScanActive;
             this.btnScan.classList.toggle('active', this.isScanActive);
+            this.btnScan.setAttribute('aria-pressed', this.isScanActive ? 'true' : 'false');
             if (this.onScanRequested) {
                 this.onScanRequested(this.isScanActive);
             }
@@ -198,16 +201,19 @@ export class UIController {
                     this.panelRight.classList.remove('mobile-active');
                     this.btnMobileToggle.innerText = 'ACCESS TERMINAL';
                     this.btnMobileToggle.style.color = '#ffcc00';
+                    this.btnMobileToggle.setAttribute('aria-expanded', 'false');
                 } else if (this.mobileUiState === 1) {
                     this.panelLeft.classList.add('mobile-active');
                     this.panelRight.classList.remove('mobile-active');
                     this.btnMobileToggle.innerText = 'VIEW TELEMETRY';
                     this.btnMobileToggle.style.color = '#00ffff';
+                    this.btnMobileToggle.setAttribute('aria-expanded', 'true');
                 } else {
                     this.panelLeft.classList.remove('mobile-active');
                     this.panelRight.classList.add('mobile-active');
                     this.btnMobileToggle.innerText = 'CLOSE TERMINAL';
                     this.btnMobileToggle.style.color = '#ff3333';
+                    this.btnMobileToggle.setAttribute('aria-expanded', 'true');
                 }
             });
         }
@@ -216,6 +222,7 @@ export class UIController {
             this.btnMeasure.addEventListener('click', () => {
                 this.isMeasureMode = !this.isMeasureMode;
                 this.btnMeasure.classList.toggle('active', this.isMeasureMode);
+                this.btnMeasure.setAttribute('aria-pressed', this.isMeasureMode ? 'true' : 'false');
                 if (this.onMeasureModeChanged) {
                     this.onMeasureModeChanged(this.isMeasureMode);
                 }
@@ -226,6 +233,10 @@ export class UIController {
             this.btnDaylightToggle.addEventListener('click', () => {
                 this.isDaylightEnabled = !this.isDaylightEnabled;
                 this.btnDaylightToggle.classList.toggle('active', this.isDaylightEnabled);
+                this.btnDaylightToggle.setAttribute(
+                    'aria-pressed',
+                    this.isDaylightEnabled ? 'true' : 'false'
+                );
                 if (this.onDaylightToggleChanged) {
                     this.onDaylightToggleChanged(this.isDaylightEnabled);
                 }
@@ -287,18 +298,40 @@ export class UIController {
         const tabVisibility = document.getElementById('tab-visibility');
 
         if (btnTabSearch && btnTabVis) {
-            btnTabSearch.addEventListener('click', () => {
-                btnTabSearch.classList.add('active');
-                btnTabVis.classList.remove('active');
-                tabSearch.classList.add('active');
-                tabVisibility.classList.remove('active');
-            });
+            const tabs = [
+                { btn: btnTabSearch, panel: tabSearch },
+                { btn: btnTabVis, panel: tabVisibility },
+            ];
 
-            btnTabVis.addEventListener('click', () => {
-                btnTabVis.classList.add('active');
-                btnTabSearch.classList.remove('active');
-                tabVisibility.classList.add('active');
-                tabSearch.classList.remove('active');
+            const activateTab = (index, moveFocus) => {
+                tabs.forEach((entry, entryIndex) => {
+                    const isActive = entryIndex === index;
+                    entry.btn.classList.toggle('active', isActive);
+                    entry.btn.setAttribute('aria-selected', isActive ? 'true' : 'false');
+                    entry.btn.tabIndex = isActive ? 0 : -1;
+                    entry.panel.classList.toggle('active', isActive);
+                    entry.panel.hidden = !isActive;
+                });
+                if (moveFocus) tabs[index].btn.focus();
+            };
+
+            tabs.forEach((entry, index) => {
+                entry.btn.addEventListener('click', () => activateTab(index, false));
+                entry.btn.addEventListener('keydown', (e) => {
+                    if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
+                        e.preventDefault();
+                        activateTab((index + 1) % tabs.length, true);
+                    } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+                        e.preventDefault();
+                        activateTab((index - 1 + tabs.length) % tabs.length, true);
+                    } else if (e.key === 'Home') {
+                        e.preventDefault();
+                        activateTab(0, true);
+                    } else if (e.key === 'End') {
+                        e.preventDefault();
+                        activateTab(tabs.length - 1, true);
+                    }
+                });
             });
         }
     }

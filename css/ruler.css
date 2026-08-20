@@ -75,6 +75,10 @@
     opacity: 0; /* Fully invisible, exposing the canvas below */
     cursor: ew-resize; /* Left/Right radar drag cursor */
 }
+#ruler-interactive-zone:focus-within {
+    outline: 2px solid #00ffff;
+    outline-offset: 2px;
+}
 
 /* Container anchored to the top-left of the Chronometer */
 #tactical-tools {

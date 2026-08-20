@@ -68,23 +68,36 @@ export class BodyListManager {
             this.currentSortMode
         );
 
+        const activeEl = document.activeElement;
+        const focusedName =
+            activeEl && this.listContainer.contains(activeEl) ? activeEl.dataset.bodyName : null;
+
         this.listContainer.innerHTML = '';
         const MAX_DOM_ITEMS = 100;
         const displayList = sortedAndFiltered.slice(0, MAX_DOM_ITEMS);
 
+        let elToRefocus = null;
+
         displayList.forEach((b) => {
-            const div = document.createElement('div');
-            div.className = 'list-item';
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'list-item';
+            btn.dataset.bodyName = b.data.name;
             const stat =
                 this.currentSortMode === 'distance'
                     ? `${b.data.a.toFixed(4)} AU`
                     : `${(b.data.radius_km || 0).toFixed(1)} KM`;
-            div.innerHTML = `<span>${b.data.name}</span> <span style="color:#aaa;">[${stat}]</span>`;
+            btn.innerHTML = `<span>${b.data.name}</span> <span style="color:#aaa;">[${stat}]</span>`;
+            btn.setAttribute('aria-label', `${b.data.name}, ${stat}`);
 
-            div.addEventListener('click', () => {
+            btn.addEventListener('click', () => {
                 if (this.onFocusBody) this.onFocusBody(b.data);
             });
-            this.listContainer.appendChild(div);
+            this.listContainer.appendChild(btn);
+
+            if (focusedName && b.data.name === focusedName) {
+                elToRefocus = btn;
+            }
         });
 
         if (sortedAndFiltered.length > MAX_DOM_ITEMS) {
@@ -93,8 +106,13 @@ export class BodyListManager {
             div.style.justifyContent = 'center';
             div.style.color = '#ff5555';
             div.style.pointerEvents = 'none';
+            div.setAttribute('aria-hidden', 'true');
             div.innerHTML = `<i>[+ ${sortedAndFiltered.length - MAX_DOM_ITEMS} HIDDEN IN LIST]</i>`;
             this.listContainer.appendChild(div);
+        }
+
+        if (elToRefocus) {
+            elToRefocus.focus();
         }
     }
 }

@@ -72,12 +72,14 @@ export class TimeThrottle {
             this.applyThrottle(11);
             this.isLiveTime = true;
             this.btnLive.classList.add('active');
+            this.btnLive.setAttribute('aria-pressed', 'true');
         });
     }
 
     applyThrottle(rawIndex) {
         this.isLiveTime = false;
         this.btnLive.classList.remove('active');
+        this.btnLive.setAttribute('aria-pressed', 'false');
 
         // 1. Get pure state
         const state = calculateThrottleState(rawIndex);
@@ -87,6 +89,7 @@ export class TimeThrottle {
 
         // 3. Apply DOM side-effects
         this.timeSlider.value = state.index;
+        this.timeSlider.setAttribute('aria-valuetext', state.label);
         this.throttleLabel.innerText = state.label;
         this.throttleLabel.style.color = state.color;
 

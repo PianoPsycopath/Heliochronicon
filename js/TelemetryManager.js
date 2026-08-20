@@ -46,11 +46,14 @@ export class TelemetryManager {
         let actionButtons = '';
         if (data.datasetCategory === 'PROMOTED_ASTEROID') {
             const pinText = data.isPinned ? 'PINNED TO CPU' : 'PIN TO CPU';
+            const pinLabel = data.isPinned
+                ? `Unpin ${data.name} from CPU`
+                : `Pin ${data.name} to CPU`;
             const pinColor = data.isPinned ? '#00ff00' : '#ffcc00';
             actionButtons = `
             <div style="display:flex; gap:5px; margin-top:15px;">
-                <button id="btn-pin" class="full-btn" style="border-color: ${pinColor}; color: ${pinColor};">${pinText}</button>
-                <button id="btn-purge" class="full-btn" style="border-color: #ff3333; color: #ff3333;">PURGE CLONE</button>
+                <button id="btn-pin" class="full-btn" style="border-color: ${pinColor}; color: ${pinColor};" aria-pressed="${data.isPinned ? 'true' : 'false'}" aria-label="${this._escapeHtml(pinLabel)}">${pinText}</button>
+                <button id="btn-purge" class="full-btn" style="border-color: #ff3333; color: #ff3333;" aria-label="Purge clone of ${this._escapeHtml(data.name)}">PURGE CLONE</button>
             </div>
         `;
         }
@@ -59,10 +62,10 @@ export class TelemetryManager {
         const eclipseSection = canEclipse
             ? `
         <div style="display:flex; gap:5px; margin-top:10px;">
-            <button id="btn-eclipse-prev" class="full-btn">◀ PREV ECLIPSE</button>
-            <button id="btn-eclipse-next" class="full-btn">NEXT ECLIPSE ▶</button>
+            <button id="btn-eclipse-prev" class="full-btn" aria-label="Previous eclipse">◀ PREV ECLIPSE</button>
+            <button id="btn-eclipse-next" class="full-btn" aria-label="Next eclipse">NEXT ECLIPSE ▶</button>
         </div>
-        <div id="eclipse-result"></div>
+        <div id="eclipse-result" aria-live="polite" aria-atomic="true"></div>
     `
             : '';
 
@@ -151,6 +154,7 @@ export class TelemetryManager {
         if (data.gl) extraIds.push(`GL ${data.gl}`);
 
         const pinText = data.isPinned ? 'UNPIN STAR' : 'PIN STAR';
+        const pinLabel = data.isPinned ? `Unpin star ${displayName}` : `Pin star ${displayName}`;
         const pinColor = data.isPinned ? '#00ff00' : '#ffcc00';
 
         this.telemetryDataEl.innerHTML = `
@@ -161,7 +165,7 @@ export class TelemetryManager {
             <p>DISTANCE: <span style="color:#fff">${distStr}</span></p>
             ${extraIds.length ? `<p style="margin-top:10px; color:#888;">${extraIds.map((s) => this._escapeHtml(s)).join(' · ')}</p>` : ''}
             <div style="display:flex; gap:5px; margin-top:15px;">
-                <button id="btn-pin-star" class="full-btn" style="border-color: ${pinColor}; color: ${pinColor};">${pinText}</button>
+                <button id="btn-pin-star" class="full-btn" style="border-color: ${pinColor}; color: ${pinColor};" aria-pressed="${data.isPinned ? 'true' : 'false'}" aria-label="${this._escapeHtml(pinLabel)}">${pinText}</button>
             </div>
             <p style="margin-top:14px; font-size:0.72rem; color:#666;">
                 Selection only — no camera lock or zoom.
@@ -199,30 +203,40 @@ export class TelemetryManager {
 
         results.forEach((hit, i) => {
             const distAU = Math.sqrt(hit.distSq);
-            const div = document.createElement('div');
-            div.style.fontSize = '0.75rem';
-            div.style.margin = '6px 0';
-            div.style.cursor = 'pointer';
-            div.style.display = 'flex';
-            div.style.justifyContent = 'space-between';
-            div.style.borderBottom = '1px solid rgba(0, 255, 255, 0.2)';
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.style.all = 'unset';
+            btn.style.boxSizing = 'border-box';
+            btn.style.width = '100%';
+            btn.style.fontSize = '0.75rem';
+            btn.style.margin = '6px 0';
+            btn.style.cursor = 'pointer';
+            btn.style.display = 'flex';
+            btn.style.justifyContent = 'space-between';
+            btn.style.borderBottom = '1px solid rgba(0, 255, 255, 0.2)';
+            btn.setAttribute('aria-label', `${hit.data.name}, ${distAU.toFixed(5)} AU`);
 
-            div.innerHTML = `
+            btn.innerHTML = `
                 <span style="color:#00ffff">[${i + 1}] ${hit.data.name}</span>
                 <span style="color:#aaa;">${distAU.toFixed(5)} AU</span>
             `;
 
-            div.addEventListener('click', () => {
+            btn.addEventListener('click', () => {
                 if (this.onFocusBody) this.onFocusBody(hit.data);
             });
 
-            div.addEventListener(
+            btn.addEventListener(
                 'mouseenter',
-                () => (div.style.backgroundColor = 'rgba(0, 255, 255, 0.2)')
+                () => (btn.style.backgroundColor = 'rgba(0, 255, 255, 0.2)')
             );
-            div.addEventListener('mouseleave', () => (div.style.backgroundColor = 'transparent'));
+            btn.addEventListener('mouseleave', () => (btn.style.backgroundColor = 'transparent'));
+            btn.addEventListener(
+                'focus',
+                () => (btn.style.backgroundColor = 'rgba(0, 255, 255, 0.2)')
+            );
+            btn.addEventListener('blur', () => (btn.style.backgroundColor = 'transparent'));
 
-            this.telemetryDataEl.appendChild(div);
+            this.telemetryDataEl.appendChild(btn);
         });
 
         this.triggerCRTFlash();
