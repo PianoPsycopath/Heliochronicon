@@ -13,8 +13,6 @@ jobs:
   version:
     runs-on: ubuntu-latest
 
-    # Ignore version-bump commits so merging the version PR does not
-    # create another version PR.
     if: >
       !contains(github.event.head_commit.message, 'chore: bump version')
 
@@ -37,7 +35,6 @@ jobs:
 
           echo "Current version: $CURRENT"
 
-          # Find commits since the last version tag.
           LAST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || true)
 
           if [ -n "$LAST_TAG" ]; then
@@ -100,10 +97,10 @@ jobs:
         uses: peter-evans/create-pull-request@v8
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          branch: chore/auto-version-${{ steps.version.outputs.next }}
+          branch: "chore/auto-version-${{ steps.version.outputs.next }}"
           base: main
-          commit-message: chore: bump version to ${{ steps.version.outputs.next }}
-          title: chore: bump version to ${{ steps.version.outputs.next }}
+          commit-message: "chore: bump version to ${{ steps.version.outputs.next }}"
+          title: "chore: bump version to ${{ steps.version.outputs.next }}"
           body: |
             Automated version bump.
 
