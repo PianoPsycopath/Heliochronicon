@@ -24,6 +24,7 @@ import { EclipseShadowController } from './EclipseShadowController.js';
 import { SeasonMarkerController } from './SeasonMarkerController.js';
 import { TooltipManager } from './TooltipManager.js';
 import { logger } from './logger.js';
+import { AppState } from './AppState.js';
 
 import * as THREE from 'three';
 
@@ -67,18 +68,13 @@ const renderer = sceneManager.renderer;
 const controls = sceneManager.controls;
 const frustumSize = sceneManager.frustumSize;
 
-let systemDate = new Date();
-let currentTargetData = null;
-let trackingTargetData = null;
-let previewTargetData = null; // Hover state without sending telemetry.
+const appState = new AppState();
 
 const celestialBodies = [];
 const pickableObjects = [];
 const gpuParticleSystems = [];
-const currentOrigin = new THREE.Vector3(0, 0, 0);
 
 let assetManifest = null;
-let lookupInFlight = false;
 
 const dotTexture = Shaders.createDotTexture();
 const datasetMaterials = {};
@@ -124,12 +120,11 @@ let starsVisibleState = false;
 
 function updateCredits() {
     creditsManager.update({
-        currentTargetData,
+        currentTargetData: appState.currentTargetData,
         activeTerrainBodyNames,
         starsVisible: starsVisibleState && !!starFieldObject,
     });
 }
-
 terrainController.onActiveBodiesChanged = (names) => {
     activeTerrainBodyNames = names;
     updateCredits();
@@ -166,10 +161,10 @@ const systemBuilder = new SystemBuilder({
     tacticalMaterial,
     AU_IN_KM,
     bodyRegistry,
-    getCurrentTarget: () => currentTargetData,
+    getCurrentTarget: () => appState.currentTargetData,
     onClearTarget: () => {
-        currentTargetData = null;
-        trackingTargetData = null;
+        appState.currentTargetData = null;
+        appState.trackingTargetData = null;
         updateCredits();
         seasonMarkerController.setTarget(null);
     },
@@ -185,9 +180,9 @@ const interactionController = new InteractionController({
     UI,
     renderer,
     tooltipManager,
-    getCurrentOrigin: () => currentOrigin,
-    getDaysSinceJ2000: () => PhysicsEngine.getJ2000Days(systemDate),
-    getCurrentTarget: () => currentTargetData,
+    getCurrentOrigin: () => appState.currentOrigin,
+    getDaysSinceJ2000: () => PhysicsEngine.getJ2000Days(appState.systemDate),
+    getCurrentTarget: () => appState.currentTargetData,
     onBodyClicked: (data, isHardLock) => {
         if (data && data.datasetCategory === 'BACKGROUND_STAR') {
             if (UI.isMeasureMode) {
@@ -204,10 +199,10 @@ const interactionController = new InteractionController({
         }
     },
     onTrackingBroken: () => {
-        trackingTargetData = null;
+        appState.trackingTargetData = null;
     },
     onBodyHovered: (data) => {
-        previewTargetData = data;
+        appState.previewTargetData = data;
     },
 });
 
@@ -238,17 +233,16 @@ const tacticalScanner = new TacticalScanner({
     celestialBodies,
     pickableObjects,
     gpuParticleSystems,
-    currentOrigin,
     dotTexture,
     savedColors,
     systemBuilder,
     bodyRegistry,
-    getSystemDate: () => systemDate,
-    getCurrentTarget: () => currentTargetData,
-    getJ2000Days: (date) => PhysicsEngine.getJ2000Days(date),
+    currentOrigin: appState.currentOrigin,
+    getSystemDate: () => appState.systemDate,
+    getCurrentTarget: () => appState.currentTargetData,
     onTargetPurged: () => {
-        currentTargetData = null;
-        trackingTargetData = null;
+        appState.currentTargetData = null;
+        appState.trackingTargetData = null;
         interactionController.clearTracking();
         UI.updateTargetPanel(null);
         UI.renderBodyList(celestialBodies, null);
@@ -265,32 +259,32 @@ new ZoomRulerManager({
 const pinnedStarManager = new PinnedStarManager();
 
 UI.onTimeChanged = (date) => {
-    systemDate = date;
+    appState.systemDate = date;
 };
 UI.onClearData = () => {
     systemBuilder.clearSolarSystem();
-    activeDatasets.clear();
+    appState.clearActiveDatasets();
+    appState.clearInFlightDatasets();
+    appState.lookupInFlight = false;
     storage.set('activeDatasets', []);
 };
 UI.onRefreshList = () => {
-    UI.renderBodyList(celestialBodies, currentTargetData);
+    UI.renderBodyList(celestialBodies, appState.currentTargetData);
 };
-
-const activeDatasets = new Set();
-const inFlightDatasets = new Set();
 
 UI.onDatasetVisibilityChanged = async (datasetName, isVisible, urls) => {
     if (isVisible) {
-        if (activeDatasets.has(datasetName) || inFlightDatasets.has(datasetName)) return;
+        if (appState.hasActiveDataset(datasetName) || appState.hasInFlightDataset(datasetName))
+            return;
 
-        inFlightDatasets.add(datasetName);
+        appState.addInFlightDataset(datasetName);
         const urlArray = Array.isArray(urls) ? urls : [urls];
 
         try {
             const fetchPromises = urlArray.map((url) => DataLoader.fetchJSONDataset(url));
             const chunkResults = await Promise.all(fetchPromises);
 
-            if (!inFlightDatasets.has(datasetName)) {
+            if (!appState.hasInFlightDataset(datasetName)) {
                 logger.info(
                     `[Heliochronicon] Load aborted for ${datasetName}; toggled off during fetch.`
                 );
@@ -300,25 +294,23 @@ UI.onDatasetVisibilityChanged = async (datasetName, isVisible, urls) => {
             const mergedJSON = chunkResults.flat();
             const processedData = DataLoader.processPlanetaryData(mergedJSON, datasetName);
             systemBuilder.buildSolarSystem(processedData);
-            activeDatasets.add(datasetName);
-
-            storage.set('activeDatasets', Array.from(activeDatasets));
+            appState.addActiveDataset(datasetName);
+            storage.set('activeDatasets', appState.getActiveDatasets());
         } catch (error) {
             logger.error(`Failed to load chunk group for ${datasetName}`, error);
             UI.showLookupNotFound(`Failed to download ${datasetName} dataset. Check network.`);
         } finally {
-            inFlightDatasets.delete(datasetName);
+            appState.removeInFlightDataset(datasetName);
         }
     } else {
-        inFlightDatasets.delete(datasetName);
-        activeDatasets.delete(datasetName);
-
-        storage.set('activeDatasets', Array.from(activeDatasets));
+        appState.removeInFlightDataset(datasetName);
+        appState.removeActiveDataset(datasetName);
+        storage.set('activeDatasets', appState.getActiveDatasets());
 
         bodyRegistry.removeByDataset(datasetName);
         delete datasetMaterials[datasetName];
 
-        if (currentTargetData && currentTargetData.datasetName === datasetName) {
+        if (appState.currentTargetData && appState.currentTargetData.datasetName === datasetName) {
             tacticalScanner.onTargetPurged();
         }
     }
@@ -380,13 +372,13 @@ UI.onFocusBody = (data, isHardLock = true) => {
         ).data;
     }
 
-    currentTargetData = data;
+    appState.currentTargetData = data;
     UI.updateTargetPanel(data);
-    UI.renderBodyList(celestialBodies, currentTargetData);
+    UI.renderBodyList(celestialBodies, appState.currentTargetData);
     updateCredits();
-    seasonMarkerController.setTarget(currentTargetData);
+    seasonMarkerController.setTarget(appState.currentTargetData);
 
-    trackingTargetData = isHardLock ? data : null;
+    appState.trackingTargetData = isHardLock ? data : null;
     interactionController.triggerFocus(data, isHardLock, AU_IN_KM);
 };
 
@@ -423,11 +415,13 @@ UI.onPurgeRequested = (data) => {
         storage.set('pinnedAsteroids', pinned);
     }
 
-    currentTargetData = null;
-    trackingTargetData = null;
+    // Route state clears through appState
+    appState.currentTargetData = null;
+    appState.trackingTargetData = null;
+
     interactionController.clearTracking();
     UI.updateTargetPanel(null);
-    UI.renderBodyList(celestialBodies, currentTargetData);
+    UI.renderBodyList(celestialBodies, appState.currentTargetData);
     updateCredits();
     seasonMarkerController.setTarget(null);
 };
@@ -438,7 +432,8 @@ UI.onPinStarRequested = (data) => {
 };
 
 UI.onAsteroidLookup = async (rawQuery) => {
-    if (lookupInFlight) return;
+    if (appState.lookupInFlight) return;
+
     const query = rawQuery.trim();
     if (!query) return;
 
@@ -447,6 +442,7 @@ UI.onAsteroidLookup = async (rawQuery) => {
     const tracked = celestialBodies.find(
         (b) => DataLoader.normalizeDesignation(b.data.name) === target
     );
+
     if (tracked) {
         UI.onFocusBody(tracked.data);
         return;
@@ -455,17 +451,21 @@ UI.onAsteroidLookup = async (rawQuery) => {
     for (const system of gpuParticleSystems) {
         const source = system.userData && system.userData.sourceData;
         if (!source) continue;
+
         const hit = source.find((d) => DataLoader.normalizeDesignation(d.name) === target);
+
         if (hit) {
             UI.onFocusBody(hit);
             return;
         }
     }
 
-    lookupInFlight = true;
+    appState.lookupInFlight = true;
     UI.showLookupPending(query);
+
     try {
-        const skipGroups = [...activeDatasets];
+        const skipGroups = appState.getActiveDatasets();
+
         const found = await DataLoader.findAsteroidInManifest(query, assetManifest, skipGroups);
 
         if (found) {
@@ -477,7 +477,7 @@ UI.onAsteroidLookup = async (rawQuery) => {
         logger.error(`Asteroid lookup failed due to network or parsing error:`, error);
         UI.showLookupNotFound(`Network error querying ${query}`);
     } finally {
-        lookupInFlight = false;
+        appState.lookupInFlight = false;
     }
 };
 
@@ -508,24 +508,32 @@ UI.onCurtainDisplayModeChanged = (mode) => {
 };
 
 UI.onEclipseNavRequested = (direction) => {
-    if (!currentTargetData) return;
+    if (!appState.currentTargetData) return;
+
     const allBodiesData = [
         ...celestialBodies.map((b) => b.data),
         ...gpuParticleSystems.flatMap((s) => s.userData.sourceData || []),
     ];
-    const fromDays = PhysicsEngine.getJ2000Days(systemDate);
+
+    const fromDays = PhysicsEngine.getJ2000Days(appState.systemDate);
+
     const event = EclipseEngine.findNextEclipse(
-        currentTargetData,
+        appState.currentTargetData,
         allBodiesData,
         fromDays,
         direction
     );
+
     if (event) {
         const newDate = new Date(Date.UTC(2000, 0, 1, 12, 0, 0) + event.days * 86400000);
-        systemDate = newDate;
+
+        appState.systemDate = newDate;
+
         UI.updateTimeInput(newDate);
+
         // Pause so the jumped date is not immediately overwritten.
         UI.timeThrottle.pauseForManualInput();
+
         UI.telemetryManager.renderEclipseResult(event);
     } else {
         UI.telemetryManager.renderEclipseResult(null);
@@ -643,7 +651,7 @@ async function bootEngine() {
 
                 if (processedData.length > 0) {
                     systemBuilder.buildSolarSystem(processedData);
-                    activeDatasets.add(groupName);
+                    appState.addActiveDataset(groupName);
 
                     UI.addDatasetToggle(
                         groupName,
@@ -719,8 +727,8 @@ function runRenderPrePassStage(
     );
 }
 
-function updateDualGridsStage(bodies, currentTarget, eclipticGrid, eqGrid, eqMat, cam) {
-    eclipticGrid.position.set(-currentOrigin.x, -currentOrigin.y, -currentOrigin.z);
+function updateDualGridsStage(bodies, currentTarget, eclipticGrid, eqGrid, eqMat, cam, origin) {
+    eclipticGrid.position.set(-origin.x, -origin.y, -origin.z);
     eclipticGrid.quaternion.setFromAxisAngle(new THREE.Vector3(1, 0, 0), -Math.PI / 2);
 
     if (currentTarget) {
@@ -793,50 +801,47 @@ function animate() {
         updateCredits();
     }
 
-    const timeData = updateSystemTimeStage(UI, systemDate, deltaSec);
-    systemDate = timeData.newDate;
+    const timeData = updateSystemTimeStage(UI, appState.systemDate, deltaSec);
+    appState.systemDate = timeData.newDate;
     const daysSinceJ2000 = timeData.daysSinceJ2000;
 
     runPhysicsStage(
         celestialBodies,
-        trackingTargetData,
-        currentOrigin,
+        appState.trackingTargetData,
+        appState.currentOrigin,
         camera,
         daysSinceJ2000,
         renderPipeline
     );
-
     updateHardwareStage(
         celestialBodies,
-        currentTargetData,
+        appState.currentTargetData,
         UI,
         interactionController,
         controls,
         camera
     );
-
     runRenderPrePassStage(
         renderPipeline,
         celestialBodies,
-        currentTargetData,
-        currentOrigin,
-        previewTargetData,
+        appState.currentTargetData,
+        appState.currentOrigin,
+        appState.previewTargetData,
         daysSinceJ2000
     );
-
     updateDualGridsStage(
         celestialBodies,
-        currentTargetData,
+        appState.currentTargetData,
         gridPlane,
         equatorialGridPlane,
         equatorialMaterial,
         camera,
-        currentOrigin
+        appState.currentOrigin
     );
 
-    measurementManager.update(camera, currentOrigin, daysSinceJ2000);
-    pinnedStarManager.update(camera, currentOrigin, daysSinceJ2000);
-    seasonMarkerController.update(systemDate, daysSinceJ2000, currentOrigin);
+    measurementManager.update(camera, appState.currentOrigin, daysSinceJ2000);
+    pinnedStarManager.update(camera, appState.currentOrigin, daysSinceJ2000);
+    seasonMarkerController.update(appState.systemDate, daysSinceJ2000, appState.currentOrigin);
 
     executeFinalRenderStage(
         renderPipeline,
@@ -844,7 +849,7 @@ function animate() {
         scene,
         camera,
         daysSinceJ2000,
-        currentOrigin,
+        appState.currentOrigin,
         gridPlane
     );
 }
