@@ -1,0 +1,71 @@
+name: Auto Version
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: write
+
+jobs:
+  version:
+    runs-on: ubuntu-latest
+
+    if: >
+      !contains(github.event.head_commit.message, 'chore: bump version')
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Read current version
+        id: current
+        shell: bash
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Bump patch version
+        id: bump
+        shell: bash
+        run: |
+          NEW_VERSION=$(npm version patch --no-git-tag-version)
+          echo "version=$NEW_VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Verify version files
+        shell: bash
+        run: |
+          PACKAGE_VERSION=$(node -p "require('./package.json').version")
+          LOCK_VERSION=$(node -p "require('./package-lock.json').version")
+          LOCK_PACKAGE_VERSION=$(node -p "require('./package-lock.json').packages[''].version")
+
+          if [ "$PACKAGE_VERSION" != "$LOCK_VERSION" ]; then
+            echo "package.json and package-lock.json versions do not match"
+            exit 1
+          fi
+
+          if [ "$PACKAGE_VERSION" != "$LOCK_PACKAGE_VERSION" ]; then
+            echo "package.json and package-lock package version do not match"
+            exit 1
+          fi
+
+      - name: Commit version bump
+        shell: bash
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git add package.json package-lock.json
+
+          git commit \
+            -m "chore: bump version to ${{ steps.bump.outputs.version }}"
+
+          git push
