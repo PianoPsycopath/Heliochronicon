@@ -24,7 +24,6 @@ const PLANET_WELL_DEPTH = -15.0;
 const COLOR_TARGET_ORBIT = 0x00aaff;
 const COLOR_PREVIEW_ORBIT = 0xffffff;
 const COLOR_DEFAULT_ORBIT = 0xff1111;
-const COLOR_ECLIPTIC_CURTAIN = 0xffaa00;
 
 export function getActiveSystemName(currentTargetData) {
     if (!currentTargetData) {

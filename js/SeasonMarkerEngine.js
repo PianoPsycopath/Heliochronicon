@@ -40,12 +40,12 @@ function angularDelta(a, b) {
     if (d > Math.PI) d = TWO_PI - d;
     return d;
 }
-function lerpAngle(a0, a1, frac) {
-    let unwrapped = a1;
-    while (unwrapped - a0 > Math.PI) unwrapped -= TWO_PI;
-    while (unwrapped - a0 < -Math.PI) unwrapped += TWO_PI;
-    return normalizeAngle(a0 + (unwrapped - a0) * frac);
-}
+//function lerpAngle(a0, a1, frac) {
+//    let unwrapped = a1;
+//    while (unwrapped - a0 > Math.PI) unwrapped -= TWO_PI;
+//    while (unwrapped - a0 < -Math.PI) unwrapped += TWO_PI;
+//    return normalizeAngle(a0 + (unwrapped - a0) * frac);
+//}
 
 export class SeasonMarkerEngine {
     // Regular moons inherit parent seasons (moon orbit is irrelevant to insolation).
