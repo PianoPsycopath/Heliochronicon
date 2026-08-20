@@ -1,0 +1,86 @@
+name: Chore / Maintenance
+description: Track refactoring, documentation, CI, tooling, performance, or other maintenance work.
+title: "[Chore]: "
+labels:
+  - chore
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use this form for maintenance work that is not primarily a bug report or
+        user-facing feature request.
+
+        Examples include refactoring, architecture cleanup, CI, documentation,
+        dependency maintenance, performance investigations, and accessibility maintenance.
+
+  - type: textarea
+    id: change
+    attributes:
+      label: What needs to change?
+      description: Describe the maintenance task.
+      placeholder: This task should...
+    validations:
+      required: true
+
+  - type: textarea
+    id: reason
+    attributes:
+      label: Why is this needed?
+      description: Explain the motivation, technical debt, risk, or maintenance benefit.
+      placeholder: This is needed because...
+    validations:
+      required: true
+
+  - type: dropdown
+    id: scope
+    attributes:
+      label: Scope
+      options:
+        - Refactoring
+        - Architecture
+        - Documentation
+        - CI / Automation
+        - Dependencies
+        - Performance
+        - Accessibility
+        - Testing
+        - Tooling
+        - Data Pipeline
+        - Repository Maintenance
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance criteria
+      description: Define the conditions that indicate the work is complete.
+      placeholder: |
+        - [ ] ...
+        - [ ] ...
+        - [ ] ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: risks
+    attributes:
+      label: Potential risks
+      description: Note anything that could introduce regressions or require extra validation.
+      placeholder: Possible risks include...
+
+  - type: textarea
+    id: testing
+    attributes:
+      label: Validation / testing
+      description: How should this work be verified?
+      placeholder: |
+        - Run...
+        - Verify...
+        - Compare...
+
+  - type: textarea
+    id: additional
+    attributes:
+      label: Additional context

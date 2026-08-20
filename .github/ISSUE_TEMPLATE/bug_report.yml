@@ -1,0 +1,117 @@
+name: Bug Report
+description: Report a reproducible problem with Heliochronicon.
+title: "[Bug]: "
+labels:
+  - bug
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to report a bug.
+
+        Please provide enough information to reproduce the problem. For rendering,
+        performance, or WebGL issues, include console errors and relevant system details.
+
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary
+      description: Briefly describe what went wrong.
+      placeholder: What happened?
+    validations:
+      required: true
+
+  - type: dropdown
+    id: subsystem
+    attributes:
+      label: Affected subsystem
+      description: Which part of Heliochronicon is primarily affected?
+      options:
+        - Rendering / WebGL
+        - Asteroid System
+        - Tactical Scanner
+        - Telemetry
+        - Time / Orbital Mechanics
+        - Data Loading
+        - UI / UX
+        - Accessibility
+        - Persistence / StorageManager
+        - Performance
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Steps to reproduce
+      description: List the smallest set of steps that reliably reproduces the issue.
+      placeholder: |
+        1. Open...
+        2. Enable...
+        3. Select...
+        4. Observe...
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+      description: What did you expect to happen?
+      placeholder: I expected...
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+      description: What happened instead?
+      placeholder: Instead...
+    validations:
+      required: true
+
+  - type: dropdown
+    id: regression
+    attributes:
+      label: Is this a regression?
+      description: Did this work correctly in an earlier version or commit?
+      options:
+        - "No"
+        - "Yes"
+        - "Not sure"
+    validations:
+      required: true
+
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: Include browser, browser version, OS, GPU, and other relevant hardware details.
+      placeholder: |
+        OS: Windows 11
+        Browser: Chrome 151
+        GPU: RTX 4070
+        Other:
+    validations:
+      required: true
+
+  - type: textarea
+    id: console
+    attributes:
+      label: Console errors / logs
+      description: Paste relevant browser console errors, warnings, stack traces, or other logs.
+      render: text
+
+  - type: textarea
+    id: screenshots
+    attributes:
+      label: Screenshots / video
+      description: Drag and drop screenshots, recordings, or other useful evidence here.
+
+  - type: textarea
+    id: additional
+    attributes:
+      label: Additional context
+      description: Include anything else that may help diagnose the issue.

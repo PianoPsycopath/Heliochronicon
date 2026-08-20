@@ -1,0 +1,97 @@
+name: Feature Request
+description: Suggest a feature or improvement for Heliochronicon.
+title: "[Feature]: "
+labels:
+  - enhancement
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for suggesting an improvement.
+
+        Heliochronicon is a performance-sensitive WebGL application, so please
+        consider architectural, rendering, and dataset implications where relevant.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem / motivation
+      description: What problem would this feature solve?
+      placeholder: |
+        As a user, I currently...
+        This makes it difficult to...
+    validations:
+      required: true
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: Proposed solution
+      description: Describe the behavior or workflow you would like to see.
+      placeholder: I propose...
+    validations:
+      required: true
+
+  - type: dropdown
+    id: subsystem
+    attributes:
+      label: Affected subsystem
+      description: Which part of the application would this primarily affect?
+      options:
+        - Rendering / WebGL
+        - Asteroid System
+        - Tactical Scanner
+        - Telemetry
+        - Time / Orbital Mechanics
+        - Data Loading
+        - UI / UX
+        - Accessibility
+        - Persistence / StorageManager
+        - Performance
+        - Documentation
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: What other approaches or workarounds have you considered?
+      placeholder: I considered...
+
+  - type: checkboxes
+    id: impact
+    attributes:
+      label: Engineering considerations
+      description: Check any areas that may be affected.
+      options:
+        - label: This may affect rendering performance.
+        - label: This may affect GPU / CPU boundaries.
+        - label: This may affect dataset loading or memory usage.
+        - label: This may affect persistence / StorageManager.
+        - label: This may affect accessibility.
+        - label: This may require new or modified data sources.
+
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance criteria
+      description: What would need to be true for this feature to be considered complete?
+      placeholder: |
+        - [ ] ...
+        - [ ] ...
+        - [ ] ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: mockups
+    attributes:
+      label: Mockups / examples
+      description: Add screenshots, diagrams, references, or examples if useful.
+
+  - type: textarea
+    id: additional
+    attributes:
+      label: Additional context
