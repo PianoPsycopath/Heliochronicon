@@ -1,7 +1,7 @@
 // js/main/RenderingLoop.js
 
 import * as THREE from 'three';
-import { PhysicsEngine } from '../PhysicsEngine.js';
+import { PhysicsEngine } from '@physics/PhysicsEngine.js';
 
 const STAR_FAR_PLANE_AU = 1e14;
 

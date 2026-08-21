@@ -1,6 +1,6 @@
 // js/EclipseEngine.js
-import { OrbitalMath, kmToAU } from './OrbitalMath.js';
-import { AU_IN_KM, JULIAN_CENTURY_DAYS, MAX_MOON_MOON_MEMBERS } from './constants.js';
+import { OrbitalMath, kmToAU } from '@physics/OrbitalMath.js';
+import { AU_IN_KM, JULIAN_CENTURY_DAYS, MAX_MOON_MOON_MEMBERS } from '@core/constants.js';
 import * as THREE from 'three';
 
 const rad = Math.PI / 180;

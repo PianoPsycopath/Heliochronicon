@@ -7,7 +7,7 @@ import {
     matchesNameAndCategory,
     shouldPurgeInFullSweep,
     shouldPurgeInRescan,
-} from './bodyRegistryPredicates.js';
+} from '@core/bodyRegistryPredicates.js';
 
 export class BodyRegistry {
     constructor(ctx) {

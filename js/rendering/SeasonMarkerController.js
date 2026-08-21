@@ -1,6 +1,6 @@
 // js/SeasonMarkerController.js
 import * as THREE from 'three';
-import { SeasonMarkerEngine } from './SeasonMarkerEngine.js';
+import { SeasonMarkerEngine } from '@physics/SeasonMarkerEngine.js';
 
 const MARKER_SPRITE_SIZE = 3;
 const RECOMPUTE_FRAME_INTERVAL = 30; // throttle full orbit re-sampling

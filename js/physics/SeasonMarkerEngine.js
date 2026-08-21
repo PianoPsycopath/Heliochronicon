@@ -1,5 +1,5 @@
 // js/SeasonMarkerEngine.js
-import { OrbitalMath } from './OrbitalMath.js';
+import { OrbitalMath } from '@physics/OrbitalMath.js';
 import {
     JULIAN_CENTURY_DAYS,
     SEASON_MIN_RADIUS_KM,
@@ -7,7 +7,7 @@ import {
     SEASON_TILT_THRESHOLD_DEG,
     SEASON_DISTANCE_MODIFIER_DEG,
     SEASON_SYMBOLS,
-} from './constants.js';
+} from '@core/constants.js';
 
 const TWO_PI = Math.PI * 2;
 const RAD = Math.PI / 180;

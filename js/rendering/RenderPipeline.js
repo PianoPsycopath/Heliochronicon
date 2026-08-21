@@ -1,5 +1,5 @@
 // js/RenderPipeline.js
-import { OrbitalMath } from './OrbitalMath.js';
+import { OrbitalMath } from '@physics/OrbitalMath.js';
 import * as THREE from 'three';
 
 // --- Constants ---

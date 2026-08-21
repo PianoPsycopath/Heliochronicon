@@ -13,8 +13,8 @@
  * @property {number} [period_days] - Orbital period in days
  * @property {number} [n] - Mean motion (degrees per day)
  */
-import { kmToAU } from './OrbitalMath.js';
-import { logger } from './logger.js';
+import { kmToAU } from '@physics/OrbitalMath.js';
+import { logger } from '@core/logger.js';
 
 export class DataLoader {
     static async fetchJSONDataset(url) {

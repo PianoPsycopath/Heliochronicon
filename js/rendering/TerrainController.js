@@ -1,7 +1,7 @@
 // js/TerrainController.js
 import * as THREE from 'three';
-import { Shaders } from './Shaders.js';
-import { logger } from './logger.js';
+import { Shaders } from '@rendering/Shaders.js';
+import { logger } from '@core/logger.js';
 
 export class TerrainController {
     constructor(ctx, manifestUrl = 'data/heightmaps/manifest.json') {

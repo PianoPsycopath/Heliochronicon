@@ -1,6 +1,6 @@
 // js/StarLoader.js
 import * as THREE from 'three';
-import { logger } from './logger.js';
+import { logger } from '@core/logger.js';
 
 export class StarLoader {
     static async loadStars(basePath, scene) {

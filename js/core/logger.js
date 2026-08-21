@@ -14,7 +14,7 @@
 //   window.getLogLevel()   -> current level string
 //
 // Usage:
-//   import { logger } from './logger.js';
+//   import { logger } from '@core/logger.js';
 //   logger.debug('verbose detail', payload);
 //   logger.info('notable event');
 //   logger.warn('recoverable problem', err);

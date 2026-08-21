@@ -3,7 +3,7 @@
 // the former Shaders.js monolith -- see ShaderManager.js for the aggregated
 // call surface.
 import * as THREE from 'three';
-import { MAX_SHADOWS } from '../constants.js';
+import { MAX_SHADOWS } from '@core/constants.js';
 
 export class EclipseShaders {
     static createEclipseShadowMat(maxShadows = MAX_SHADOWS) {

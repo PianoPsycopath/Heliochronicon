@@ -1,10 +1,10 @@
 // js/UIController.js
-import { ChronometerDisplay } from './ChronometerDisplay.js';
-import { PerformanceMonitor } from './PerformanceMonitor.js';
-import { TimeThrottle } from './TimeThrottle.js';
-import { BodyListManager } from './BodyListManager.js';
-import { TelemetryManager } from './TelemetryManager.js';
-import { VisibilityTreeManager } from './VisibilityTreeManager.js';
+import { ChronometerDisplay } from '@ui/ChronometerDisplay.js';
+import { PerformanceMonitor } from '@ui/PerformanceMonitor.js';
+import { TimeThrottle } from '@ui/TimeThrottle.js';
+import { BodyListManager } from '@ui/BodyListManager.js';
+import { TelemetryManager } from '@ui/TelemetryManager.js';
+import { VisibilityTreeManager } from '@ui/VisibilityTreeManager.js';
 
 const CURTAIN_MODE_TITLES = [
     'Inclination Mode 1 [Equatorial]',

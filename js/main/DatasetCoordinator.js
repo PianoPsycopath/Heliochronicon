@@ -1,8 +1,8 @@
 // js/main/DatasetCoordinator.js
 
-import { DataLoader } from '../DataLoader.js';
-import { TutorialManager } from '../TutorialManager.js';
-import { logger } from '../logger.js';
+import { DataLoader } from '@core/DataLoader.js';
+import { TutorialManager } from '@ui/TutorialManager.js';
+import { logger } from '@core/logger.js';
 
 const DATA_SOURCE_STORAGE_KEY = 'heliochronicon_dataSourcePath';
 const DEFAULT_DATA_BASE_PATH = 'data/';

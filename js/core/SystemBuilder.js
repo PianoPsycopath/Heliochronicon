@@ -1,8 +1,8 @@
 // js/SystemBuilder.js
-import { OrbitalMath } from './OrbitalMath.js';
-import { Shaders } from './Shaders.js';
-import { CelestialBody } from './CelestialBody.js';
-import { kmToAU } from './OrbitalMath.js';
+import { OrbitalMath } from '@physics/OrbitalMath.js';
+import { Shaders } from '@rendering/Shaders.js';
+import { CelestialBody } from '@core/CelestialBody.js';
+import { kmToAU } from '@physics/OrbitalMath.js';
 import * as THREE from 'three';
 
 export class SystemBuilder {

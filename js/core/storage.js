@@ -1,5 +1,5 @@
 // js/storage.js
-import { logger } from './logger.js';
+import { logger } from '@core/logger.js';
 
 export class StorageManager {
     constructor(backend = null) {

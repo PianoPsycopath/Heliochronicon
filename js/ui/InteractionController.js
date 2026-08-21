@@ -1,6 +1,6 @@
 // js/InteractionController.js
 import * as THREE from 'three';
-import { logger } from './logger.js';
+import { logger } from '@core/logger.js';
 
 function escapeHtml(str) {
     return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');

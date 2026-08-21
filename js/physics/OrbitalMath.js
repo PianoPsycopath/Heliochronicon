@@ -1,7 +1,7 @@
 // js/OrbitalMath.js
-import { MeeusMoon } from './MeeusMoon.js';
-import { VSOP87 } from './vsop87.js';
-import { AU_IN_KM, EARTH_MOON_MASS_RATIO } from './constants.js';
+import { MeeusMoon } from '@physics/MeeusMoon.js';
+import { VSOP87 } from '@physics/vsop87.js';
+import { AU_IN_KM, EARTH_MOON_MASS_RATIO } from '@core/constants.js';
 
 export function kmToAU(km) {
     return km / AU_IN_KM;

@@ -1,7 +1,7 @@
 // js/DaylightController.js
 
 import * as THREE from 'three';
-import { Shaders } from './Shaders.js';
+import { Shaders } from '@rendering/Shaders.js';
 
 const OVERLAY_GEOMETRY = new THREE.SphereGeometry(1, 32, 32);
 const OVERLAY_SCALE_PAD = 1.004; // pushes the shell just outside the planet mesh/terrain to avoid z-fighting

@@ -274,7 +274,7 @@ Missing manifest is non-fatal (terrain simply stays off).
 | Module | Role |
 |---|---|
 | `RenderPipeline.js` | Floating origin, projection, culling, GPU particle updates, coordinates terrain/daylight/eclipse hooks |
-| `Shaders.js` | Backward-compatible re-export of `shaders/ShaderManager.js` (kept so existing `import { Shaders } from './Shaders.js'` call sites are unaffected) |
+| `Shaders.js` | Backward-compatible re-export of `shaders/ShaderManager.js` (kept so existing `import { Shaders } from '@rendering/Shaders.js'` call sites are unaffected) |
 | `shaders/ShaderManager.js` | Thin manager re-flattening every per-feature shader module below onto the original static `Shaders.getX()` surface |
 | `shaders/grid.js` | `GridShaders` — ecliptic parallax grid + targeted-body equatorial grid |
 | `shaders/tactical.js` | `TacticalShaders` — scan rim material, canvas sprite materials (dot/star/diamond/group label), GPU asteroid-particle field (on-GPU Kepler solve) |

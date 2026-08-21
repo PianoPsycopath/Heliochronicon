@@ -1,7 +1,7 @@
 import * as THREE from 'three';
-import { Shaders } from './Shaders.js';
-import { EclipseEngine } from './EclipseEngine.js';
-import { MAX_SHADOWS } from './constants.js';
+import { Shaders } from '@rendering/Shaders.js';
+import { EclipseEngine } from '@physics/EclipseEngine.js';
+import { MAX_SHADOWS } from '@core/constants.js';
 
 const OVERLAY_GEOMETRY = new THREE.SphereGeometry(1, 32, 32);
 const OVERLAY_SCALE_PAD = 1.006;

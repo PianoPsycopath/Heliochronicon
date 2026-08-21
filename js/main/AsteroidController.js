@@ -1,7 +1,7 @@
 // js/main/AsteroidController.js
 
-import { DataLoader } from '../DataLoader.js';
-import { logger } from '../logger.js';
+import { DataLoader } from '@core/DataLoader.js';
+import { logger } from '@core/logger.js';
 
 export class AsteroidController {
     constructor({

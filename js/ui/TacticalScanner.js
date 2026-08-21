@@ -1,7 +1,7 @@
 // js/TacticalScanner.js
-import { OrbitalMath } from './OrbitalMath.js';
-import { CelestialBody } from './CelestialBody.js';
-import { shouldPurgeInFullSweep } from './bodyRegistryPredicates.js';
+import { OrbitalMath } from '@physics/OrbitalMath.js';
+import { CelestialBody } from '@core/CelestialBody.js';
+import { shouldPurgeInFullSweep } from '@core/bodyRegistryPredicates.js';
 import * as THREE from 'three';
 
 export class TacticalScanner {
