@@ -1,0 +1,580 @@
+// js/main/main.js
+import * as THREE from 'three';
+import { AU_IN_KM, MAX_WELLS } from '../constants.js';
+import { SceneManager } from '../SceneManager.js';
+import { Shaders } from '../Shaders.js';
+import { UIController } from '../UIController.js';
+import { SystemBuilder } from '../SystemBuilder.js';
+import { InteractionController } from '../InteractionController.js';
+import { RenderPipeline } from '../RenderPipeline.js';
+import { TacticalScanner } from '../TacticalScanner.js';
+import { PhysicsEngine } from '../PhysicsEngine.js';
+import { BodyRegistry } from '../BodyRegistry.js';
+import { StorageManager } from '../storage.js';
+import { ZoomRulerManager } from '../ZoomRulerManager.js';
+import { MeasurementManager } from '../MeasurementManager.js';
+import { StarLoader } from '../StarLoader.js';
+import { PinnedStarManager } from '../PinnedStarManager.js';
+import { TerrainController } from '../TerrainController.js';
+import { CreditsManager } from '../CreditsManager.js';
+import { DaylightController } from '../DaylightController.js';
+import { EclipseEngine } from '../EclipseEngine.js';
+import { EclipseShadowController } from '../EclipseShadowController.js';
+import { SeasonMarkerController } from '../SeasonMarkerController.js';
+import { TooltipManager } from '../TooltipManager.js';
+import { AppState } from '../AppState.js';
+import { logger } from '../logger.js';
+
+import { DatasetCoordinator } from './DatasetCoordinator.js';
+import { AsteroidController } from './AsteroidController.js';
+import { RenderingLoop } from './RenderingLoop.js';
+
+const STAR_DATA_BASE_PATH = 'star_data/';
+
+const storage = new StorageManager();
+const appState = new AppState();
+
+const celestialBodies = [];
+const pickableObjects = [];
+const gpuParticleSystems = [];
+
+const datasetMaterials = {};
+const savedColors = storage.get('tacticalMapColors', {});
+
+// -----------------------------------------------------------------------------
+// Infrastructure
+// -----------------------------------------------------------------------------
+
+const sceneManager = new SceneManager('canvas-container');
+
+const scene = sceneManager.scene;
+
+const camera = sceneManager.camera;
+
+const renderer = sceneManager.renderer;
+
+const controls = sceneManager.controls;
+
+const frustumSize = sceneManager.frustumSize;
+
+const dotTexture = Shaders.createDotTexture();
+
+const gridMaterial = Shaders.getGridMaterial(MAX_WELLS);
+
+const gridPlane = new THREE.Mesh(new THREE.PlaneGeometry(1000000, 1000000, 4, 4), gridMaterial);
+
+gridPlane.rotation.x = -Math.PI / 2;
+
+gridPlane.renderOrder = -2;
+
+scene.add(gridPlane);
+
+const equatorialMaterial = Shaders.getEquatorialGridMaterial();
+
+const equatorialGridPlane = new THREE.Mesh(
+    new THREE.PlaneGeometry(1000, 1000, 4, 4),
+    equatorialMaterial
+);
+
+equatorialGridPlane.visible = false;
+
+equatorialGridPlane.renderOrder = -1;
+
+scene.add(equatorialGridPlane);
+
+const tacticalMaterial = Shaders.getTacticalMaterial();
+
+const measurementManager = new MeasurementManager(scene, camera);
+
+const tooltipManager = new TooltipManager();
+
+const UI = new UIController({
+    tooltipManager,
+});
+
+tooltipManager.attachButtonTooltips();
+
+// -----------------------------------------------------------------------------
+// Domain systems
+// -----------------------------------------------------------------------------
+
+const terrainController = new TerrainController({
+    celestialBodies,
+});
+
+const daylightController = new DaylightController({
+    scene,
+    celestialBodies,
+});
+
+const eclipseShadowController = new EclipseShadowController({
+    scene,
+    celestialBodies,
+});
+
+const bodyRegistry = new BodyRegistry({
+    scene,
+    celestialBodies,
+    pickableObjects,
+    gpuParticleSystems,
+    daylightController,
+    eclipseShadowController,
+});
+
+const renderPipeline = new RenderPipeline({
+    camera,
+    controls,
+    gridMaterial,
+    gpuParticleSystems,
+    UI,
+    savedColors,
+    MAX_WELLS,
+    terrainController,
+    daylightController,
+    eclipseShadowController,
+});
+
+const pinnedStarManager = new PinnedStarManager();
+
+// -----------------------------------------------------------------------------
+// UI / application services
+// -----------------------------------------------------------------------------
+
+const creditsManager = new CreditsManager({
+    el: document.getElementById('hud-credits'),
+    terrainController,
+});
+
+let activeTerrainBodyNames = [];
+let starFieldObject = null;
+let starFieldMaterial = null;
+let starsVisibleState = false;
+
+const updateCredits = () => {
+    creditsManager.update({
+        currentTargetData: appState.currentTargetData,
+
+        activeTerrainBodyNames,
+
+        starsVisible: starsVisibleState && !!starFieldObject,
+    });
+};
+
+terrainController.onActiveBodiesChanged = (names) => {
+    activeTerrainBodyNames = names;
+    updateCredits();
+};
+
+const seasonMarkerController = new SeasonMarkerController({
+    scene,
+    celestialBodies,
+    camera,
+    tooltipManager,
+});
+
+// -----------------------------------------------------------------------------
+// Data services
+// -----------------------------------------------------------------------------
+
+const dataSource =
+    new URLSearchParams(window.location.search).get('dataSource') ||
+    storage.get('heliochronicon_dataSourcePath') ||
+    'data/';
+
+// -----------------------------------------------------------------------------
+// Body construction
+// -----------------------------------------------------------------------------
+
+const systemBuilder = new SystemBuilder({
+    scene,
+    UI,
+    celestialBodies,
+    pickableObjects,
+    gpuParticleSystems,
+    datasetMaterials,
+    savedColors,
+    dotTexture,
+    tacticalMaterial,
+    AU_IN_KM,
+    bodyRegistry,
+
+    getCurrentTarget: () => appState.currentTargetData,
+
+    onClearTarget: () => {
+        appState.currentTargetData = null;
+
+        appState.trackingTargetData = null;
+
+        updateCredits();
+
+        seasonMarkerController.setTarget(null);
+    },
+
+    onClearMemory: () => {},
+});
+
+const datasetCoordinator = new DatasetCoordinator({
+    storage,
+    appState,
+    systemBuilder,
+    bodyRegistry,
+    UI,
+    datasetMaterials,
+    savedColors,
+    dataBasePath: dataSource,
+});
+
+// -----------------------------------------------------------------------------
+// Interaction
+// -----------------------------------------------------------------------------
+
+const interactionController = new InteractionController({
+    camera,
+    controls,
+    frustumSize,
+    pickableObjects,
+    gpuParticleSystems,
+    UI,
+    renderer,
+    tooltipManager,
+
+    getCurrentOrigin: () => appState.currentOrigin,
+
+    getDaysSinceJ2000: () => PhysicsEngine.getJ2000Days(appState.systemDate),
+
+    getCurrentTarget: () => appState.currentTargetData,
+
+    onBodyClicked: (data, isHardLock) => {
+        if (data && data.datasetCategory === 'BACKGROUND_STAR') {
+            if (UI.isMeasureMode) {
+                measurementManager.handleNodeSelection(data, celestialBodies);
+            } else {
+                UI.showStarSelection(data);
+            }
+
+            return;
+        }
+
+        if (UI.isMeasureMode) {
+            measurementManager.handleNodeSelection(data, celestialBodies);
+        } else {
+            UI.onFocusBody(data, isHardLock);
+        }
+    },
+
+    onTrackingBroken: () => {
+        appState.trackingTargetData = null;
+    },
+
+    onBodyHovered: (data) => {
+        appState.previewTargetData = data;
+    },
+});
+
+// -----------------------------------------------------------------------------
+// Asteroid domain controller
+// -----------------------------------------------------------------------------
+
+const asteroidController = new AsteroidController({
+    appState,
+    UI,
+    systemBuilder,
+    bodyRegistry,
+    interactionController,
+    seasonMarkerController,
+    storage,
+    celestialBodies,
+    gpuParticleSystems,
+    updateCredits,
+    getAssetManifest: () => datasetCoordinator.manifest,
+    auInKm: AU_IN_KM,
+});
+
+// -----------------------------------------------------------------------------
+// Tactical scanner
+// -----------------------------------------------------------------------------
+
+const tacticalScanner = new TacticalScanner({
+    scene,
+    camera,
+    UI,
+    celestialBodies,
+    pickableObjects,
+    gpuParticleSystems,
+    dotTexture,
+    savedColors,
+    systemBuilder,
+    bodyRegistry,
+
+    currentOrigin: appState.currentOrigin,
+
+    getSystemDate: () => appState.systemDate,
+
+    getCurrentTarget: () => appState.currentTargetData,
+
+    onTargetPurged: () => {
+        asteroidController.clearTarget();
+    },
+});
+
+// -----------------------------------------------------------------------------
+// Rendering
+// -----------------------------------------------------------------------------
+
+new ZoomRulerManager({
+    camera,
+    controls,
+});
+
+const renderingLoop = new RenderingLoop({
+    appState,
+    UI,
+    scene,
+    camera,
+    renderer,
+    controls,
+    renderPipeline,
+    celestialBodies,
+    measurementManager,
+    pinnedStarManager,
+    seasonMarkerController,
+    gridPlane,
+    equatorialGridPlane,
+    equatorialMaterial,
+
+    starFieldMaterialRef: () => starFieldMaterial,
+
+    getStarVisibilityState: () => starsVisibleState,
+
+    setStarVisibilityState: (value) => {
+        starsVisibleState = value;
+    },
+
+    updateCredits,
+});
+
+// -----------------------------------------------------------------------------
+// Star infrastructure
+// -----------------------------------------------------------------------------
+
+async function initializeStarField() {
+    const starGeometry = await StarLoader.loadStars(STAR_DATA_BASE_PATH, scene);
+
+    if (!starGeometry) {
+        return;
+    }
+
+    const material = Shaders.getStarFieldMaterial();
+
+    const starField = new THREE.Points(starGeometry, material);
+
+    starField.frustumCulled = false;
+
+    starField.matrixAutoUpdate = false;
+
+    starField.renderOrder = -10;
+
+    starField.userData = {
+        datasetVisible: true,
+    };
+
+    scene.add(starField);
+
+    gpuParticleSystems.push(starField);
+
+    starFieldMaterial = material;
+
+    starFieldObject = starField;
+
+    updateCredits();
+}
+
+initializeStarField();
+
+// -----------------------------------------------------------------------------
+// Callback / event wiring
+// -----------------------------------------------------------------------------
+
+UI.onTimeChanged = (date) => {
+    appState.systemDate = date;
+};
+
+UI.onClearData = () => {
+    datasetCoordinator.clearAll();
+};
+
+UI.onRefreshList = () => {
+    UI.renderBodyList(celestialBodies, appState.currentTargetData);
+};
+
+UI.onDatasetVisibilityChanged = async (datasetName, isVisible, urls) => {
+    const result = await datasetCoordinator.setDatasetVisibility(datasetName, isVisible, urls);
+
+    if (
+        result?.removedDataset &&
+        appState.currentTargetData?.datasetName === result.removedDataset
+    ) {
+        asteroidController.clearTarget();
+    }
+};
+
+UI.onFocusBody = (data, isHardLock = true) => {
+    asteroidController.focus(data, isHardLock);
+};
+
+UI.onAsteroidLookup = (query) => {
+    asteroidController.lookup(query);
+};
+
+UI.onPinRequested = (data) => {
+    asteroidController.togglePin(data);
+};
+
+UI.onPurgeRequested = (data) => {
+    asteroidController.purge(data);
+};
+
+UI.onPinStarRequested = (data) => {
+    pinnedStarManager.toggle(data);
+
+    UI.showStarSelection(data);
+};
+
+UI.onScanRequested = (isActive) => {
+    if (isActive) {
+        tacticalScanner.performTacticalScan();
+    } else {
+        tacticalScanner.purgeTacticalClones();
+    }
+};
+
+UI.onSearch = (query) => {
+    tacticalScanner.executeSearch(query);
+};
+
+UI.onMeasureModeChanged = (isActive) => {
+    if (!isActive) {
+        measurementManager.breakCycleAndClear();
+    }
+};
+
+UI.onDaylightToggleChanged = (isEnabled) => {
+    daylightController.setEnabled(isEnabled);
+};
+
+UI.onCurtainDisplayModeChanged = (mode) => {
+    renderPipeline.setCurtainMode(mode);
+};
+
+UI.onEclipseNavRequested = (direction) => {
+    if (!appState.currentTargetData) {
+        return;
+    }
+
+    const allBodiesData = [
+        ...celestialBodies.map((body) => body.data),
+
+        ...gpuParticleSystems.flatMap((system) => system.userData?.sourceData || []),
+    ];
+
+    const fromDays = PhysicsEngine.getJ2000Days(appState.systemDate);
+
+    const event = EclipseEngine.findNextEclipse(
+        appState.currentTargetData,
+        allBodiesData,
+        fromDays,
+        direction
+    );
+
+    if (event) {
+        const newDate = new Date(Date.UTC(2000, 0, 1, 12, 0, 0) + event.days * 86400000);
+
+        appState.systemDate = newDate;
+
+        UI.updateTimeInput(newDate);
+
+        UI.timeThrottle.pauseForManualInput();
+
+        UI.telemetryManager.renderEclipseResult(event);
+    } else {
+        UI.telemetryManager.renderEclipseResult(null);
+    }
+};
+
+UI.onDatasetColorChanged = (datasetName, colorHex) => {
+    savedColors[datasetName] = colorHex;
+
+    storage.set('tacticalMapColors', savedColors);
+
+    for (const system of gpuParticleSystems) {
+        if (system.userData?.datasetName !== datasetName) {
+            continue;
+        }
+
+        if (system.material?.uniforms?.uColor) {
+            system.material.uniforms.uColor.value.set(colorHex);
+        }
+
+        const label = system.userData.groupLabel;
+
+        if (label) {
+            const meanA =
+                system.userData.meanA ??
+                (system.userData.sourceData?.length
+                    ? system.userData.sourceData.reduce((sum, data) => sum + data.a, 0) /
+                      system.userData.sourceData.length
+                    : 2.5);
+
+            Shaders.updateGroupLabelColor(label, datasetName, colorHex, meanA);
+        }
+    }
+
+    const material = datasetMaterials[datasetName];
+
+    if (material?.uniforms?.uColor) {
+        material.uniforms.uColor.value.set(colorHex);
+    } else if (material?.color) {
+        material.color.set(colorHex);
+    }
+
+    for (const body of celestialBodies) {
+        if (
+            body.data?.datasetCategory !== 'PROMOTED_ASTEROID' ||
+            body.data?.datasetName !== datasetName
+        ) {
+            continue;
+        }
+
+        if (body.label) {
+            body.label.style.color = colorHex;
+        }
+
+        if (body.sprite?.material?.color) {
+            body.sprite.material.color.set(colorHex);
+        }
+
+        if (body.orbitLine?.material?.color) {
+            body.orbitLine.material.color.set(colorHex);
+        }
+    }
+};
+
+// -----------------------------------------------------------------------------
+// Application startup
+// -----------------------------------------------------------------------------
+
+datasetCoordinator.configureGlobalDataSourceControls();
+
+logger.info(`[Heliochronicon] Data source: ${datasetCoordinator.dataSourcePath}`);
+
+async function startApplication() {
+    creditsManager.setAssetManifest(
+        await datasetCoordinator.initialize().then(() => datasetCoordinator.manifest)
+    );
+
+    updateCredits();
+
+    renderingLoop.start();
+}
+
+startApplication();
