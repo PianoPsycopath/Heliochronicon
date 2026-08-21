@@ -1,6 +1,7 @@
 // js/main/DatasetCoordinator.js
 
-import { DataLoader } from '@core/DataLoader.js';
+import { DataRepository } from '@core/DataRepository.js';
+import { PlanetaryDataProcessor } from '@core/PlanetaryDataProcessor.js';
 import { TutorialManager } from '@ui/TutorialManager.js';
 import { logger } from '@core/logger.js';
 
@@ -88,7 +89,9 @@ export class DatasetCoordinator {
 
     async loadManifest() {
         try {
-            const manifest = await DataLoader.fetchJSONDataset(`${this.dataBasePath}manifest.json`);
+            const manifest = await DataRepository.fetchJSONDataset(
+                `${this.dataBasePath}manifest.json`
+            );
 
             if (!manifest || !manifest.datasets || Object.keys(manifest.datasets).length === 0) {
                 logger.error(`No datasets found in manifest at ${this.dataBasePath}manifest.json`);
@@ -121,7 +124,7 @@ export class DatasetCoordinator {
             let firstChunkRows = [];
 
             try {
-                firstChunkRows = await DataLoader.fetchJSONDataset(chunkUrls[0]);
+                firstChunkRows = await DataRepository.fetchJSONDataset(chunkUrls[0]);
             } catch (error) {
                 logger.error(`Failed to load first chunk for dataset "${groupName}"`, error);
             }
@@ -201,7 +204,7 @@ export class DatasetCoordinator {
             const urlArray = Array.isArray(urls) ? urls : [urls];
 
             const chunks = await Promise.all(
-                urlArray.map((url) => DataLoader.fetchJSONDataset(url))
+                urlArray.map((url) => DataRepository.fetchJSONDataset(url))
             );
 
             if (!this.appState.hasInFlightDataset(datasetName)) {
@@ -214,7 +217,10 @@ export class DatasetCoordinator {
 
             const mergedJSON = chunks.flat();
 
-            const processedData = DataLoader.processPlanetaryData(mergedJSON, datasetName);
+            const processedData = PlanetaryDataProcessor.processPlanetaryData(
+                mergedJSON,
+                datasetName
+            );
 
             if (processedData.length === 0) {
                 return;

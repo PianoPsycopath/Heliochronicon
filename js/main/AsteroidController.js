@@ -1,6 +1,7 @@
 // js/main/AsteroidController.js
 
 import { DataLoader } from '@core/DataLoader.js';
+import { AsteroidLookup } from '@core/AsteroidLookup.js';
 import { logger } from '@core/logger.js';
 
 export class AsteroidController {
@@ -111,10 +112,11 @@ export class AsteroidController {
         try {
             const skipGroups = this.appState.getActiveDatasets();
 
-            const found = await DataLoader.findAsteroidInManifest(
+            const found = await AsteroidLookup.findAsteroidInManifest(
                 query,
-                this.getAssetManifest(),
-                skipGroups
+                this.assetManifest,
+                skipGroups,
+                this.dataBasePath
             );
 
             if (found) {
