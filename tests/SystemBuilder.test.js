@@ -2,12 +2,12 @@
 // tests/SystemBuilder.test.js
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import * as THREE from 'three';
-import { OrbitalMath, kmToAU } from '../js/OrbitalMath.js';
-import { AU_IN_KM } from '../js/constants.js';
+import { OrbitalMath, kmToAU } from '@physics/OrbitalMath.js';
+import { AU_IN_KM } from '@core/constants.js';
 
 // Shaders.js was not supplied; mock it so SystemBuilder's own branching logic runs
 // without depending on real shader/material construction.
-vi.mock('../js/Shaders.js', () => ({
+vi.mock('@rendering/Shaders.js', () => ({
     Shaders: {
         getAsteroidParticleMaterial: vi.fn((color) => new THREE.PointsMaterial({ color })),
         createStarSpriteMat: vi.fn(() => new THREE.SpriteMaterial()),
@@ -16,8 +16,8 @@ vi.mock('../js/Shaders.js', () => ({
     }
 }));
 
-import { Shaders } from '../js/Shaders.js';
-import { SystemBuilder } from '../js/SystemBuilder.js';
+import { Shaders } from '@rendering/Shaders.js';
+import { SystemBuilder } from '@core/SystemBuilder.js';
 
 beforeEach(() => {
     Shaders.getAsteroidParticleMaterial.mockClear();

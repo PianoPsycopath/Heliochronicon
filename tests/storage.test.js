@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { StorageManager } from '../js/storage.js';
-import { logger } from '../js/logger.js';
+import { StorageManager } from '@core/storage.js';
+import { logger } from '@core/logger.js';
 
 describe('StorageManager Persistence Abstraction', () => {
     let mockBackend;

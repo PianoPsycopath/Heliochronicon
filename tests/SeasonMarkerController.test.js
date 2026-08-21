@@ -1,10 +1,10 @@
 // @vitest-environment jsdom
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import * as THREE from 'three';
-import { SeasonMarkerController } from '../js/SeasonMarkerController.js';
+import { SeasonMarkerController } from '@rendering/SeasonMarkerController.js';
 
 // Prevents execution of heavy orbital calculations during UI rendering tests.
-vi.mock('../js/SeasonMarkerEngine.js', () => ({
+vi.mock('@physics/SeasonMarkerEngine.js', () => ({
     SeasonMarkerEngine: {
         resolveSeasonBody: vi.fn((target) => target),
         computeMarkers: vi.fn(() => []),

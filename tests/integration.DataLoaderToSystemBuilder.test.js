@@ -5,10 +5,10 @@
 // DataLoader.processPlanetaryData intact enough for SystemBuilder to build a
 // scene graph out of them without throwing, with the right shape at each hop.
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { DataLoader } from '../js/DataLoader.js';
-import { AU_IN_KM } from '../js/constants.js';
+import { DataLoader } from '@core/DataLoader.js';
+import { AU_IN_KM } from '@core/constants.js';
 
-vi.mock('../js/Shaders.js', () => ({
+vi.mock('@rendering/Shaders.js', () => ({
     Shaders: {
         getAsteroidParticleMaterial: vi.fn(() => ({})),
         createStarSpriteMat: vi.fn(() => ({})),
@@ -17,7 +17,7 @@ vi.mock('../js/Shaders.js', () => ({
     }
 }));
 
-import { SystemBuilder } from '../js/SystemBuilder.js';
+import { SystemBuilder } from '@core/SystemBuilder.js';
 
 function makeCtx() {
     const celestialBodies = [];

@@ -1,7 +1,7 @@
 // tests/PhysicsEngine.test.js
 import { describe, it, expect } from 'vitest';
 import * as THREE from 'three';
-import { PhysicsEngine } from '../js/PhysicsEngine.js';
+import { PhysicsEngine } from '@physics/PhysicsEngine.js';
 
 describe('PhysicsEngine', () => {
     describe('getJ2000Days', () => {

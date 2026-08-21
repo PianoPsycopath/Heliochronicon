@@ -1,7 +1,7 @@
 // tests/PhysicsEngine.more.test.js
 import { describe, it, expect, vi } from 'vitest';
 import * as THREE from 'three';
-import { PhysicsEngine } from '../js/PhysicsEngine.js';
+import { PhysicsEngine } from '@physics/PhysicsEngine.js';
 
 describe('PhysicsEngine.updateSystemTime', () => {
     it('advances the date by deltaSec * timeMultiplier and reports the matching J2000 day offset', () => {

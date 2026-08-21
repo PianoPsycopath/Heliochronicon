@@ -20,15 +20,15 @@ function makeShadowMaterial() {
 
 // Shaders.js was not supplied; mock it with a uniform shape that mirrors what
 // updateForBody actually reads/writes, so the controller's real branching logic runs.
-vi.mock('../js/Shaders.js', () => ({
+vi.mock('@rendering/Shaders.js', () => ({
     Shaders: {
         createEclipseShadowMat: vi.fn(() => makeShadowMaterial())
     }
 }));
 
-import { Shaders } from '../js/Shaders.js';
-import { EclipseShadowController } from '../js/EclipseShadowController.js';
-import { AU_IN_KM } from '../js/constants.js';
+import { Shaders } from '@rendering/Shaders.js';
+import { EclipseShadowController } from '@rendering/EclipseShadowController.js';
+import { AU_IN_KM } from '@core/constants.js';
 
 function mkBody(name, parent, { isMoon = false, renderPos = null, physicalRadius = 0.0001, mesh = null } = {}) {
     return {

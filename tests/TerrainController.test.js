@@ -5,7 +5,7 @@ import * as THREE from 'three';
 // Mock it so we can test TerrainController's own branching logic (registry lookup,
 // cache hit, pending-load guard) without needing the real shader material factory
 // or a WebGL context.
-vi.mock('../js/Shaders.js', () => ({
+vi.mock('@rendering/Shaders.js', () => ({
     Shaders: {
         createTerrainContourMat: vi.fn((texture, elevMin, elevMax) => ({
             isMockMaterial: true, texture, elevMin, elevMax, dispose: vi.fn()
@@ -13,8 +13,8 @@ vi.mock('../js/Shaders.js', () => ({
     }
 }));
 
-import { Shaders } from '../js/Shaders.js';
-import { TerrainController } from '../js/TerrainController.js';
+import { Shaders } from '@rendering/Shaders.js';
+import { TerrainController } from '@rendering/TerrainController.js';
 
 const flushMicrotasks = () => new Promise(resolve => setTimeout(resolve, 0));
 

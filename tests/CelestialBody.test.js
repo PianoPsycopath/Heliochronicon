@@ -1,7 +1,7 @@
 // tests/CelestialBody.test.js
 import { describe, it, expect } from 'vitest';
 import * as THREE from 'three';
-import { CelestialBody } from '../js/CelestialBody.js';
+import { CelestialBody } from '@core/CelestialBody.js';
 
 describe('CelestialBody', () => {
     it('fills in sane defaults when constructed with no params', () => {

@@ -1,6 +1,6 @@
 // tests/RenderPipeline.test.js
 import { describe, it, expect } from 'vitest';
-import { getActiveSystemName } from '../js/RenderPipeline.js';
+import { getActiveSystemName } from '@rendering/RenderPipeline.js';
 
 describe('getActiveSystemName', () => {
     it('returns the target itself when it is a planet or star', () => {

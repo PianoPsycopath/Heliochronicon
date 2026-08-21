@@ -1,7 +1,7 @@
 // tests/DataLoader.test.js
 import { describe, it, expect, vi, afterEach } from 'vitest';
-import { DataLoader } from '../js/DataLoader.js';
-import { AU_IN_KM } from '../js/constants.js';
+import { DataLoader } from '@core/DataLoader.js';
+import { AU_IN_KM } from '@core/constants.js';
 
 describe('DataLoader.processPlanetaryData', () => {
     it('returns an empty array for empty input without throwing', () => {

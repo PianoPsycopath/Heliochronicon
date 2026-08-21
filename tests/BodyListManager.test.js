@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { BodyListManager, getFilteredAndSortedBodies } from '../js/BodyListManager.js';
+import { BodyListManager, getFilteredAndSortedBodies } from '@ui/BodyListManager.js';
 
 const mockBodies = [
     { isMoon: false, data: { name: 'MARS', parent: 'SUN', a: 1.524, radius_km: 3389, category: 'Planet' } },

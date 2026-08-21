@@ -1,7 +1,7 @@
 // js/TimeThrottle.test.js
 
 import { describe, it, expect, vi } from 'vitest';
-import { TimeThrottle, calculateThrottleState } from '../js/TimeThrottle.js';
+import { TimeThrottle, calculateThrottleState } from '@ui/TimeThrottle.js';
 
 describe('TimeThrottle Pure Logic (calculateThrottleState)', () => {
     
