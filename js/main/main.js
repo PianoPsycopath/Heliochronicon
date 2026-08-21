@@ -312,6 +312,8 @@ const tacticalScanner = new TacticalScanner({
 
     getCurrentTarget: () => appState.currentTargetData,
 
+    getJ2000Days: (date) => PhysicsEngine.getJ2000Days(date),
+
     onTargetPurged: () => {
         asteroidController.clearTarget();
     },
@@ -341,6 +343,7 @@ const renderingLoop = new RenderingLoop({
     gridPlane,
     equatorialGridPlane,
     equatorialMaterial,
+    interactionController,
 
     starFieldMaterialRef: () => starFieldMaterial,
 

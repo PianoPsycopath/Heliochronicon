@@ -21,6 +21,7 @@ export class RenderingLoop {
         gridPlane,
         equatorialGridPlane,
         equatorialMaterial,
+        interactionController,
         starFieldMaterialRef,
         getStarVisibilityState,
         setStarVisibilityState,
@@ -48,6 +49,8 @@ export class RenderingLoop {
         this.equatorialGridPlane = equatorialGridPlane;
 
         this.equatorialMaterial = equatorialMaterial;
+
+        this.interactionController = interactionController;
 
         this.starFieldMaterialRef = starFieldMaterialRef;
 
@@ -184,6 +187,8 @@ export class RenderingLoop {
                     targetBody.RA_current_deg,
                     targetBody.DEC_current_deg
                 );
+
+                this.interactionController.updateCamera(targetBody.mesh.position);
             }
         }
 
