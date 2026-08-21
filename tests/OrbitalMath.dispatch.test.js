@@ -1,8 +1,8 @@
 // tests/OrbitalMath.dispatch.test.js
 import { describe, it, expect } from 'vitest';
-import { OrbitalMath } from '../js/OrbitalMath.js';
-import { MeeusMoon } from '../js/MeeusMoon.js';
-import { VSOP87 } from '../js/vsop87.js';
+import { OrbitalMath } from '@physics/OrbitalMath.js';
+import { MeeusMoon } from '@physics/MeeusMoon.js';
+import { VSOP87 } from '@physics/vsop87.js';
 
 describe('OrbitalMath.calculatePosition orbit_model dispatch', () => {
     it('routes MEEUS bodies straight to MeeusMoon.getPosition', () => {

@@ -1,8 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { SeasonMarkerEngine } from '../js/SeasonMarkerEngine.js';
-import { OrbitalMath } from '../js/OrbitalMath.js';
+import { SeasonMarkerEngine } from '@physics/SeasonMarkerEngine.js';
+import { OrbitalMath } from '@physics/OrbitalMath.js';
 
-vi.mock('../js/OrbitalMath.js', () => ({
+vi.mock('@physics/OrbitalMath.js', () => ({
     OrbitalMath: {
         calculatePosition: vi.fn() 
     }

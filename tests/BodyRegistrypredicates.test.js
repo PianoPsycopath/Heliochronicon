@@ -8,7 +8,7 @@ import {
     isProtectedTarget,
     shouldPurgeInFullSweep,
     shouldPurgeInRescan
-} from '../js/bodyRegistryPredicates.js';
+} from '@core/bodyRegistryPredicates.js';
 
 function body(overrides = {}) {
     return {

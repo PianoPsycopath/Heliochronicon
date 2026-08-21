@@ -1,6 +1,6 @@
 // tests/OrbitalMath.test.js
 import { describe, it, expect } from 'vitest';
-import { OrbitalMath } from '../js/OrbitalMath.js';
+import { OrbitalMath } from '@physics/OrbitalMath.js';
 
 describe('OrbitalMath', () => {
     describe('solveKepler', () => {

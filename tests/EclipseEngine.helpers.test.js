@@ -1,8 +1,8 @@
 // tests/EclipseEngine.helpers.test.js
 import { describe, it, expect } from 'vitest';
 import * as THREE from 'three';
-import { EclipseEngine } from '../js/EclipseEngine.js';
-import { AU_IN_KM } from '../js/constants.js';
+import { EclipseEngine } from '@physics/EclipseEngine.js';
+import { AU_IN_KM } from '@core/constants.js';
 
 describe('EclipseEngine pure helpers', () => {
     describe('_scaledA', () => {

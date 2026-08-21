@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
-import { OrbitalMath } from '../js/OrbitalMath.js';
-import { EclipseEngine } from '../js/EclipseEngine.js';
+import { OrbitalMath } from '@physics/OrbitalMath.js';
+import { EclipseEngine } from '@physics/EclipseEngine.js';
 import * as THREE from 'three';
 
 describe('August 12, 2026 Total Solar Eclipse Test Suite', () => {
