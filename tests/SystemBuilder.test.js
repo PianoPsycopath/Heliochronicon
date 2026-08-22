@@ -293,49 +293,32 @@ describe('SystemBuilder.createGroupLabel', () => {
         expect(Shaders.createGroupLabelMat).toHaveBeenCalledWith('kuiper-belt', '#00ffff', 42);
     });
 });
-
-describe('SystemBuilder.promoteAsteroidToCPU', () => {
-    it('promotes a new asteroid: adds scene objects, a label, and calls bodyRegistry.promote', () => {
+describe('SystemBuilder.createPromotedAsteroidBody', () => {
+    it('constructs a promoted asteroid representation without registering it', () => {
         const ctx = makeCtx();
         const sb = new SystemBuilder(ctx);
-        const asteroidData = asteroidRow({ name: 'RADAR1', radius_km: 5 });
 
-        sb.promoteAsteroidToCPU(asteroidData);
+        const body =
+            sb.createPromotedAsteroidBody(
+                asteroidRow({
+                    name: 'RADAR1',
+                    radius_km: 5,
+                })
+            );
 
-        expect(ctx.bodyRegistry.promote).toHaveBeenCalledTimes(1);
-        const [cbArg, keyArg] = ctx.bodyRegistry.promote.mock.calls[0];
-        expect(cbArg.data.name).toBe('RADAR1');
-        expect(cbArg.data.datasetCategory).toBe('PROMOTED_ASTEROID');
-        expect(keyArg).toEqual({ name: 'RADAR1', category: 'RADAR_CONTACT' });
+        expect(body).toBeDefined();
+        expect(body.data.name).toBe('RADAR1');
+        expect(body.data.datasetCategory)
+            .toBe('PROMOTED_ASTEROID');
+
+        expect(ctx.bodyRegistry.promote)
+            .not.toHaveBeenCalled();
+
+        expect(ctx.bodyRegistry.registerBody)
+            .not.toHaveBeenCalled();
 
         // mesh + sprite + orbitLine + orbitCurtain
-        expect(ctx.scene.add).toHaveBeenCalledTimes(4);
-    });
-
-    it('is a no-op if the same name is already promoted', () => {
-        const already = { data: { name: 'RADAR1', datasetCategory: 'PROMOTED_ASTEROID' } };
-        const ctx = makeCtx({ celestialBodies: [already] });
-        const sb = new SystemBuilder(ctx);
-
-        sb.promoteAsteroidToCPU(asteroidRow({ name: 'RADAR1' }));
-
-        expect(ctx.bodyRegistry.promote).not.toHaveBeenCalled();
-        expect(ctx.scene.add).not.toHaveBeenCalled();
-    });
-
-    it('falls back to a nominal physicalRadius when radius_km is missing/zero', () => {
-        const ctx = makeCtx();
-        const sb = new SystemBuilder(ctx);
-        sb.promoteAsteroidToCPU(asteroidRow({ name: 'RADAR2', radius_km: 0 }));
-        const [cbArg] = ctx.bodyRegistry.promote.mock.calls[0];
-        expect(cbArg.physicalRadius).toBeCloseTo(1.0 / AU_IN_KM, 10);
-    });
-
-    it('colors the orbit line using savedColors when available, defaulting to cyan otherwise', () => {
-        const ctx = makeCtx({ savedColors: { 'main-belt': '#123456' } });
-        const sb = new SystemBuilder(ctx);
-        sb.promoteAsteroidToCPU(asteroidRow({ name: 'RADAR3', datasetName: 'main-belt' }));
-        const [cbArg] = ctx.bodyRegistry.promote.mock.calls[0];
-        expect(cbArg.orbitLine.material.color.getHexString()).toBe('123456');
+        expect(ctx.scene.add)
+            .toHaveBeenCalledTimes(4);
     });
 });

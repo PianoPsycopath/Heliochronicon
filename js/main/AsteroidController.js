@@ -8,7 +8,7 @@ export class AsteroidController {
     constructor({
         appState,
         UI,
-        systemBuilder,
+        asteroidPromotionService,
         bodyRegistry,
         interactionController,
         seasonMarkerController,
@@ -21,7 +21,9 @@ export class AsteroidController {
     }) {
         this.appState = appState;
         this.UI = UI;
-        this.systemBuilder = systemBuilder;
+
+        this.asteroidPromotionService = asteroidPromotionService;
+
         this.bodyRegistry = bodyRegistry;
         this.interactionController = interactionController;
         this.seasonMarkerController = seasonMarkerController;
@@ -46,20 +48,11 @@ export class AsteroidController {
         }
 
         if (data.datasetCategory === 'ASTEROID' || data.datasetCategory === 'RADAR_CONTACT') {
-            this.systemBuilder.promoteAsteroidToCPU(data);
-
-            const promoted = this.celestialBodies.find(
-                (body) =>
-                    body.data.name === data.name &&
-                    body.data.datasetCategory === 'PROMOTED_ASTEROID'
-            );
-
+            const promoted = this.asteroidPromotionService.promote(data);
             if (!promoted) {
                 logger.warn(`Unable to promote asteroid "${data.name}" to CPU`);
-
                 return;
             }
-
             data = promoted.data;
         }
 
@@ -160,7 +153,7 @@ export class AsteroidController {
     }
 
     togglePin(data) {
-        const body = this.findPromotedBody(data.name);
+        const body = this.asteroidPromotionService.findPromoted(data.name);
 
         if (!body) {
             return;
@@ -184,7 +177,7 @@ export class AsteroidController {
     }
 
     purge(data) {
-        this.bodyRegistry.removeByNameAndCategory(data.name, 'PROMOTED_ASTEROID');
+        this.asteroidPromotionService.purge(data.name);
 
         let pinned = this.storage.get('pinnedAsteroids', []);
 

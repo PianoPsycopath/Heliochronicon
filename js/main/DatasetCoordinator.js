@@ -32,6 +32,7 @@ export class DatasetCoordinator {
         datasetMaterials,
         savedColors,
         dataBasePath,
+        asteroidPromotionService,
     }) {
         this.storage = storage;
         this.appState = appState;
@@ -40,6 +41,7 @@ export class DatasetCoordinator {
         this.UI = UI;
         this.datasetMaterials = datasetMaterials;
         this.savedColors = savedColors;
+        this.asteroidPromotionService = asteroidPromotionService;
 
         this.dataBasePath = normalizeDataBasePath(dataBasePath);
 
@@ -288,7 +290,7 @@ export class DatasetCoordinator {
         pinnedAsteroids.forEach((astData) => {
             astData.isPinned = true;
 
-            this.systemBuilder.promoteAsteroidToCPU(astData);
+            this.asteroidPromotionService.restorePinned(astData);
         });
     }
 }

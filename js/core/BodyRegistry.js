@@ -1,7 +1,4 @@
-// js/BodyRegistry.js
-//
-// Single owner of CelestialBody lifecycle (register / remove / dispose).
-// Callers construct the THREE objects and hand them off here.
+// js/core/BodyRegistry.js
 import {
     matchesDataset,
     matchesNameAndCategory,
@@ -26,9 +23,10 @@ export class BodyRegistry {
         return body;
     }
 
-    // Dispose previous body (by name + category) then register the new one.
-    // Used by promotion paths (radar → promoted, asteroid → radar).
     promote(newBody, previous = null) {
+        if (!newBody) {
+            throw new Error('BodyRegistry.promote requires a body');
+        }
         if (previous) {
             this.removeByNameAndCategory(previous.name, previous.category);
         }

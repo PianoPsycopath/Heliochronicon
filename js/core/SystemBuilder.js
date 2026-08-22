@@ -1,4 +1,4 @@
-// js/SystemBuilder.js
+// js/core/SystemBuilder.js
 import { OrbitalMath } from '@physics/OrbitalMath.js';
 import { Shaders } from '@rendering/Shaders.js';
 import { CelestialBody } from '@core/CelestialBody.js';
@@ -330,34 +330,29 @@ export class SystemBuilder {
         return mesh;
     }
 
-    promoteAsteroidToCPU(d) {
-        const {
-            scene,
-            celestialBodies,
-            savedColors,
-            dotTexture,
-            tacticalMaterial,
-            AU_IN_KM,
-            bodyRegistry,
-        } = this.ctx;
+    createPromotedAsteroidBody(d) {
+        const { scene, savedColors, dotTexture, tacticalMaterial, AU_IN_KM } = this.ctx;
 
-        if (
-            celestialBodies.some(
-                (b) => b.data.name === d.name && b.data.datasetCategory === 'PROMOTED_ASTEROID'
-            )
-        )
-            return;
-
-        const promotedData = { ...d, datasetCategory: 'PROMOTED_ASTEROID' };
+        const promotedData = {
+            ...d,
+            datasetCategory: 'PROMOTED_ASTEROID',
+        };
 
         const scaledA = this.getTacticalA(promotedData, false);
 
         const physicalRadius =
             promotedData.radius_km > 0 ? promotedData.radius_km / AU_IN_KM : 1.0 / AU_IN_KM;
 
+        // ---------------------------------------------------------------------
+        // CPU mesh representation
+        // ---------------------------------------------------------------------
+
         const geometry = new THREE.SphereGeometry(physicalRadius, 32, 32);
+
         geometry.rotateY(Math.PI / 2);
+
         const mesh = new THREE.Mesh(geometry, tacticalMaterial);
+
         mesh.userData = promotedData;
         mesh.renderOrder = 1500;
 
@@ -367,62 +362,100 @@ export class SystemBuilder {
             transparent: true,
             opacity: 0.4,
         });
+
         mesh.add(new THREE.Mesh(mesh.geometry, wireMat));
+
         const poleMat = new THREE.LineBasicMaterial({
             color: 0x00ffff,
             transparent: true,
             opacity: 0.8,
         });
+
         const poleGeo = new THREE.BufferGeometry().setFromPoints([
             new THREE.Vector3(0, physicalRadius * 1.5, 0),
             new THREE.Vector3(0, -physicalRadius * 1.5, 0),
         ]);
+
         mesh.add(new THREE.Line(poleGeo, poleMat));
 
         scene.add(mesh);
 
+        // ---------------------------------------------------------------------
+        // Label
+        // ---------------------------------------------------------------------
+
         const datasetColor = savedColors[promotedData.datasetName] || '#00ffff';
+
         const label = document.createElement('div');
+
         label.className = 'tactical-label';
         label.innerText = promotedData.name;
         label.style.color = datasetColor;
+
         document.body.appendChild(label);
 
-        const spriteMat = new THREE.SpriteMaterial({ map: dotTexture, depthTest: false });
+        // ---------------------------------------------------------------------
+        // Sprite
+        // ---------------------------------------------------------------------
+
+        const spriteMat = new THREE.SpriteMaterial({
+            map: dotTexture,
+            depthTest: false,
+        });
+
         spriteMat.color.set(datasetColor);
+
         const sprite = new THREE.Sprite(spriteMat);
+
         sprite.userData = promotedData;
         sprite.renderOrder = 1500;
+
         scene.add(sprite);
 
+        // ---------------------------------------------------------------------
+        // Orbit representation
+        // ---------------------------------------------------------------------
+
         const orbitLine = this.createOrbitPath(promotedData, scaledA);
+
         orbitLine.material.color.set(datasetColor);
+
         scene.add(orbitLine);
 
         const orbitCurtain = this.createOrbitCurtain();
+
         scene.add(orbitCurtain);
+
+        // ---------------------------------------------------------------------
+        // Static transforms
+        // ---------------------------------------------------------------------
 
         mesh.matrixAutoUpdate = false;
         sprite.matrixAutoUpdate = false;
         orbitLine.matrixAutoUpdate = false;
         orbitCurtain.matrixAutoUpdate = false;
 
-        bodyRegistry.promote(
-            new CelestialBody({
-                data: promotedData,
-                mesh: mesh,
-                label: label,
-                sprite: sprite,
-                orbitLine: orbitLine,
-                orbitCurtain: orbitCurtain,
-                isMoon: false,
-                scaledA: scaledA,
-                physicalRadius: physicalRadius,
-                datasetVisible: true,
-                isCulled: false,
-                hideLabel: false,
-            }),
-            { name: d.name, category: 'RADAR_CONTACT' }
-        );
+        // ---------------------------------------------------------------------
+        // Return representation.
+        //
+        // IMPORTANT:
+        // SystemBuilder does NOT register it.
+        // AsteroidPromotionService → BodyRegistry owns that transition.
+        // ---------------------------------------------------------------------
+
+        return new CelestialBody({
+            data: promotedData,
+            mesh,
+            label,
+            sprite,
+            orbitLine,
+            orbitCurtain,
+            isMoon: false,
+            scaledA,
+            physicalRadius,
+            datasetVisible: true,
+            isCulled: false,
+            hideLabel: false,
+        });
     }
 }

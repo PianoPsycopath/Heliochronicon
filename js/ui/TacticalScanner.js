@@ -1,4 +1,4 @@
-// js/TacticalScanner.js
+// js/ui/TacticalScanner.js
 import { OrbitalMath } from '@physics/OrbitalMath.js';
 import { CelestialBody } from '@core/CelestialBody.js';
 import { shouldPurgeInFullSweep } from '@core/bodyRegistryPredicates.js';
@@ -11,17 +11,15 @@ export class TacticalScanner {
     }
 
     purgeTacticalClones() {
-        const { UI, celestialBodies, bodyRegistry } = this.ctx;
+        const { UI, celestialBodies } = this.ctx;
+
         const currentTargetData = this.ctx.getCurrentTarget();
 
-        // 1. Sweep and destroy all Radar Contacts and Unpinned Clones
-        bodyRegistry.purgeTacticalClones();
+        this.ctx.asteroidPromotionService.purgeUnpinned();
 
-        // 2. Break camera tracking if the user was focused on an unpinned clone that just got deleted
         if (currentTargetData && shouldPurgeInFullSweep(currentTargetData)) {
             this.ctx.onTargetPurged();
         } else {
-            // 3. Reset the UI Panels normally
             UI.updateTargetPanel(currentTargetData);
             UI.renderBodyList(celestialBodies, currentTargetData);
         }
@@ -76,9 +74,7 @@ export class TacticalScanner {
             const currentJ2000Days = this.ctx.getJ2000Days(systemDate);
             let closestList = [];
 
-            // 1. Clear old green radar contacts AND unpinned memory clones
-            // (protects the currently targeted body's clone from the sweep)
-            bodyRegistry.sweepForRescan(currentTargetData);
+            this.ctx.asteroidPromotionService.sweepForRescan(currentTargetData);
 
             gpuParticleSystems.forEach((system) => {
                 if (!system.visible) return;

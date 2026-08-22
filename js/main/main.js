@@ -24,6 +24,7 @@ import { SeasonMarkerController } from '@rendering/SeasonMarkerController.js';
 import { TooltipManager } from '@ui/TooltipManager.js';
 import { AppState } from '@core/AppState.js';
 import { logger } from '@core/logger.js';
+import { AsteroidPromotionService } from '@core/AsteroidPromotionService.js';
 
 import { DatasetCoordinator } from '@main/DatasetCoordinator.js';
 import { AsteroidController } from '@main/AsteroidController.js';
@@ -213,6 +214,12 @@ const systemBuilder = new SystemBuilder({
     onClearMemory: () => {},
 });
 
+const asteroidPromotionService = new AsteroidPromotionService({
+    bodyRegistry,
+    systemBuilder,
+    celestialBodies,
+});
+
 const datasetCoordinator = new DatasetCoordinator({
     storage,
     appState,
@@ -222,6 +229,7 @@ const datasetCoordinator = new DatasetCoordinator({
     datasetMaterials,
     savedColors,
     dataBasePath: dataSource,
+    asteroidPromotionService,
 });
 
 // -----------------------------------------------------------------------------
@@ -278,7 +286,7 @@ const interactionController = new InteractionController({
 const asteroidController = new AsteroidController({
     appState,
     UI,
-    systemBuilder,
+    asteroidPromotionService,
     bodyRegistry,
     interactionController,
     seasonMarkerController,
