@@ -1,5 +1,6 @@
 // js/main/main.js
 import * as THREE from 'three';
+import { Analytics } from "@vercel/analytics/next"
 import { AU_IN_KM, MAX_WELLS } from '@core/constants.js';
 import { SceneManager } from '@core/SceneManager.js';
 import { Shaders } from '@rendering/Shaders.js';
@@ -28,6 +29,8 @@ import { AsteroidPromotionService } from '@core/AsteroidPromotionService.js';
 import { DatasetCoordinator } from '@main/DatasetCoordinator.js';
 import { AsteroidController } from '@main/AsteroidController.js';
 import { RenderingLoop } from '@main/RenderingLoop.js';
+
+inject();
 
 const STAR_DATA_BASE_PATH = 'star_data/';
 const storage = new StorageManager();
