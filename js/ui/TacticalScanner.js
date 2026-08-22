@@ -117,8 +117,8 @@ export class TacticalScanner {
             const systemBuilder = this.ctx.systemBuilder;
             closestList.forEach((hit) => {
                 const radarData = { ...hit.data, datasetCategory: 'RADAR_CONTACT' };
-
                 const datasetColor = savedColors[radarData.datasetName] || '#00ff00';
+
                 const spriteMat = new THREE.SpriteMaterial({ map: dotTexture, depthTest: false });
                 spriteMat.color.set(datasetColor);
                 const sprite = new THREE.Sprite(spriteMat);
@@ -138,7 +138,7 @@ export class TacticalScanner {
                 const absolutePos = new THREE.Vector3(rawPos.x, rawPos.y, rawPos.z);
 
                 sprite.position.copy(absolutePos.clone().sub(currentOrigin));
-                const scale = 35 / camera.zoom;
+                const scale = 1.2 / camera.zoom;
                 sprite.scale.set(scale, scale, 1);
 
                 sprite.matrixAutoUpdate = false;
@@ -149,11 +149,28 @@ export class TacticalScanner {
 
                 const dummyMesh = new THREE.Object3D();
 
-                const orbitLine = systemBuilder.createOrbitPath(radarData, radarData.a);
-                orbitLine.material.color.set(datasetColor);
-                orbitLine.visible = false;
-                orbitLine.matrixAutoUpdate = false;
-                scene.add(orbitLine);
+                let orbitLine = null;
+                if (typeof systemBuilder?.createOrbitPath === 'function') {
+                    orbitLine = systemBuilder.createOrbitPath(radarData, radarData.a);
+                    orbitLine.material.color.set(datasetColor);
+                    orbitLine.visible = false;
+                    orbitLine.matrixAutoUpdate = false;
+                    scene.add(orbitLine);
+                } else {
+                    orbitLine = new THREE.Line(
+                        new THREE.BufferGeometry(),
+                        new THREE.LineBasicMaterial({
+                            color: datasetColor,
+                            transparent: true,
+                            opacity: 0.5,
+                        })
+                    );
+                    orbitLine.visible = false;
+                    scene.add(orbitLine);
+                    console.warn(
+                        '[TacticalScanner] systemBuilder.createOrbitPath missing; using empty orbit line'
+                    );
+                }
 
                 const dummyLineMat = new THREE.LineBasicMaterial();
                 const dummyCurtain = new THREE.LineSegments(

@@ -46,6 +46,8 @@ function makeCtx(overrides = {}) {
         getCurrentTarget: vi.fn(() => null),
         onClearTarget: vi.fn(),
         onClearMemory: vi.fn(),
+        onSystemCleared: vi.fn(),
+        onBodiesChanged: vi.fn(),
         ...overrides
     };
 }
@@ -135,8 +137,7 @@ describe('SystemBuilder.clearSolarSystem', () => {
 
         expect(ctx.bodyRegistry.clearAll).toHaveBeenCalledTimes(1);
         expect(ctx.onClearTarget).toHaveBeenCalledTimes(1);
-        expect(ctx.UI.updateTargetPanel).toHaveBeenCalledWith(null);
-        expect(ctx.UI.renderBodyList).toHaveBeenCalledWith(ctx.celestialBodies, null);
+        expect(ctx.onSystemCleared).toHaveBeenCalledTimes(1);
         expect(ctx.onClearMemory).toHaveBeenCalledTimes(1);
     });
 });
@@ -166,7 +167,7 @@ describe('SystemBuilder.buildSolarSystem — ASTEROID (GPU particle) path', () =
         expect(ctx.gpuParticleSystems).toHaveLength(1);
         expect(ctx.scene.add).toHaveBeenCalledTimes(2); // particleSystem + groupLabel
         expect(ctx.datasetMaterials['main-belt']).toBeDefined();
-        expect(ctx.UI.renderBodyList).toHaveBeenCalledWith(ctx.celestialBodies, null);
+        expect(ctx.onBodiesChanged).toHaveBeenCalledWith(ctx.celestialBodies, null);
 
         const particleSystem = ctx.gpuParticleSystems[0];
         expect(particleSystem.userData.datasetName).toBe('main-belt');
@@ -267,7 +268,7 @@ describe('SystemBuilder.buildSolarSystem — CPU (planet/moon) path', () => {
 
         expect(rafSpy).toHaveBeenCalled(); // had to continue past CHUNK_SIZE=150
         expect(ctx.bodyRegistry.registerBody).toHaveBeenCalledTimes(200);
-        expect(ctx.UI.renderBodyList).toHaveBeenCalledTimes(1); // only called once, at the very end
+        expect(ctx.onBodiesChanged).toHaveBeenCalledTimes(1); // only called once, at the very end
         rafSpy.mockRestore();
     });
 });

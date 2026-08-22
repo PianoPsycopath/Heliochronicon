@@ -37,7 +37,9 @@ function makeCtx() {
         },
         getCurrentTarget: vi.fn(() => null),
         onClearTarget: vi.fn(),
-        onClearMemory: vi.fn()
+        onClearMemory: vi.fn(),
+        onSystemCleared: vi.fn(),
+        onBodiesChanged: vi.fn() 
     };
 }
 
@@ -91,7 +93,7 @@ describe('Integration: DataLoader -> SystemBuilder (planets + moons, CPU path)',
 
         expect(ctx.bodyRegistry.registerBody).toHaveBeenCalledTimes(3);
         expect(ctx.celestialBodies).toHaveLength(3);
-        expect(ctx.UI.renderBodyList).toHaveBeenCalledTimes(1);
+        expect(ctx.onBodiesChanged).toHaveBeenCalledTimes(1);
     });
 
     it('wires up correct parent/moon relationships end to end', () => {

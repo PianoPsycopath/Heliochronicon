@@ -105,14 +105,10 @@ export class AsteroidPromotionService {
             isPinned: true,
         };
 
-        const body = this.systemBuilder.createPromotedAsteroidBody(
-            restoredData
-        );
+        const body = this.systemBuilder.createPromotedAsteroidBody(restoredData);
 
         if (!body) {
-            logger.warn(
-                `Unable to restore pinned asteroid "${data.name}"`
-            );
+            logger.warn(`Unable to restore pinned asteroid "${data.name}"`);
             return null;
         }
 
