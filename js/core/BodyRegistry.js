@@ -154,4 +154,28 @@ export class BodyRegistry {
             this.gpuParticleSystems.splice(i, 1);
         }
     }
+    getByName(name) {
+        return this.celestialBodies.find((b) => b.data.name === name) || null;
+    }
+
+    getByCategory(category) {
+        return this.celestialBodies.filter((b) => b.data.datasetCategory === category);
+    }
+
+    getPromotedBody(name) {
+        return (
+            this.celestialBodies.find(
+                (b) => b.data.name === name && b.data.datasetCategory === 'PROMOTED_ASTEROID'
+            ) || null
+        );
+    }
+
+    hasBody(name) {
+        return this.celestialBodies.some((b) => b.data.name === name);
+    }
+
+    registerParticleSystem(system) {
+        this.gpuParticleSystems.push(system);
+        return system;
+    }
 }

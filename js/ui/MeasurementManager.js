@@ -1,3 +1,4 @@
+// js/ui/MeasurementManager.js
 import * as THREE from 'three';
 
 const STAR_FAR_PLANE_AU = 1e14;
@@ -53,7 +54,11 @@ export class MeasurementManager {
         if (bodyData.datasetCategory === 'BACKGROUND_STAR') {
             node = { data: bodyData, isStar: true };
         } else {
-            const body = celestialBodies.find((b) => b.data.name === bodyData.name);
+            const body =
+                typeof celestialBodies.getByName === 'function'
+                    ? celestialBodies.getByName(bodyData.name)
+                    : celestialBodies.find((b) => b.data.name === bodyData.name);
+
             if (!body) return;
             node = body;
         }
@@ -86,30 +91,20 @@ export class MeasurementManager {
         this.activeRulers.push({ bodyA, bodyB, line, label });
     }
 
-    // Input is now expected to be in AU directly from the 3D scene
     formatDistance(distAU) {
         const AU_IN_KM = 149597870.7;
         const LY_IN_AU = 63241.1;
 
-        // Greater than ~632 AU (1% of a Light Year)
         if (distAU > LY_IN_AU * 0.01) {
             return `${(distAU / LY_IN_AU).toFixed(4)} LY`;
-        }
-        // Greater than ~7.5 million KM (Ensures Jovian Moons stay in KM, Interplanetary uses AU)
-        else if (distAU > 0.05) {
+        } else if (distAU > 0.05) {
             return `${distAU.toFixed(4)} AU`;
-        }
-        // Everything smaller falls back to Kilometers
-        else {
+        } else {
             const distKm = distAU * AU_IN_KM;
             return `${distKm.toLocaleString(undefined, { maximumFractionDigits: 0 })} KM`;
         }
     }
 
-    // Returns a render-space (floating-origin-relative) position for a node,
-    // whether it's a regular celestialBody (mesh.position, already kept
-    // up to date by the physics/floating-origin pipeline) or a star (no
-    // mesh -- position + velocity * years, same math the star shaders use).
     _getNodePosition(node, currentOrigin, daysSinceJ2000) {
         if (node.isStar) {
             const d = node.data;
@@ -170,7 +165,6 @@ export class MeasurementManager {
                 new THREE.Float32BufferAttribute(points, 3)
             );
 
-            // Pass the native AU 3D distance into our revised formatter
             ruler.label.innerText = this.formatDistance(dist);
 
             tempVec.copy(midPoint).project(this._farCamera);

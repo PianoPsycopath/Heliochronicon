@@ -49,6 +49,7 @@ export class RenderPipeline {
         this.terrainController = pipelineContext.terrainController;
         this.daylightController = pipelineContext.daylightController;
         this.eclipseShadowController = pipelineContext.eclipseShadowController;
+        this.bodyRegistry = pipelineContext.bodyRegistry;
 
         this.PLANET_SPRITE_SIZE = 4.5;
         this.MOON_SPRITE_SIZE = 2.5;
@@ -107,9 +108,9 @@ export class RenderPipeline {
         let targetAbsolutePosition = new THREE.Vector3(0, 0, 0);
 
         if (trackingTargetData) {
-            const targetBody = celestialBodies.find(
-                (body) => body.data.name === trackingTargetData.name
-            );
+            const targetBody = this.bodyRegistry
+                ? this.bodyRegistry.getByName(trackingTargetData.name)
+                : celestialBodies.find((body) => body.data.name === trackingTargetData.name);
 
             if (targetBody) {
                 targetAbsolutePosition.copy(targetBody.globalPos);
@@ -371,7 +372,9 @@ export class RenderPipeline {
                     bodyData.orbit_model === ORBIT_MODEL_MEEUS ||
                     bodyData.orbit_model === ORBIT_MODEL_VSOP87;
 
-                const parentBody = celestialBodies.find((b) => b.data.name === bodyData.parent);
+                const parentBody = this.bodyRegistry
+                    ? this.bodyRegistry.getByName(bodyData.parent)
+                    : celestialBodies.find((b) => b.data.name === bodyData.parent);
                 const parentPoleQuat =
                     parentBody && parentBody.poleQuaternion ? parentBody.poleQuaternion : null;
 

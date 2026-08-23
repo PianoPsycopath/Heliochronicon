@@ -21,10 +21,11 @@ import { SystemBuilder } from '@core/SystemBuilder.js';
 
 function makeCtx() {
     const celestialBodies = [];
+    const gpuParticleSystems = [];
     return {
         scene: { add: vi.fn() },
         celestialBodies,
-        gpuParticleSystems: [],
+        gpuParticleSystems,
         UI: { renderBodyList: vi.fn(), updateTargetPanel: vi.fn() },
         datasetMaterials: {},
         savedColors: {},
@@ -33,7 +34,11 @@ function makeCtx() {
         bodyRegistry: {
             registerBody: vi.fn((cb) => celestialBodies.push(cb)),
             promote: vi.fn((cb) => celestialBodies.push(cb)),
-            clearAll: vi.fn()
+            clearAll: vi.fn(),
+            registerParticleSystem: vi.fn((sys) => {
+                gpuParticleSystems.push(sys);
+                return sys;
+            })
         },
         getCurrentTarget: vi.fn(() => null),
         onClearTarget: vi.fn(),
@@ -51,9 +56,6 @@ describe('Integration: DataLoader -> SystemBuilder (planets + moons, CPU path)',
         sb = new SystemBuilder(ctx);
     });
 
-    // Shaped like raw rows straight out of a manifest JSON file, before any
-    // DataLoader normalization -- lower-case names, string numbers, missing
-    // optional fields, a moon expressed in km rather than AU.
     const rawRows = [
         { name: 'sun', category: 'STAR', parent: 'sun', radius_km: '696340' },
         {
@@ -76,19 +78,17 @@ describe('Integration: DataLoader -> SystemBuilder (planets + moons, CPU path)',
         const earth = processed.find(r => r.name === 'EARTH');
         const sun = processed.find(r => r.name === 'SUN');
 
-        expect(sun.parent).toBe('SUN'); // self-referencing star
+        expect(sun.parent).toBe('SUN'); 
         expect(earth.a).toBeCloseTo(1.0, 10);
-        expect(moon.a).toBeCloseTo(384400 / AU_IN_KM, 6); // km -> AU conversion happened
+        expect(moon.a).toBeCloseTo(384400 / AU_IN_KM, 6); 
         expect(moon.orbit_model).toBe('MEEUS');
         expect(earth.orbit_model).toBe('KEPLER');
         expect(processed.every(r => r.datasetName === 'sol-system')).toBe(true);
-        // sorted largest-radius first
         expect(processed.map(r => r.name)).toEqual(['SUN', 'EARTH', 'MOON']);
     });
 
     it('builds a complete scene graph from the processed data without throwing', () => {
         const processed = DataLoader.processPlanetaryData(rawRows, 'sol-system');
-
         expect(() => sb.buildSolarSystem(processed)).not.toThrow();
 
         expect(ctx.bodyRegistry.registerBody).toHaveBeenCalledTimes(3);
@@ -105,12 +105,12 @@ describe('Integration: DataLoader -> SystemBuilder (planets + moons, CPU path)',
         const moonBody = ctx.celestialBodies.find(b => b.data.name === 'MOON');
 
         expect(sunBody.isMoon).toBe(false);
-        expect(sunBody.orbitLine).toBeNull(); // stars don't get an orbit path
+        expect(sunBody.orbitLine).toBeNull(); 
         expect(earthBody.isMoon).toBe(false);
         expect(earthBody.orbitLine).not.toBeNull();
         expect(moonBody.isMoon).toBe(true);
         expect(moonBody.data.parent).toBe('EARTH');
-        expect(moonBody.orbitLine).not.toBeNull(); // MEEUS moons still get a sampled orbit path
+        expect(moonBody.orbitLine).not.toBeNull(); 
     });
 
     it('carries physical radii through in AU, matching DataLoader\'s km values', () => {
@@ -129,12 +129,10 @@ describe('Integration: DataLoader -> SystemBuilder (planets + moons, CPU path)',
         const processedAsteroids = DataLoader.processPlanetaryData(asteroidRows, 'main-belt');
         const processedPlanets = DataLoader.processPlanetaryData(rawRows, 'sol-system');
 
-        // Planets/moons go through the CPU path; asteroids go through the GPU particle path.
-        // A real pipeline calls buildSolarSystem once per dataset chunk.
         expect(() => sb.buildSolarSystem(processedPlanets)).not.toThrow();
         expect(() => sb.buildSolarSystem(processedAsteroids)).not.toThrow();
 
-        expect(ctx.celestialBodies).toHaveLength(3); // asteroids don't register as CelestialBody
+        expect(ctx.celestialBodies).toHaveLength(3); 
         expect(ctx.gpuParticleSystems).toHaveLength(1);
         expect(ctx.gpuParticleSystems[0].userData.sourceData).toHaveLength(2);
     });

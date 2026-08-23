@@ -31,7 +31,6 @@ export class TacticalScanner {
             scene,
             camera,
             currentOrigin,
-            celestialBodies,
             gpuParticleSystems,
             dotTexture,
             savedColors,
@@ -47,7 +46,7 @@ export class TacticalScanner {
             let referenceName = 'CAMERA';
 
             if (currentTargetData) {
-                const tBody = celestialBodies.find((x) => x.data.name === currentTargetData.name);
+                const tBody = bodyRegistry.getByName(currentTargetData.name);
                 if (tBody) {
                     scanOrigin.copy(tBody.globalPos);
                 } else if (

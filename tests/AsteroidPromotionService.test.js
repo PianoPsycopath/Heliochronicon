@@ -27,12 +27,14 @@ function makeContext() {
             celestialBodies.push(body);
             return body;
         }),
-
         removeBody: vi.fn(),
-
         purgeTacticalClones: vi.fn(),
-
         sweepForRescan: vi.fn(),
+        getPromotedBody: vi.fn((name) => {
+            return celestialBodies.find(
+                (b) => b.data.name === name && b.data.datasetCategory === 'PROMOTED_ASTEROID'
+            ) || null;
+        })
     };
 
     const systemBuilder = {
@@ -54,73 +56,35 @@ function makeContext() {
 describe('AsteroidPromotionService', () => {
     it('allows GPU ASTEROID records to cross the promotion boundary', () => {
         const ctx = makeContext();
-
-        const service =
-            new AsteroidPromotionService(ctx);
-
-        expect(
-            service.canPromote(
-                asteroid('CERES', 'ASTEROID')
-            )
-        ).toBe(true);
+        const service = new AsteroidPromotionService(ctx);
+        expect(service.canPromote(asteroid('CERES', 'ASTEROID'))).toBe(true);
     });
 
     it('allows RADAR_CONTACT records to be promoted', () => {
         const ctx = makeContext();
-
-        const service =
-            new AsteroidPromotionService(ctx);
-
-        expect(
-            service.canPromote(
-                asteroid('CERES', 'RADAR_CONTACT')
-            )
-        ).toBe(true);
+        const service = new AsteroidPromotionService(ctx);
+        expect(service.canPromote(asteroid('CERES', 'RADAR_CONTACT'))).toBe(true);
     });
 
     it('rejects already-promoted bodies as promotion inputs', () => {
         const ctx = makeContext();
-
-        const service =
-            new AsteroidPromotionService(ctx);
-
-        expect(
-            service.canPromote(
-                asteroid(
-                    'CERES',
-                    'PROMOTED_ASTEROID'
-                )
-            )
-        ).toBe(false);
+        const service = new AsteroidPromotionService(ctx);
+        expect(service.canPromote(asteroid('CERES', 'PROMOTED_ASTEROID'))).toBe(false);
     });
 
     it('constructs and registers a CPU representation', () => {
         const ctx = makeContext();
-
-        const service =
-            new AsteroidPromotionService(ctx);
-
+        const service = new AsteroidPromotionService(ctx);
         const source = asteroid();
+        const promoted = service.promote(source);
 
-        const promoted =
-            service.promote(source);
-
-        expect(
-            ctx.systemBuilder
-                .createPromotedAsteroidBody
-        ).toHaveBeenCalledWith(source);
-
-        expect(
-            ctx.bodyRegistry.promote
-        ).toHaveBeenCalledTimes(1);
-
-        expect(promoted.data.datasetCategory)
-            .toBe('PROMOTED_ASTEROID');
+        expect(ctx.systemBuilder.createPromotedAsteroidBody).toHaveBeenCalledWith(source);
+        expect(ctx.bodyRegistry.promote).toHaveBeenCalledTimes(1);
+        expect(promoted.data.datasetCategory).toBe('PROMOTED_ASTEROID');
     });
 
     it('does not create a duplicate CPU representation', () => {
         const ctx = makeContext();
-
         const existing = {
             data: {
                 name: 'CERES',
@@ -129,28 +93,16 @@ describe('AsteroidPromotionService', () => {
         };
 
         ctx.celestialBodies.push(existing);
-
-        const service =
-            new AsteroidPromotionService(ctx);
-
-        const result =
-            service.promote(asteroid());
+        const service = new AsteroidPromotionService(ctx);
+        const result = service.promote(asteroid());
 
         expect(result).toBe(existing);
-
-        expect(
-            ctx.systemBuilder
-                .createPromotedAsteroidBody
-        ).not.toHaveBeenCalled();
-
-        expect(
-            ctx.bodyRegistry.promote
-        ).not.toHaveBeenCalled();
+        expect(ctx.systemBuilder.createPromotedAsteroidBody).not.toHaveBeenCalled();
+        expect(ctx.bodyRegistry.promote).not.toHaveBeenCalled();
     });
 
     it('purges a promoted body through BodyRegistry', () => {
         const ctx = makeContext();
-
         const promoted = {
             data: {
                 name: 'CERES',
@@ -159,59 +111,34 @@ describe('AsteroidPromotionService', () => {
         };
 
         ctx.celestialBodies.push(promoted);
-
-        const service =
-            new AsteroidPromotionService(ctx);
+        const service = new AsteroidPromotionService(ctx);
 
         expect(service.purge('CERES')).toBe(true);
-
-        expect(
-            ctx.bodyRegistry.removeBody
-        ).toHaveBeenCalledWith(promoted);
+        expect(ctx.bodyRegistry.removeBody).toHaveBeenCalledWith(promoted);
     });
 
     it('returns false when purging a body that is not promoted', () => {
         const ctx = makeContext();
+        const service = new AsteroidPromotionService(ctx);
 
-        const service =
-            new AsteroidPromotionService(ctx);
-
-        expect(
-            service.purge('CERES')
-        ).toBe(false);
-
-        expect(
-            ctx.bodyRegistry.removeBody
-        ).not.toHaveBeenCalled();
+        expect(service.purge('CERES')).toBe(false);
+        expect(ctx.bodyRegistry.removeBody).not.toHaveBeenCalled();
     });
 
     it('delegates unpinned promotion cleanup to BodyRegistry', () => {
         const ctx = makeContext();
-
-        const service =
-            new AsteroidPromotionService(ctx);
+        const service = new AsteroidPromotionService(ctx);
 
         service.purgeUnpinned();
-
-        expect(
-            ctx.bodyRegistry
-                .purgeTacticalClones
-        ).toHaveBeenCalledTimes(1);
+        expect(ctx.bodyRegistry.purgeTacticalClones).toHaveBeenCalledTimes(1);
     });
 
     it('delegates rescan cleanup to BodyRegistry', () => {
         const ctx = makeContext();
-
-        const service =
-            new AsteroidPromotionService(ctx);
-
+        const service = new AsteroidPromotionService(ctx);
         const target = asteroid();
 
         service.sweepForRescan(target);
-
-        expect(
-            ctx.bodyRegistry
-                .sweepForRescan
-        ).toHaveBeenCalledWith(target);
+        expect(ctx.bodyRegistry.sweepForRescan).toHaveBeenCalledWith(target);
     });
 });

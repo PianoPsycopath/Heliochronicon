@@ -4,8 +4,6 @@ import { logger } from '@core/logger.js';
 
 const PROMOTABLE_CATEGORIES = new Set(['ASTEROID', 'RADAR_CONTACT']);
 
-const PROMOTED_CATEGORY = 'PROMOTED_ASTEROID';
-
 export class AsteroidPromotionService {
     constructor({ bodyRegistry, systemBuilder, celestialBodies }) {
         this.bodyRegistry = bodyRegistry;
@@ -13,14 +11,6 @@ export class AsteroidPromotionService {
         this.celestialBodies = celestialBodies;
     }
 
-    /**
-     * GPU dataset record / radar contact
-     *             ↓
-     *      promoted CPU body
-     *
-     * Policy lives here.
-     * THREE construction remains in SystemBuilder.
-     */
     promote(data) {
         if (!data || !this.canPromote(data)) {
             return null;
@@ -45,30 +35,14 @@ export class AsteroidPromotionService {
         });
     }
 
-    /**
-     * Only GPU asteroid records and radar contacts may cross
-     * the promotion boundary.
-     */
     canPromote(data) {
         return PROMOTABLE_CATEGORIES.has(data?.datasetCategory);
     }
 
-    /**
-     * Returns the CPU representation if it already exists.
-     */
     findPromoted(name) {
-        return (
-            this.celestialBodies.find(
-                (body) => body.data.name === name && body.data.datasetCategory === PROMOTED_CATEGORY
-            ) || null
-        );
+        return this.bodyRegistry.getPromotedBody(name);
     }
 
-    /**
-     * Remove a promoted CPU representation.
-     *
-     * The registry remains responsible for actual lifecycle/disposal.
-     */
     purge(name) {
         const promoted = this.findPromoted(name);
 
@@ -80,10 +54,6 @@ export class AsteroidPromotionService {
         return true;
     }
 
-    /**
-     * Remove all temporary promoted bodies while preserving
-     * pinned bodies according to registry policy.
-     */
     purgeUnpinned() {
         this.bodyRegistry.purgeTacticalClones();
     }
@@ -115,10 +85,6 @@ export class AsteroidPromotionService {
         return this.bodyRegistry.registerBody(body);
     }
 
-    /**
-     * Rescan policy:
-     * remove stale radar contacts and unprotected promoted bodies.
-     */
     sweepForRescan(protectedTargetData = null) {
         this.bodyRegistry.sweepForRescan(protectedTargetData);
     }

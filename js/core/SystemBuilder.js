@@ -22,7 +22,7 @@ export class SystemBuilder {
     buildSolarSystem(planetaryData) {
         if (planetaryData.length === 0) return;
 
-        const { celestialBodies, gpuParticleSystems, bodyRegistry } = this.ctx;
+        const { celestialBodies, bodyRegistry } = this.ctx;
         const datasetCategory = planetaryData[0].datasetCategory;
         const datasetName = planetaryData[0].datasetName;
         const currentTargetData = this.ctx.getCurrentTarget();
@@ -33,7 +33,7 @@ export class SystemBuilder {
                 planetaryData,
                 datasetName
             );
-            gpuParticleSystems.push(particleSystem);
+            bodyRegistry.registerParticleSystem(particleSystem);
 
             this.ctx.onBodiesChanged(celestialBodies, currentTargetData);
             return;

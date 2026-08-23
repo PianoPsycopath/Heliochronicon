@@ -193,9 +193,7 @@ export class AsteroidController {
     }
 
     findPromotedBody(name) {
-        return this.celestialBodies.find(
-            (body) => body.data.name === name && body.data.datasetCategory === 'PROMOTED_ASTEROID'
-        );
+        return this.bodyRegistry.getPromotedBody(name);
     }
 
     clearTarget() {

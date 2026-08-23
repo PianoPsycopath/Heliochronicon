@@ -5,8 +5,6 @@ import * as THREE from 'three';
 import { OrbitalMath, kmToAU } from '@physics/OrbitalMath.js';
 import { AU_IN_KM } from '@core/constants.js';
 
-// Shaders.js was not supplied; mock it so SystemBuilder's own branching logic runs
-// without depending on real shader/material construction.
 vi.mock('@rendering/Shaders.js', () => ({
     Shaders: {
         getAsteroidParticleMaterial: vi.fn((color) => new THREE.PointsMaterial({ color })),
@@ -28,10 +26,11 @@ beforeEach(() => {
 
 function makeCtx(overrides = {}) {
     const celestialBodies = overrides.celestialBodies || [];
+    const gpuParticleSystems = overrides.gpuParticleSystems || [];
     return {
         scene: { add: vi.fn() },
         celestialBodies,
-        gpuParticleSystems: [],
+        gpuParticleSystems,
         UI: { renderBodyList: vi.fn(), updateTargetPanel: vi.fn() },
         datasetMaterials: {},
         savedColors: {},
@@ -41,7 +40,11 @@ function makeCtx(overrides = {}) {
         bodyRegistry: {
             registerBody: vi.fn((cb) => celestialBodies.push(cb)),
             promote: vi.fn((cb) => celestialBodies.push(cb)),
-            clearAll: vi.fn()
+            clearAll: vi.fn(),
+            registerParticleSystem: vi.fn((sys) => {
+                gpuParticleSystems.push(sys);
+                return sys;
+            })
         },
         getCurrentTarget: vi.fn(() => null),
         onClearTarget: vi.fn(),
@@ -102,7 +105,7 @@ describe('SystemBuilder.createOrbitPath', () => {
         const line = sb.createOrbitPath(data, 1);
 
         expect(spy).toHaveBeenCalledTimes(721);
-        expect(spy.mock.calls[1][1]).toBeCloseTo(27.32 / 720, 8); // days = (j/res) * period
+        expect(spy.mock.calls[1][1]).toBeCloseTo(27.32 / 720, 8);
         expect(line.geometry.attributes.position.count).toBe(721);
         spy.mockRestore();
     });
@@ -165,7 +168,7 @@ describe('SystemBuilder.buildSolarSystem — ASTEROID (GPU particle) path', () =
         sb.buildSolarSystem(rows);
 
         expect(ctx.gpuParticleSystems).toHaveLength(1);
-        expect(ctx.scene.add).toHaveBeenCalledTimes(2); // particleSystem + groupLabel
+        expect(ctx.scene.add).toHaveBeenCalledTimes(2); 
         expect(ctx.datasetMaterials['main-belt']).toBeDefined();
         expect(ctx.onBodiesChanged).toHaveBeenCalledWith(ctx.celestialBodies, null);
 
@@ -173,7 +176,7 @@ describe('SystemBuilder.buildSolarSystem — ASTEROID (GPU particle) path', () =
         expect(particleSystem.userData.datasetName).toBe('main-belt');
         expect(particleSystem.userData.datasetVisible).toBe(true);
         expect(Array.from(particleSystem.geometry.getAttribute('a').array)).toEqual([2.0, 3.0, 2.5]);
-        expect(particleSystem.userData.aSpread).toBeCloseTo(1.0, 10); // 3.0 - 2.0
+        expect(particleSystem.userData.aSpread).toBeCloseTo(1.0, 10); 
         expect(particleSystem.userData.groupLabel).toBeDefined();
     });
 
@@ -181,6 +184,7 @@ describe('SystemBuilder.buildSolarSystem — ASTEROID (GPU particle) path', () =
         const ctx = makeCtx();
         const sb = new SystemBuilder(ctx);
         sb.buildSolarSystem([asteroidRow()]);
+        
         expect(ctx.bodyRegistry.registerBody).not.toHaveBeenCalled();
         expect(ctx.celestialBodies).toHaveLength(0);
     });
@@ -202,14 +206,14 @@ describe('SystemBuilder.buildSolarSystem — CPU (planet/moon) path', () => {
 
         expect(sunBody.baseRenderOrder).toBe(2000);
         expect(sunBody.isMoon).toBe(false);
-        expect(sunBody.mesh.visible).toBe(true); // never hidden for the sun
+        expect(sunBody.mesh.visible).toBe(true);
         expect(sunBody.orbitLine).toBeNull();
         expect(sunBody.orbitCurtain).toBeNull();
         expect(sunBody.physicalRadius).toBeCloseTo(696340 / AU_IN_KM, 10);
 
         expect(earthBody.baseRenderOrder).toBe(1000);
         expect(earthBody.isMoon).toBe(false);
-        expect(earthBody.mesh.visible).toBe(false); // hidden until sprite-based render kicks in
+        expect(earthBody.mesh.visible).toBe(false); 
         expect(earthBody.orbitLine).not.toBeNull();
         expect(earthBody.orbitCurtain).not.toBeNull();
 
@@ -247,7 +251,7 @@ describe('SystemBuilder.buildSolarSystem — CPU (planet/moon) path', () => {
         sb.buildSolarSystem([planetRow()]);
 
         expect(ctx.bodyRegistry.registerBody).not.toHaveBeenCalled();
-        expect(ctx.celestialBodies).toHaveLength(1); // still just the pre-existing stub
+        expect(ctx.celestialBodies).toHaveLength(1); 
     });
 
     it('falls back to a nominal 1km-equivalent physicalRadius when radius_km is missing/zero', () => {
@@ -266,9 +270,9 @@ describe('SystemBuilder.buildSolarSystem — CPU (planet/moon) path', () => {
         const rows = Array.from({ length: 200 }, (_, idx) => planetRow({ name: `P${idx}`, parent: 'SUN' }));
         sb.buildSolarSystem(rows);
 
-        expect(rafSpy).toHaveBeenCalled(); // had to continue past CHUNK_SIZE=150
+        expect(rafSpy).toHaveBeenCalled(); 
         expect(ctx.bodyRegistry.registerBody).toHaveBeenCalledTimes(200);
-        expect(ctx.onBodiesChanged).toHaveBeenCalledTimes(1); // only called once, at the very end
+        expect(ctx.onBodiesChanged).toHaveBeenCalledTimes(1); 
         rafSpy.mockRestore();
     });
 });
@@ -283,7 +287,7 @@ describe('SystemBuilder.createGroupLabel', () => {
 
     it('uses the maximum size multiplier at/above the maximum spread', () => {
         const sb = new SystemBuilder(makeCtx());
-        const mesh = sb.createGroupLabel('main-belt', '#ffff00', 2.7, 5.0); // beyond SPREAD_MAX
+        const mesh = sb.createGroupLabel('main-belt', '#ffff00', 2.7, 5.0); 
         const expectedSize = 3.0 * 2.0;
         expect(mesh.geometry.parameters.width).toBeCloseTo(expectedSize, 6);
     });
@@ -309,17 +313,9 @@ describe('SystemBuilder.createPromotedAsteroidBody', () => {
 
         expect(body).toBeDefined();
         expect(body.data.name).toBe('RADAR1');
-        expect(body.data.datasetCategory)
-            .toBe('PROMOTED_ASTEROID');
-
-        expect(ctx.bodyRegistry.promote)
-            .not.toHaveBeenCalled();
-
-        expect(ctx.bodyRegistry.registerBody)
-            .not.toHaveBeenCalled();
-
-        // mesh + sprite + orbitLine + orbitCurtain
-        expect(ctx.scene.add)
-            .toHaveBeenCalledTimes(4);
+        expect(body.data.datasetCategory).toBe('PROMOTED_ASTEROID');
+        expect(ctx.bodyRegistry.promote).not.toHaveBeenCalled();
+        expect(ctx.bodyRegistry.registerBody).not.toHaveBeenCalled();
+        expect(ctx.scene.add).toHaveBeenCalledTimes(4);
     });
 });
