@@ -5,11 +5,12 @@ between modules, and the current known debt. It exists so that contributors (inc
 future maintainers) don't have to reverse-engineer the system from `main.js`, and so future
 changes have a documented baseline to check against.
 
-**Last verified against the main branch: August 14 2026** (Phase C: `Shaders.js` split into
-per-feature modules — see §7 Rendering table. Star-field magnitude LOD was attempted and
-reverted. Phase D: Vitest coverage for EclipseEngine pure helpers, TerrainController
-decision logic, `orbit_model` / barycenter dispatch, and the Aug 12 2026 eclipse suite —
-see §8 item 3).
+**Last verified against the main branch: August 23 2026** (BodyRegistry lifecycle boundary
+complete with lookup API; `AppState` extraction; `BodyFactory` / `OrbitFactory` split from
+`SystemBuilder`; modular `js/core|physics|rendering|ui` layout; Phase C shader split and
+Phase D Vitest coverage remain in place).
+
+---
 
 ## 1. What the system does
 
@@ -28,8 +29,9 @@ There is **no N-body integration at runtime**.
 with no secular perturbation terms applied post-epoch. Propagated positions are reliable for
 roughly ±40 years around the element epoch (an 80-year window) and degrade outside it. This
 is a deliberate scope decision. Multi-epoch element sets (pick closest epoch to sim date)
-would remove the limitation; that work has not started. Earth Moon has solved this using 
-VSOP87 and Meeus algorithm which now has within 1 arcsecond of a window of 6thousand years
+would remove the limitation; that work has not started. Earth–Moon has solved this using
+VSOP87 and the Meeus algorithm, which now holds within ~1 arcsecond over a multi-thousand-year
+window.
 
 Additional runtime features that affect architecture:
 
@@ -47,6 +49,16 @@ Additional runtime features that affect architecture:
 The app is built with **Vite**. Every file under `js/` is an ES module (`export class …` /
 named exports) with real `import` statements. There is no reliance on `<script>` tag load
 order.
+
+Source is organized by concern:
+
+| Path | Role |
+|---|---|
+| `js/core/` | Composition, body lifecycle, data, factories, scene |
+| `js/physics/` | Orbital math, propagation, eclipse pure helpers |
+| `js/rendering/` | Render pipeline, shaders, terrain/daylight/eclipse controllers, star field |
+| `js/ui/` | UI modules, interaction, telemetry, measurement, tutorial |
+| `js/main/` (or entry) | Composition root / boot / frame pipeline |
 
 - **Entry point:** `index.html` loads a single module:
   ```html
@@ -68,8 +80,8 @@ order.
 - No TypeScript is in use. A full TS migration remains paused.
 
 `main.js` is the **composition root**: it imports every subsystem, instantiates them, and
-wires them together with a plain context object (`ctx`). Missing or circular imports fail 
-at build/dev time instead of surfacing as asilent runtime `ReferenceError`.
+wires them together with a plain context object (`ctx`). Missing or circular imports fail
+at build/dev time instead of surfacing as a silent runtime `ReferenceError`.
 
 ---
 
@@ -80,9 +92,12 @@ Instead of subsystem classes reaching into globals, `main.js` passes each subsys
 
 ```js
 const systemBuilder = new SystemBuilder({
-  scene, UI, celestialBodies, pickableObjects, gpuParticleSystems, ...,
-  getCurrentTarget: () => currentTargetData,
-  onClearTarget: () => { currentTargetData = null; trackingTargetData = null; },
+  scene, UI, bodyRegistry, celestialBodies, pickableObjects, gpuParticleSystems, ...,
+  getCurrentTarget: () => appState.currentTargetData,
+  onClearTarget: () => {
+    appState.currentTargetData = null;
+    appState.trackingTargetData = null;
+  },
 });
 ```
 
@@ -98,25 +113,23 @@ returning plain objects or numbers.
 
 ## 4. Where state actually lives
 
-`main.js` owns all mutable application state as top-level `let`/`const` bindings.
-Everything else reaches it only through the `ctx` callbacks and getters:
+`main.js` still owns the primary mutable collections as top-level bindings, but
+higher-level simulation/UI state is increasingly centralized:
 
 | State | Owner | Read / mutated by |
 |---|---|---|
-| `celestialBodies[]` | main.js | SystemBuilder, PhysicsEngine, RenderPipeline, TacticalScanner, InteractionController, Terrain/Daylight/Eclipse controllers, MeasurementManager, `BodyRegistry` (sole mutator of add/remove — see §7, §8 item 5) |
-| `pickableObjects[]` | main.js | SystemBuilder, InteractionController, TacticalScanner, `BodyRegistry` (sole mutator of add/remove) |
-| `gpuParticleSystems[]` | main.js | SystemBuilder, RenderPipeline, TacticalScanner, StarLoader (star field) |
-| `currentTargetData` / `trackingTargetData` / `previewTargetData` | main.js | nearly everything, via getters / callbacks |
-| `systemDate`, `currentOrigin` | main.js | PhysicsEngine, RenderPipeline, TacticalScanner, MeasurementManager, PinnedStarManager |
-| `activeDatasets` (Set) | main.js closure | only main.js (visibility toggle handler) |
+| `celestialBodies[]` | main.js | PhysicsEngine, RenderPipeline, TacticalScanner, InteractionController, Terrain/Daylight/Eclipse controllers, MeasurementManager; **mutations of add/remove only via `BodyRegistry`** |
+| `pickableObjects[]` | main.js | InteractionController, TacticalScanner; **add/remove only via `BodyRegistry`** |
+| `gpuParticleSystems[]` | main.js | SystemBuilder, RenderPipeline, TacticalScanner, StarLoader; registry also registers/removes dataset particle systems |
+| `AppState` (`systemDate`, targets, `activeDatasets`, `inFlightDatasets`, `currentOrigin`, `lookupInFlight`) | `js/core/AppState.js` | nearly everything, via getters/setters passed through `ctx` |
 | `savedColors` (`tacticalMapColors`) | main.js, persisted via `StorageManager` | SystemBuilder, RenderPipeline, TacticalScanner |
 | `DATA_BASE_PATH` | main.js, persisted via `StorageManager` (`heliochronicon_dataSourcePath`) | DataLoader (indirectly, via URLs built in main.js) |
 | `assetManifest` | main.js | deep asteroid lookup, boot |
 | `starFieldMaterial` | main.js | final render stage (far-plane projection hack) |
 
-There is **no formal store or reducer**. State changes happen by direct mutation of shared
-arrays and objects, coordinated by callback wiring in `main.js`. Correctness depends on
-every subsystem mutating `celestialBodies` (and related lists) in a consistent order.
+There is still **no formal Redux-style store or reducer**. `AppState` provides a typed
+boundary for simulation/targeting/dataset flags; body *lifecycle* is owned by
+`BodyRegistry`. Shared arrays remain the source of truth for the body list and pickables.
 
 ### Frame pipeline (`animate()`)
 
@@ -132,23 +145,23 @@ Execution order is formalized as named, testable stages inside `animate()`:
 7. **Final GPU update + render** — `executeFinalRenderStage` (incl. star-field far projection)
 
 Each stage is a standalone function taking explicit arguments rather than closing over
-`main.js` globals where practical. See also the planned sequence diagrams under `docs/`.
+`main.js` globals where practical. See also the sequence diagrams under `docs/`.
 
 ---
 
 ## 5. The body object: an enforced schema
 
 Every entry in `celestialBodies[]` is an instance of the `CelestialBody` class
-(`js/CelestialBody.js`), constructed at the factory call sites in:
+(`js/core/CelestialBody.js`), constructed at factory call sites in:
 
-- `SystemBuilder.buildSolarSystem`
-- `SystemBuilder.promoteAsteroidToCPU`
+- `BodyFactory` / `SystemBuilder.buildSolarSystem`
+- `SystemBuilder.promoteAsteroidToCPU` / `AsteroidPromotionService`
 - `TacticalScanner.performTacticalScan` (and related promote paths)
 
 Do not construct body object literals elsewhere; extend the factory instead.
 
 ```js
-// js/CelestialBody.js (conceptual shape)
+// js/core/CelestialBody.js (conceptual shape)
 class CelestialBody {
   data;                 // PlanetaryElement (see §5.1)
   isMoon;
@@ -178,10 +191,10 @@ Additional per-frame fields attached by `PhysicsEngine` / `RenderPipeline` (not 
 present on a freshly constructed body): `localPos`, `parentQuat`, `distToCamSq`,
 `RA_current_deg`, `DEC_current_deg`, etc.
 
-### 5.1 The `PlanetaryElement` shape (output of `DataLoader.processPlanetaryData`)
+### 5.1 The `PlanetaryElement` shape (output of planetary data processing)
 
 ```js
-// Conceptual — see JSDoc @typedefs in DataLoader / CelestialBody
+// Conceptual — see JSDoc @typedefs in DataLoader / PlanetaryDataProcessor / CelestialBody
 {
   name, parent, category,           // category ≈ PLANET | MOON | ASTEROID | ...
   orbit_model,                      // "KEPLER" (default) | "VSOP87" | "MEEUS"
@@ -201,16 +214,70 @@ do not re-implement the constant.
 
 ---
 
-## 6. Data pipeline
+## 6. BodyRegistry: the body lifecycle boundary
+
+`BodyRegistry` (`js/core/BodyRegistry.js`) is the **authoritative body database and
+lifecycle owner**. Consumers should prefer registry APIs over raw array walks.
+
+### Mutation API (sole path for add/remove)
+
+| Method | Role |
+|---|---|
+| `registerBody(body)` | Push body into `celestialBodies` + mesh/sprite into `pickableObjects` |
+| `promote(newBody, previous?)` | Remove previous (by name+category) if provided, then register |
+| `removeBody(body)` | Full dispose + splice from arrays |
+| `removeByNameAndCategory(name, category)` | Lookup + remove |
+| `removeByDataset(datasetName)` | Purge CPU bodies (respects pinned promoted asteroids) + GPU particle systems for that dataset |
+| `purgeTacticalClones()` | Radar contacts + unpinned promoted asteroids |
+| `sweepForRescan(protectedTargetData?)` | Like purge, but can keep a protected target |
+| `clearAll()` | Tear down every body and particle system |
+| `registerParticleSystem(system)` | Track GPU asteroid/star particle systems |
+
+`disposeBody` is the single place that runs the full cleanup sequence:
+
+- scene removal of mesh / sprite / orbit line / orbit curtain
+- geometry + material dispose (shared tactical materials are not disposed here)
+- DOM label removal
+- `daylightController.removeBody` / `eclipseShadowController.removeBody`
+- `pickableObjects` bookkeeping
+
+### Lookup API
+
+```js
+bodyRegistry.getByName(name)           // CelestialBody | null
+bodyRegistry.getByCategory(category)   // CelestialBody[]
+bodyRegistry.getPromotedBody(name)     // CelestialBody | null (PROMOTED_ASTEROID only)
+bodyRegistry.hasBody(name)             // boolean
+```
+
+Preferred consumer style:
+
+```js
+bodyRegistry.getByName(name)
+// instead of:
+celestialBodies.find(...)
+```
+
+Matching predicates live in `js/core/bodyRegistryPredicates.js` (pure, DOM/Three-free,
+Vitest-covered): `matchesDataset`, `matchesNameAndCategory`, `shouldPurgeInFullSweep`,
+`shouldPurgeInRescan`.
+
+**Arrays remain internal implementation details** owned by `main.js` and passed by reference
+into the registry. Do not treat `celestialBodies` / `pickableObjects` as the primary public
+API for lifecycle operations.
+
+---
+
+## 7. Data pipeline
 
 ### Default (live) path
 
 `public/data/planets.json`, `moons.json`, `manifest.json`, asteroid chunk files, and
-heightmap assets under `public/data/heightmaps/` are read by `DataLoader.fetchJSONDataset`
-(and `TerrainController` for the heightmap manifest). `DataLoader.processPlanetaryData`
-normalizes into `PlanetaryElement`s (moon `a_km` → AU, period/mean-motion derivation, category
-defaults, `orbit_model` default `"KEPLER"`). `SystemBuilder.buildSolarSystem` then splits the
-result into:
+heightmap assets under `public/data/heightmaps/` are read by `DataLoader` /
+`DataRepository` (and `TerrainController` for the heightmap manifest).
+`PlanetaryDataProcessor` normalizes into `PlanetaryElement`s (moon `a_km` → AU,
+period/mean-motion derivation, category defaults, `orbit_model` default `"KEPLER"`).
+`SystemBuilder` + `BodyFactory` / `OrbitFactory` then split the result into:
 
 - GPU-instanced particle systems for asteroid populations
 - Full CPU `CelestialBody` meshes for planets, moons, and other primaries
@@ -218,8 +285,8 @@ result into:
 ### Custom-system path
 
 `raw/csv_to_json.py` (stdlib only at runtime; dev tooling pinned in `pyproject.toml`) converts
-a user-supplied JPL/Horizons-style CSV into the same chunked JSON + manifest shape, written
-to `raw/json_db/`. Examples: `raw/atira.csv`, `raw/kerbin_system.csv`.
+a user-supplied JPL/Horizons-style CSV into the same chunked JSON + manifest shape.
+Examples live under `examples/` (e.g. Kerbin system).
 
 `main.js` reads its data directory from a runtime-configurable `DATA_BASE_PATH`
 (`?dataSource=` URL param or `StorageManager` key `heliochronicon_dataSourcePath`) and
@@ -243,21 +310,27 @@ Missing manifest is non-fatal (terrain simply stays off).
 
 ---
 
-## 7. Module inventory
+## 8. Module inventory
 
 ### Core / composition
 
 | Module | Role |
 |---|---|
-| `main.js` | Composition root, state ownership, frame pipeline, boot, dataset visibility/purge (delegates body dispose to `BodyRegistry`) |
+| `main.js` | Composition root, frame pipeline, boot, dataset visibility/purge (delegates body dispose to `BodyRegistry`) |
+| `AppState.js` | Simulation/targeting/dataset/in-flight/origin state with validated getters/setters |
 | `SceneManager.js` | Canvas, scene, camera, renderer, OrbitControls |
-| `SystemBuilder.js` | Build / clear solar system, promote asteroid to CPU body (registers/removes via `BodyRegistry`) |
-| `BodyRegistry.js` | Owns the full CelestialBody lifecycle: `registerBody`, `promote`, `removeBody`, `removeByNameAndCategory`, `removeByDataset`, `purgeTacticalClones`, `sweepForRescan`, `clearAll`. Single place that runs the full dispose sequence (scene removal, geometry/material dispose, DOM label removal, `daylightController`/`eclipseShadowController` cleanup, `pickableObjects` bookkeeping). |
-| `bodyRegistryPredicates.js` | Pure, DOM/Three-free matching logic used by `BodyRegistry` (e.g. `shouldPurgeInFullSweep`, `shouldPurgeInRescan`) — no scene/graphics dependency, covered by Vitest unit tests. |
-| `DataLoader.js` | Fetch + normalize planetary / asteroid JSON |
-| `CelestialBody.js` | Enforced body schema / factory |
+| `SystemBuilder.js` | Build / clear solar system; orchestrates factories; registers via `BodyRegistry` |
+| `BodyFactory.js` | Constructs `CelestialBody` instances (meshes, sprites, labels) |
+| `OrbitFactory.js` | Orbit line / curtain geometry construction |
+| `BodyRegistry.js` | Full CelestialBody lifecycle + lookups (see §6) |
+| `bodyRegistryPredicates.js` | Pure matching / purge predicates used by `BodyRegistry` |
+| `CelestialBody.js` | Enforced body schema |
+| `DataLoader.js` / `DataRepository.js` | Fetch + normalize planetary / asteroid JSON |
+| `PlanetaryDataProcessor.js` | Element normalization (units, defaults, orbit model) |
+| `AsteroidLookup.js` | Deep designation lookup against manifest/chunks |
+| `AsteroidPromotionService.js` | GPU → CPU promotion coordination |
 | `storage.js` | `StorageManager` — sole `localStorage` access point |
-| `logger.js` | Minimal leveled logger. Production defaults to `warn`; dev defaults to `debug`. Exposes `window.setLogLevel` / `window.getLogLevel`. |
+| `logger.js` | Minimal leveled logger. Production defaults to `warn`; dev defaults to `debug`. |
 
 ### Physics & math
 
@@ -274,17 +347,17 @@ Missing manifest is non-fatal (terrain simply stays off).
 | Module | Role |
 |---|---|
 | `RenderPipeline.js` | Floating origin, projection, culling, GPU particle updates, coordinates terrain/daylight/eclipse hooks |
-| `Shaders.js` | Backward-compatible re-export of `shaders/ShaderManager.js` (kept so existing `import { Shaders } from '@rendering/Shaders.js'` call sites are unaffected) |
-| `shaders/ShaderManager.js` | Thin manager re-flattening every per-feature shader module below onto the original static `Shaders.getX()` surface |
-| `shaders/grid.js` | `GridShaders` — ecliptic parallax grid + targeted-body equatorial grid |
-| `shaders/tactical.js` | `TacticalShaders` — scan rim material, canvas sprite materials (dot/star/diamond/group label), GPU asteroid-particle field (on-GPU Kepler solve) |
-| `shaders/starField.js` | `StarFieldShaders` — background star field (with magnitude-LOD culling via `uMagLimit`) + star picking material |
-| `shaders/eclipse.js` | `EclipseShaders` — multi-body umbra/penumbra shadow overlay |
-| `shaders/nightSide.js` | `NightSideShaders` — day/night terminator shell |
-| `shaders/terrain.js` | `TerrainShaders` — heightmap contour / lat-lon grid / ocean material |
+| `Shaders.js` | Backward-compatible re-export of `shaders/ShaderManager.js` |
+| `shaders/ShaderManager.js` | Thin manager re-flattening per-feature shader modules onto `Shaders.getX()` |
+| `shaders/grid.js` | Ecliptic parallax grid + targeted-body equatorial grid |
+| `shaders/tactical.js` | Scan rim, canvas sprites, GPU asteroid-particle field |
+| `shaders/starField.js` | Background star field (+ magnitude LOD via `uMagLimit`) + star picking |
+| `shaders/eclipse.js` | Multi-body umbra/penumbra shadow overlay |
+| `shaders/nightSide.js` | Day/night terminator shell |
+| `shaders/terrain.js` | Heightmap contour / lat-lon grid / ocean material |
 | `TerrainController.js` | Heightmap registry, lazy texture load, material swap |
 | `DaylightController.js` | Day/night / night-side shading |
-| `EclipseShadowController.js` | Per-body eclipse overlay meshes (up to N concurrent shadows) |
+| `EclipseShadowController.js` | Per-body eclipse overlay meshes |
 | `StarLoader.js` | Load + build star-field `BufferGeometry` |
 | `PinnedStarManager.js` | Persistent star label pins |
 
@@ -292,61 +365,83 @@ Missing manifest is non-fatal (terrain simply stays off).
 
 | Module | Role |
 |---|---|
-| `UIController.js` | Thin composition layer (~300 lines) wiring UI modules to `main.js` callbacks |
+| `UIController.js` | Thin composition layer wiring UI modules to `main.js` callbacks |
 | `ChronometerDisplay.js` | CRT / oscilloscope time widget |
 | `TimeThrottle.js` | Time-scale state machine |
 | `BodyListManager.js` | Body list search / sort / render |
 | `TelemetryManager.js` | Target telemetry panel (incl. eclipse readout hooks) |
 | `VisibilityTreeManager.js` | Dataset visibility tree |
 | `InteractionController.js` | Picking, focus, tracking, hover preview |
-| `TacticalScanner.js` | Near-field scan + promote (radar-contact lifecycle via `BodyRegistry`) |
+| `TacticalScanner.js` | Near-field scan + promote (lifecycle via `BodyRegistry`) |
 | `MeasurementManager.js` | Spatial measurement tools |
 | `ZoomRulerManager.js` | Dynamic 3D distance ruler |
 | `TutorialManager.js` | First-run tutorial (uses `StorageManager`) |
 
 ---
 
-## 8. Known architectural debt
+## 9. Known architectural debt
 
-1. **No formal store** — shared mutable arrays remain the source of truth. `BodyRegistry`
-   (see item 5) centralizes body *lifecycle* bookkeeping, but there is still no formal
-   store/reducer for the rest of `main.js`'s top-level state (`currentTargetData`,
-   `activeDatasets`, `systemDate`, etc.).
+1. **No formal store for all top-level state** — `AppState` and `BodyRegistry` cover
+   simulation flags and body lifecycle, but shared mutable arrays
+   (`celestialBodies`, `pickableObjects`, `gpuParticleSystems`) remain the source of truth
+   and are still passed by reference. A fuller store/reducer is not required yet.
 
 2. **Large static data in Git** — `public/data` is ~836 MB (asteroid chunks + heightmaps) plus
    `public/star_data` (~27 MB). Currently required for Vercel-from-GitHub deploys; external
    object storage remains a future option once notes / full-feature release constraints allow.
 
-3. **`DataLoader` lookup cost** — there is a TODO to move a hot designation-normalization /
-   lookup path into a cheaper structure.
+3. **ARCHITECTURE.md / docs lag risk** — this file must be updated whenever the frame
+   pipeline, body schema, module inventory, or lifecycle boundary changes.
 
-4. **ARCHITECTURE.md / docs lag risk** — this file must be updated whenever the frame
-   pipeline, body schema, or module inventory changes.
+4. **Gradual migration off raw array `.find()`** — registry lookups exist; not every
+   consumer has been migrated. Prefer `bodyRegistry.getByName` / `hasBody` / etc. for new
+   code and opportunistic refactors.
 
 ---
 
-## 9. What's out of scope right now
+## 10. What's out of scope right now
 
-- The single-epoch ±40-year accuracy limitation on the Kepler path (§1). 
+- The single-epoch ±40-year accuracy limitation on the Kepler path (§1).
 - Full TypeScript migration.
-- Multi-epoch / N-Raw revival (explicitly deferred; core boundaries are now clean enough to
+- Multi-epoch / N-body revival (explicitly deferred; core boundaries are now clean enough to
   revisit later).
 
 ---
 
-## 10. Related documents
+## 11. Related documents
 
 - `README.md` — features, limitations summary, install, custom systems, live demo.
 - `CONTRIBUTING.md` — local setup, conventions, CI expectations.
-- `docs/` — home for sequence diagrams (frame pipeline, body lifecycle, data load,
-  eclipse/terrain attachment) and `docs/performance-notes.md` (star-field LOD work, Phase C).
+- `CHANGELOG.md` — release notes.
+- `docs/` — sequence diagrams (frame pipeline, body lifecycle, data load,
+  eclipse/terrain attachment) and performance notes.
 
-## 11. Async State & Resource Loading Policy
+---
 
-To prevent orphaned geometries, memory leaks, and overlapping HTTP requests during procedural data generation or chunk loading, all async pathways must adhere to the following strict lifecycle rules:
+## 12. Async State & Resource Loading Policy
 
-1. **In-Flight Guards:** Every user-initiated async load (e.g., dataset toggles, deep asteroid lookup) must check an active "in-flight" state (e.g., `inFlightDatasets.has(name)`) before firing to prevent duplicate fetches.
-2. **Cancellation Validation:** Upon resolution of a network promise, the orchestrator must verify that the user has not canceled the action (e.g., toggled off a dataset) before committing the result to the scene graph. 
-3. **Disposal Race Checks:** Async callbacks that apply textures or materials (like `TerrainController`) must verify that the target `CelestialBody` still exists in `celestialBodies[]` and `scene.children`. If the body was purged during the load, the newly loaded GPU resources must be `dispose()`'d immediately.
-4. **Distinguishable Failures:** Base data fetchers (like `DataLoader.fetchJSONDataset`) must throw errors rather than swallowing them into empty arrays. Orchestrators catch these errors and route them to user-visible telemetry elements (e.g., `UI.showLookupNotFound(msg)`).
-5. **Soft Failures for Optional Assets:** Purely aesthetic or background layers (like `StarLoader`) may catch and swallow errors, returning `null` to fail silently and preserve engine boot flow.
+To prevent orphaned geometries, memory leaks, and overlapping HTTP requests during procedural
+data generation or chunk loading, all async pathways must adhere to the following strict
+lifecycle rules:
+
+1. **In-Flight Guards:** Every user-initiated async load (e.g., dataset toggles, deep asteroid
+   lookup) must check an active "in-flight" state (e.g. `appState.hasInFlightDataset(name)` /
+   `lookupInFlight`) before firing to prevent duplicate fetches.
+
+2. **Cancellation Validation:** Upon resolution of a network promise, the orchestrator must
+   verify that the user has not canceled the action (e.g., toggled off a dataset) before
+   committing the result to the scene graph.
+
+3. **Disposal Race Checks:** Async callbacks that apply textures or materials (like
+   `TerrainController`) must verify that the target `CelestialBody` still exists (via
+   `bodyRegistry.hasBody` / presence in `celestialBodies[]` and `scene.children`). If the
+   body was purged during the load, the newly loaded GPU resources must be `dispose()`'d
+   immediately.
+
+4. **Distinguishable Failures:** Base data fetchers (like `DataLoader.fetchJSONDataset`) must
+   throw errors rather than swallowing them into empty arrays. Orchestrators catch these
+   errors and route them to user-visible telemetry elements (e.g. `UI.showLookupNotFound(msg)`).
+
+5. **Soft Failures for Optional Assets:** Purely aesthetic or background layers (like
+   `StarLoader`) may catch and swallow errors, returning `null` to fail silently and preserve
+   engine boot flow.

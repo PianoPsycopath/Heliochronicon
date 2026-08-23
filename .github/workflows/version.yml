@@ -47,7 +47,7 @@ jobs:
 
           while IFS= read -r MESSAGE; do
             case "$MESSAGE" in
-              *"BREAKING CHANGE"*|feat!:*|fix!:*)
+              *"BREAKING CHANGE"*|*!:*)
                 BUMP="major"
                 ;;
               feat:*)
@@ -55,7 +55,7 @@ jobs:
                   BUMP="minor"
                 fi
                 ;;
-              fix:*|perf:*)
+              fix:*|perf:*|refactor:*|build:*|chore:*|ci:*|docs:*|style:*|test:*)
                 if [ "$BUMP" = "none" ]; then
                   BUMP="patch"
                 fi
