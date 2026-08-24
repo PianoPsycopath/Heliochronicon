@@ -1,6 +1,6 @@
 {
   "name": "heliochronicon",
-  "version": "1.2.0",
+  "version": "0.2.1",
   "description": "A 3D temporal celestial note-taking platform scaled ad infinitum",
   "type": "module",
   "directories": {

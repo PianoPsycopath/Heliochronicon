@@ -32,11 +32,9 @@ jobs:
         shell: bash
         run: |
           CURRENT=$(node -p "require('./package.json').version")
-
           echo "Current version: $CURRENT"
 
           LAST_TAG=$(git describe --tags --abbrev=0 2>/dev/null || true)
-
           if [ -n "$LAST_TAG" ]; then
             COMMITS=$(git log "$LAST_TAG"..HEAD --pretty=format:"%s")
           else
@@ -44,8 +42,14 @@ jobs:
           fi
 
           BUMP="none"
+          PROMOTE="false"
 
           while IFS= read -r MESSAGE; do
+            # Detects if the commit message ends with :beta
+            if [[ "$MESSAGE" =~ :beta$ ]]; then
+              PROMOTE="true"
+            fi
+
             case "$MESSAGE" in
               *"BREAKING CHANGE"*|*!:*)
                 BUMP="major"
@@ -63,26 +67,43 @@ jobs:
             esac
           done <<< "$COMMITS"
 
-          echo "Required bump: $BUMP"
-
-          if [ "$BUMP" = "none" ]; then
+          if [ "$BUMP" = "none" ] && [ "$PROMOTE" = "false" ]; then
             echo "should_bump=false" >> "$GITHUB_OUTPUT"
             exit 0
           fi
 
-          IFS='.' read -r MAJOR MINOR PATCH <<< "$CURRENT"
+          # Split CURRENT into base (e.g., 1.2.0) and pre-release (e.g., beta.1)
+          IFS='-' read -r BASE PRE_PART <<< "$CURRENT"
+          IFS='.' read -r MAJOR MINOR PATCH <<< "$BASE"
 
-          case "$BUMP" in
-            major)
-              NEXT="$((MAJOR + 1)).0.0"
-              ;;
-            minor)
-              NEXT="$MAJOR.$((MINOR + 1)).0"
-              ;;
-            patch)
-              NEXT="$MAJOR.$MINOR.$((PATCH + 1))"
-              ;;
-          esac
+          if [ -n "$PRE_PART" ]; then
+            IFS='.' read -r PRE_NAME PRE_NUM <<< "$PRE_PART"
+          else
+            PRE_NAME="beta"
+            PRE_NUM=-1
+          fi
+
+          if [ "$PROMOTE" = "true" ]; then
+            # Drop the pre-release tag to finalize the stable version
+            case "$BUMP" in
+              major) NEXT="$((MAJOR + 1)).0.0" ;;
+              minor) NEXT="$MAJOR.$((MINOR + 1)).0" ;;
+              *)     NEXT="$MAJOR.$MINOR.$PATCH" ;;
+            esac
+          else
+            # Continue incrementing the pre-release sequence
+            case "$BUMP" in
+              major) NEXT="$((MAJOR + 1)).0.0-$PRE_NAME.0" ;;
+              minor) NEXT="$MAJOR.$((MINOR + 1)).0-$PRE_NAME.0" ;;
+              patch)
+                if [ "$PRE_NUM" -eq -1 ]; then
+                  NEXT="$MAJOR.$MINOR.$((PATCH + 1))-$PRE_NAME.0"
+                else
+                  NEXT="$MAJOR.$MINOR.$PATCH-$PRE_NAME.$((PRE_NUM + 1))"
+                fi
+                ;;
+            esac
+          fi
 
           echo "next=$NEXT" >> "$GITHUB_OUTPUT"
           echo "should_bump=true" >> "$GITHUB_OUTPUT"
