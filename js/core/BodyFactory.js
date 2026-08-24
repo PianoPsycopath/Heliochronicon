@@ -332,19 +332,19 @@ export class BodyFactory {
             depthTest: false,
         });
         spriteMat.color.set(datasetColor);
-        
+
         const sprite = new THREE.Sprite(spriteMat);
         sprite.userData = radarData;
         sprite.renderOrder = 1400;
-        
+
         sprite.position.copy(absolutePos.clone().sub(currentOrigin));
         const scale = 1.2 / cameraZoom;
         sprite.scale.set(scale, scale, 1);
-        
+
         sprite.matrixAutoUpdate = false;
         sprite.updateMatrix();
         sprite.updateMatrixWorld();
-        
+
         scene.add(sprite);
 
         // 2. Dummy Mesh
@@ -373,10 +373,7 @@ export class BodyFactory {
 
         // 4. Dummy Curtain
         const dummyLineMat = new THREE.LineBasicMaterial();
-        const dummyCurtain = new THREE.LineSegments(
-            new THREE.BufferGeometry(),
-            dummyLineMat
-        );
+        const dummyCurtain = new THREE.LineSegments(new THREE.BufferGeometry(), dummyLineMat);
 
         // 5. Label
         const label = document.createElement('div');

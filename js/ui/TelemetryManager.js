@@ -1,4 +1,4 @@
-// js/TelemetryManager.js
+// js/ui/TelemetryManager.js
 export class TelemetryManager {
     constructor() {
         this.telemetryDataEl = document.getElementById('telemetry-data');

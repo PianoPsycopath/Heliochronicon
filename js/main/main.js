@@ -24,6 +24,7 @@ import { EclipseEngine } from '@physics/EclipseEngine.js';
 import { EclipseShadowController } from '@rendering/EclipseShadowController.js';
 import { SeasonMarkerController } from '@rendering/SeasonMarkerController.js';
 import { TooltipManager } from '@ui/TooltipManager.js';
+import { AccessibilityManager } from '@ui/AccessibilityManager.js';
 import { AppState } from '@core/AppState.js';
 import { logger } from '@core/logger.js';
 import { BodyFactory } from '@core/BodyFactory.js';
@@ -71,7 +72,11 @@ scene.add(equatorialGridPlane);
 const tacticalMaterial = Shaders.getTacticalMaterial();
 const measurementManager = new MeasurementManager(scene, camera);
 const tooltipManager = new TooltipManager();
-const UI = new UIController({ tooltipManager });
+// Single accessibility manager instance, shared by UIController and every
+// sub-manager it owns. New UI modules should take `accessibilityManager` as
+// a constructor dependency the same way they already take `tooltipManager`.
+const accessibilityManager = new AccessibilityManager({ tooltipManager });
+const UI = new UIController({ tooltipManager, accessibilityManager });
 tooltipManager.attachButtonTooltips();
 
 const terrainController = new TerrainController({ celestialBodies });

@@ -136,7 +136,12 @@ export class TacticalScanner {
                 const absolutePos = new THREE.Vector3(rawPos.x, rawPos.y, rawPos.z);
 
                 // Delegate construction entirely to the Factory
-                const body = this.bodyFactory.createRadarContact(radarData, absolutePos, this.camera.zoom, this.currentOrigin);
+                const body = this.bodyFactory.createRadarContact(
+                    radarData,
+                    absolutePos,
+                    this.camera.zoom,
+                    this.currentOrigin
+                );
                 this.bodyRegistry.registerBody(body);
             });
 

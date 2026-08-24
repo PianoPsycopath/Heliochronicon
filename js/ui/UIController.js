@@ -1,20 +1,27 @@
-// js/UIController.js
+// js/ui/UIController.js
 import { ChronometerDisplay } from '@ui/ChronometerDisplay.js';
 import { PerformanceMonitor } from '@ui/PerformanceMonitor.js';
 import { TimeThrottle } from '@ui/TimeThrottle.js';
 import { BodyListManager } from '@ui/BodyListManager.js';
 import { TelemetryManager } from '@ui/TelemetryManager.js';
 import { VisibilityTreeManager } from '@ui/VisibilityTreeManager.js';
+import { AccessibilityManager } from '@ui/AccessibilityManager.js';
 
-const CURTAIN_MODE_TITLES = [
-    'Inclination Mode 1 [Equatorial]',
-    'Inclination Mode 2 [Equatorial + Ecliptic]',
-    'Inclination Mode 3 [Ecliptic]',
-];
+// Drives the btn-ecliptic-toggle kind:'cycle' registration below — each
+// entry supplies the class/label/tooltip for that step of the cycle.
+const CURTAIN_MODES = [
+    { label: 'Inclination Mode 1 [Equatorial]' },
+    { className: 'mode-both', label: 'Inclination Mode 2 [Equatorial + Ecliptic]' },
+    { className: 'mode-ecliptic', label: 'Inclination Mode 3 [Ecliptic]' },
+].map((mode) => ({ ...mode, tooltip: mode.label }));
 
 export class UIController {
-    constructor({ tooltipManager = null } = {}) {
+    constructor({ tooltipManager = null, accessibilityManager = null } = {}) {
         this.tooltipManager = tooltipManager;
+        // Single accessibility integration point for this module and the
+        // sub-managers it owns. See AccessibilityManager.js for the "how to
+        // add a new accessible control" pattern.
+        this.a11y = accessibilityManager ?? new AccessibilityManager({ tooltipManager });
 
         this.datasets = new Set();
         this.timeThrottle = new TimeThrottle({
@@ -26,6 +33,7 @@ export class UIController {
             btnPause: document.getElementById('btn-time-pause'),
             btn1x: document.getElementById('btn-time-1x'),
             btnLive: document.getElementById('btn-live'),
+            accessibilityManager: this.a11y,
         });
         this.bodyListManager = new BodyListManager({
             listContainer: document.getElementById('body-list'),
@@ -33,7 +41,7 @@ export class UIController {
             sortToggleEl: document.getElementById('sort-toggle'),
         });
         this.telemetryManager = new TelemetryManager();
-        this.visibilityTreeManager = new VisibilityTreeManager();
+        this.visibilityTreeManager = new VisibilityTreeManager({ accessibilityManager: this.a11y });
 
         this.btnMobileToggle = document.getElementById('btn-mobile-toggle');
         this.panelLeft = document.getElementById('panel-left');
@@ -49,7 +57,6 @@ export class UIController {
         this.sizeValEl = document.getElementById('size-val');
 
         this.btnScan = document.getElementById('btn-scan');
-        if (this.btnScan) this.btnScan.dataset.tooltipLive = '';
         this.isScanActive = false;
 
         this.onFocusBody = null;
@@ -110,27 +117,6 @@ export class UIController {
         return this.timeThrottle.isLiveTime;
     }
 
-    // Refresh through TooltipManager when present; otherwise use native title.
-    _setTooltip(el, text) {
-        if (!el) return;
-        if (this.tooltipManager) {
-            this.tooltipManager.setButtonTooltip(el, text);
-        } else {
-            el.title = text;
-        }
-    }
-
-    _applyCurtainModeVisuals(mode) {
-        if (!this.btnEclipticToggle) return;
-        this.btnEclipticToggle.classList.remove('mode-both', 'mode-ecliptic');
-        this.btnEclipticToggle.classList.toggle('active', mode !== 0);
-        this.btnEclipticToggle.setAttribute('aria-pressed', mode !== 0 ? 'true' : 'false');
-        if (mode === 1) this.btnEclipticToggle.classList.add('mode-both');
-        if (mode === 2) this.btnEclipticToggle.classList.add('mode-ecliptic');
-        this._setTooltip(this.btnEclipticToggle, CURTAIN_MODE_TITLES[mode]);
-        this.btnEclipticToggle.setAttribute('aria-label', CURTAIN_MODE_TITLES[mode]);
-    }
-
     initBindings() {
         this.timeInput = document.getElementById('time-input-bottom');
         this.chronoCanvas = document.getElementById('chrono-canvas');
@@ -138,18 +124,14 @@ export class UIController {
         this.performanceMonitor = new PerformanceMonitor();
 
         this.btnMeasure = document.getElementById('btn-measure');
-        // Live tooltips survive click so state changes refresh immediately.
-        if (this.btnMeasure) this.btnMeasure.dataset.tooltipLive = '';
         this.isMeasureMode = false;
         this.onMeasureModeChanged = null;
 
         this.btnDaylightToggle = document.getElementById('btn-daylight-toggle');
-        if (this.btnDaylightToggle) this.btnDaylightToggle.dataset.tooltipLive = '';
         this.isDaylightEnabled = true;
         this.onDaylightToggleChanged = null;
 
         this.btnEclipticToggle = document.getElementById('btn-ecliptic-toggle');
-        if (this.btnEclipticToggle) this.btnEclipticToggle.dataset.tooltipLive = '';
         this.curtainDisplayMode = 0;
         this.onCurtainDisplayModeChanged = null;
 
@@ -182,13 +164,16 @@ export class UIController {
             el.addEventListener('input', updateSliders)
         );
 
-        this.btnScan.addEventListener('click', () => {
-            this.isScanActive = !this.isScanActive;
-            this.btnScan.classList.toggle('active', this.isScanActive);
-            this.btnScan.setAttribute('aria-pressed', this.isScanActive ? 'true' : 'false');
-            if (this.onScanRequested) {
-                this.onScanRequested(this.isScanActive);
-            }
+        this.a11yScan = this.a11y.register({
+            element: this.btnScan,
+            kind: 'toggle',
+            tooltipLive: true, // keep tooltip visible through the click; text doesn't change
+            pressed: this.isScanActive,
+            onActivate: () => {
+                this.isScanActive = !this.isScanActive;
+                this.a11yScan.setPressed(this.isScanActive);
+                if (this.onScanRequested) this.onScanRequested(this.isScanActive);
+            },
         });
 
         if (this.btnMobileToggle) {
@@ -218,39 +203,47 @@ export class UIController {
         }
 
         if (this.btnMeasure) {
-            this.btnMeasure.addEventListener('click', () => {
-                this.isMeasureMode = !this.isMeasureMode;
-                this.btnMeasure.classList.toggle('active', this.isMeasureMode);
-                this.btnMeasure.setAttribute('aria-pressed', this.isMeasureMode ? 'true' : 'false');
-                if (this.onMeasureModeChanged) {
-                    this.onMeasureModeChanged(this.isMeasureMode);
-                }
+            const a11yMeasure = this.a11y.register({
+                element: this.btnMeasure,
+                kind: 'toggle',
+                tooltipLive: true, // state changes should refresh the tooltip immediately
+                pressed: this.isMeasureMode,
+                onActivate: () => {
+                    this.isMeasureMode = !this.isMeasureMode;
+                    a11yMeasure.setPressed(this.isMeasureMode);
+                    if (this.onMeasureModeChanged) this.onMeasureModeChanged(this.isMeasureMode);
+                },
             });
         }
 
         if (this.btnDaylightToggle) {
-            this.btnDaylightToggle.addEventListener('click', () => {
-                this.isDaylightEnabled = !this.isDaylightEnabled;
-                this.btnDaylightToggle.classList.toggle('active', this.isDaylightEnabled);
-                this.btnDaylightToggle.setAttribute(
-                    'aria-pressed',
-                    this.isDaylightEnabled ? 'true' : 'false'
-                );
-                if (this.onDaylightToggleChanged) {
-                    this.onDaylightToggleChanged(this.isDaylightEnabled);
-                }
+            const a11yDaylight = this.a11y.register({
+                element: this.btnDaylightToggle,
+                kind: 'toggle',
+                tooltipLive: true,
+                pressed: this.isDaylightEnabled,
+                onActivate: () => {
+                    this.isDaylightEnabled = !this.isDaylightEnabled;
+                    a11yDaylight.setPressed(this.isDaylightEnabled);
+                    if (this.onDaylightToggleChanged) {
+                        this.onDaylightToggleChanged(this.isDaylightEnabled);
+                    }
+                },
             });
         }
 
         if (this.btnEclipticToggle) {
-            this._applyCurtainModeVisuals(this.curtainDisplayMode);
-
-            this.btnEclipticToggle.addEventListener('click', () => {
-                this.curtainDisplayMode = (this.curtainDisplayMode + 1) % 3;
-                this._applyCurtainModeVisuals(this.curtainDisplayMode);
-                if (this.onCurtainDisplayModeChanged) {
-                    this.onCurtainDisplayModeChanged(this.curtainDisplayMode);
-                }
+            const a11yEcliptic = this.a11y.register({
+                element: this.btnEclipticToggle,
+                kind: 'cycle',
+                tooltipLive: true,
+                states: CURTAIN_MODES,
+                onActivate: () => {
+                    this.curtainDisplayMode = a11yEcliptic.nextState();
+                    if (this.onCurtainDisplayModeChanged) {
+                        this.onCurtainDisplayModeChanged(this.curtainDisplayMode);
+                    }
+                },
             });
         }
 
@@ -287,7 +280,7 @@ export class UIController {
                 this.datasets.clear();
                 this.visibilityTreeManager.clearTrees();
                 this.isScanActive = false;
-                this.btnScan.classList.remove('active');
+                this.a11yScan.setPressed(false);
             }
         });
 

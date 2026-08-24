@@ -57,7 +57,7 @@ describe('TimeThrottle Class State & DOM Mutations', () => {
         btn1x: { addEventListener: vi.fn() },
         btnLive: { 
             addEventListener: vi.fn(), 
-            classList: { add: vi.fn(), remove: vi.fn() },
+            classList: { add: vi.fn(), remove: vi.fn(), toggle: vi.fn() },
             setAttribute: vi.fn()
         }
     });
@@ -83,6 +83,7 @@ describe('TimeThrottle Class State & DOM Mutations', () => {
         
         // Verify the class updated the injected mock elements
         expect(mocks.throttleLabel.innerText).toBe("1 MIN / SEC");
-        expect(mocks.btnLive.classList.remove).toHaveBeenCalledWith('active');
+        // Update this assertion to check for toggle instead of remove
+        expect(mocks.btnLive.classList.toggle).toHaveBeenCalledWith('active', false);
     });
 });

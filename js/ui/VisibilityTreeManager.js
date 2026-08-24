@@ -1,41 +1,64 @@
-// js/VisibilityTreeManager.js
+// js/ui/VisibilityTreeManager.js
 export class VisibilityTreeManager {
-    constructor() {
+    constructor({ accessibilityManager = null } = {}) {
         this.onDatasetVisibilityChanged = null;
         this.onDatasetColorChanged = null;
+        this.a11y = accessibilityManager;
         this.initMasterToggle();
+    }
+
+    // checked-state DOM writes go through AccessibilityManager when present
+    // (aria-checked + the 'checked' class, in one call) so this module no
+    // longer hand-rolls it in three places.
+    _setChecked(row, isChecked) {
+        if (this.a11y) {
+            this.a11y.setChecked(row, isChecked);
+        } else {
+            row.classList.toggle('checked', isChecked);
+            row.setAttribute('aria-checked', isChecked ? 'true' : 'false');
+        }
     }
 
     initMasterToggle() {
         const rowMaster = document.getElementById('row-master-toggle');
-        if (rowMaster) {
-            const activate = async () => {
-                if (rowMaster.classList.contains('loading')) return;
+        if (!rowMaster) return;
 
-                const newState = !rowMaster.classList.contains('checked');
+        const activate = async () => {
+            if (rowMaster.classList.contains('loading')) return;
 
-                rowMaster.classList.toggle('checked', newState);
-                rowMaster.setAttribute('aria-checked', newState ? 'true' : 'false');
-                rowMaster.classList.add('loading');
-                rowMaster.setAttribute('aria-busy', 'true');
+            const newState = !rowMaster.classList.contains('checked');
+            this._setChecked(rowMaster, newState);
+            rowMaster.classList.add('loading');
+            rowMaster.setAttribute('aria-busy', 'true');
 
-                const allAsteroids = document.querySelectorAll('#dataset-list-asteroids .magi-row');
-                const loadingPromises = [];
+            const allAsteroids = document.querySelectorAll('#dataset-list-asteroids .magi-row');
+            const loadingPromises = [];
 
-                allAsteroids.forEach((row) => {
-                    if (row.classList.contains('checked') !== newState) {
-                        row.click(); // Programmatically sync children
-                        if (row.togglePromise) {
-                            loadingPromises.push(row.togglePromise);
-                        }
+            allAsteroids.forEach((row) => {
+                if (row.classList.contains('checked') !== newState) {
+                    row.click(); // Programmatically sync children
+                    if (row.togglePromise) {
+                        loadingPromises.push(row.togglePromise);
                     }
-                });
-                await Promise.all(loadingPromises);
+                }
+            });
+            await Promise.all(loadingPromises);
 
-                rowMaster.classList.remove('loading');
-                rowMaster.removeAttribute('aria-busy');
-            };
+            rowMaster.classList.remove('loading');
+            rowMaster.removeAttribute('aria-busy');
+        };
 
+        if (this.a11y) {
+            // register() gives the master row its role/tabIndex/keyboard
+            // activation (Enter + Space) for free instead of the manual
+            // keydown handler this module used to carry.
+            this.a11y.register({
+                element: rowMaster,
+                kind: 'checkbox',
+                checked: rowMaster.classList.contains('checked'),
+                onActivate: activate,
+            });
+        } else {
             rowMaster.addEventListener('click', activate);
             rowMaster.addEventListener('keydown', (e) => {
                 if (e.key === 'Enter' || e.key === ' ' || e.key === 'Spacebar') {
@@ -58,10 +81,25 @@ export class VisibilityTreeManager {
         const row = document.createElement('div');
         row.className = `magi-row ${isPlanet ? 'planet-row' : ''} ${isMoon ? 'moon-row' : ''} ${isChecked ? 'checked' : ''}`;
         row.dataset.category = category;
-        row.setAttribute('role', 'checkbox');
-        row.setAttribute('aria-checked', isChecked ? 'true' : 'false');
-        row.setAttribute('aria-label', `${datasetName} visibility`);
-        row.tabIndex = 0;
+
+        // role/aria-checked/aria-label/tabIndex all come from one registration
+        // instead of four separate DOM writes. Activation (click/keydown) is
+        // still wired below rather than via `onActivate`, because it needs to
+        // ignore clicks that originated on the nested color-picker input —
+        // logic specific to this control, not to accessibility wiring.
+        if (this.a11y) {
+            this.a11y.register({
+                element: row,
+                kind: 'checkbox',
+                checked: isChecked,
+                label: `${datasetName} visibility`,
+            });
+        } else {
+            row.setAttribute('role', 'checkbox');
+            row.setAttribute('aria-checked', isChecked ? 'true' : 'false');
+            row.setAttribute('aria-label', `${datasetName} visibility`);
+            row.tabIndex = 0;
+        }
 
         const SVG_NS = 'http://www.w3.org/2000/svg';
         let wire = null;
@@ -169,8 +207,7 @@ export class VisibilityTreeManager {
             if (row.classList.contains('loading')) return;
 
             const newState = !row.classList.contains('checked');
-            row.classList.toggle('checked', newState);
-            row.setAttribute('aria-checked', newState ? 'true' : 'false');
+            this._setChecked(row, newState);
 
             if (bar) {
                 bar.style.backgroundColor = newState ? colorPicker.value : '#330000';
@@ -227,10 +264,7 @@ export class VisibilityTreeManager {
 
         const rowMaster = document.getElementById('row-master-toggle');
         const magiTrunk = document.getElementById('magi-trunk');
-        if (rowMaster) {
-            rowMaster.classList.remove('checked');
-            rowMaster.setAttribute('aria-checked', 'false');
-        }
+        if (rowMaster) this._setChecked(rowMaster, false);
         if (magiTrunk) magiTrunk.classList.remove('checked');
     }
 }

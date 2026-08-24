@@ -1,4 +1,4 @@
-// js/TimeThrottle.js
+// js/ui/TimeThrottle.js
 
 export const timeScaleMap = [
     { label: '-100 YEARS / SEC', mult: -3153600000 },
@@ -51,6 +51,7 @@ export class TimeThrottle {
         this.btnPause = domElements.btnPause;
         this.btn1x = domElements.btn1x;
         this.btnLive = domElements.btnLive;
+        this.a11y = domElements.accessibilityManager ?? null;
 
         this.initBindings();
     }
@@ -71,15 +72,25 @@ export class TimeThrottle {
         this.btnLive.addEventListener('click', () => {
             this.applyThrottle(11);
             this.isLiveTime = true;
-            this.btnLive.classList.add('active');
-            this.btnLive.setAttribute('aria-pressed', 'true');
+            this._setLivePressed(true);
         });
+    }
+
+    // Goes through AccessibilityManager when supplied, matching every other
+    // toggle button in the app; falls back to direct DOM writes so this
+    // class still works standalone (e.g. in isolation tests).
+    _setLivePressed(isPressed) {
+        if (this.a11y) {
+            this.a11y.setPressed(this.btnLive, isPressed);
+        } else {
+            this.btnLive.classList.toggle('active', isPressed);
+            this.btnLive.setAttribute('aria-pressed', isPressed ? 'true' : 'false');
+        }
     }
 
     applyThrottle(rawIndex) {
         this.isLiveTime = false;
-        this.btnLive.classList.remove('active');
-        this.btnLive.setAttribute('aria-pressed', 'false');
+        this._setLivePressed(false);
 
         // 1. Get pure state
         const state = calculateThrottleState(rawIndex);

@@ -1,4 +1,4 @@
-// js/BodyListManager.js
+// js/ui/BodyListManager.js
 
 export function getFilteredAndSortedBodies(bodies, currentTargetData, searchStr, sortMode) {
     let targetList = [];

@@ -1,4 +1,4 @@
-// js/TooltipManager.js
+// js/ui/TooltipManager.js
 export class TooltipManager {
     constructor() {
         this._el = document.createElement('div');
