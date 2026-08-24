@@ -1,23 +1,7 @@
-// js/shaders/starField.js
-// GPU-instanced background star field (proper motion integrated on the GPU)
-// and its color-id picking counterpart. Split out of the former Shaders.js
-// monolith -- see ShaderManager.js for the aggregated call surface.
-//
-// Perf note (PLAN.md Phase C): getStarFieldMaterial() now exposes a
-// `uMagLimit` uniform used for a cheap magnitude-based LOD. Stars dimmer
-// than the current limit are pushed outside the clip volume in the vertex
-// shader, so the GPU discards them before rasterization instead of paying
-// the point-sprite fill cost for millions of sub-pixel dots. Uniform
-// defaults to "show everything" (100.0) so behavior is unchanged unless a
-// caller actively lowers it -- see main.js's magnitude-limit-by-zoom curve
-// and docs/performance-notes.md.
+// js/rendering/shaders/starField.js
 import * as THREE from 'three';
 
 export class StarFieldShaders {
-    // (position/velocity baked in AU by StarLoader, magnitude + B-V color
-    // index carried as attributes). Proper motion is integrated on the GPU
-    // from uTime (days since J2000, same clock the asteroid field uses) and
-    // shifted by the floating origin exactly like the asteroid particles.
     static getStarFieldMaterial() {
         return new THREE.ShaderMaterial({
             uniforms: {
@@ -30,18 +14,6 @@ export class StarFieldShaders {
                 // Magnitude LOD floor: stars with mag > uMagLimit are culled
                 // in the vertex shader. Default keeps every star visible.
                 uMagLimit: { value: 100.0 },
-                // Real star distances (hundreds of millions of AU) are far
-                // beyond the scene camera's actual `far` plane, which is
-                // kept tight on purpose for AU-scale planet depth precision.
-                // The built-in `projectionMatrix` uniform IS that tight
-                // camera matrix, so using it here hardware-clips stars the
-                // instant they cross it -- angle-dependently, since it's a
-                // frustum. uStarProjectionMatrix is a separate copy of the
-                // same camera (same fov/aspect/near/zoom) but with `far`
-                // pushed out past every real star distance -- see
-                // updateStarFieldFarProjection() in main.js, called once per
-                // frame. Nothing else in the scene uses this matrix, so
-                // planet/grid depth precision is untouched.
                 uStarProjectionMatrix: { value: new THREE.Matrix4() },
             },
             vertexShader: `
