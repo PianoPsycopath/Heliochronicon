@@ -43,9 +43,10 @@ function createTextSpriteMat(symbol, symbolKey) {
 }
 
 export class SeasonMarkerController {
-    constructor({ scene, celestialBodies, camera, tooltipManager }) {
+    constructor({ scene, celestialBodies, bodyRegistry, camera, tooltipManager }) {
         this.scene = scene;
         this.celestialBodies = celestialBodies;
+        this.bodyRegistry = bodyRegistry;
         this.camera = camera;
         this.tooltipManager = tooltipManager;
 
@@ -71,7 +72,7 @@ export class SeasonMarkerController {
             return;
         }
 
-        const targetBody = this.celestialBodies.find((b) => b.data.name === targetBodyData.name);
+        const targetBody = this.bodyRegistry.getByName(targetBodyData.name);
         const seasonBody = SeasonMarkerEngine.resolveSeasonBody(targetBody, this.celestialBodies);
 
         if (!seasonBody) {
@@ -81,10 +82,7 @@ export class SeasonMarkerController {
 
         if (this.seasonBody !== seasonBody) {
             this.seasonBody = seasonBody;
-            // Mirror RenderPipeline orbit-line placement so marker.position
-            // is valid in world space (parent offset + Kepler moon pole quat).
-            this.parentBody =
-                this.celestialBodies.find((b) => b.data.name === seasonBody.data.parent) || null;
+            this.parentBody = this.bodyRegistry.getByName(seasonBody.data.parent);
             this.usesParentPoleRotation =
                 seasonBody.isMoon &&
                 (!seasonBody.data.orbit_model || seasonBody.data.orbit_model === 'KEPLER');

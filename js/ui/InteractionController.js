@@ -49,11 +49,13 @@ export class InteractionController {
         this.input = new Input({
             controls,
             onPanStart: (isRightClick) => {
-                this.cameraFocus.clearTracking();
                 if (isRightClick) {
+                    this.cameraFocus.clearTracking();
                     if (this.onTrackingBroken) this.onTrackingBroken();
                     const currentTarget = this.getCurrentTarget();
                     if (currentTarget) this.UI.setManualOverride(currentTarget.name);
+                } else {
+                    this.cameraFocus.interruptFlight();
                 }
             },
             onClick: (x, y, isHardLock) => {
@@ -72,7 +74,7 @@ export class InteractionController {
             },
             onPointerLeave: () => {
                 this.hoverState.clearHover(this);
-            }
+            },
         });
     }
 

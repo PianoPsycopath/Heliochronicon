@@ -14,7 +14,7 @@ export class CameraFocus {
 
     triggerFocus(data, isHardLock, AU_IN_KM) {
         if (data && data.datasetCategory === 'BACKGROUND_STAR') return;
-        
+
         this.panFrames = 0;
         if (isHardLock) {
             this.isCameraTracking = true;
@@ -40,6 +40,10 @@ export class CameraFocus {
 
     clearTracking() {
         this.isCameraTracking = false;
+        this.flyPanActive = false;
+        this.autoZoomActive = false;
+    }
+    interruptFlight() {
         this.flyPanActive = false;
         this.autoZoomActive = false;
     }

@@ -15,11 +15,28 @@ export class HoverState {
 
     static starDisplayName(data) {
         if (!data) return 'STAR';
-        return (data.name || data.designation || data.proper || data.hip || data.hd || data.hr || data.gl || data.id || 'STAR').toString();
+        return (
+            data.name ||
+            data.designation ||
+            data.proper ||
+            data.hip ||
+            data.hd ||
+            data.hr ||
+            data.gl ||
+            data.id ||
+            'STAR'
+        ).toString();
     }
 
     static starClass(data) {
-        const raw = data.spect ?? data.spectral_class ?? data.spectralClass ?? data.st_spectype ?? data.class ?? data.sptype ?? null;
+        const raw =
+            data.spect ??
+            data.spectral_class ??
+            data.spectralClass ??
+            data.st_spectype ??
+            data.class ??
+            data.sptype ??
+            null;
         return raw === null || raw === undefined || raw === '' ? null : String(raw);
     }
 
@@ -69,7 +86,13 @@ export class HoverState {
         }
 
         if (HoverState.TACTICAL_HOVER_CATEGORIES.has(data.datasetCategory)) {
-            this.tooltipManager.show(context, this._buildTacticalTooltip(data), clientX, clientY, 'tactical');
+            this.tooltipManager.show(
+                context,
+                this._buildTacticalTooltip(data),
+                clientX,
+                clientY,
+                'tactical'
+            );
             return;
         }
         this.tooltipManager.hide(context);

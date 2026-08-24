@@ -24,6 +24,9 @@ describe('SeasonMarkerController', () => {
             celestialBodies: [
                 { data: { name: 'Mars', parent: 'Sol' }, isMoon: false }
             ],
+            bodyRegistry: {
+                getByName: vi.fn((name) => ({ data: { name, parent: 'Sol' } }))
+            },
             tooltipManager: { 
                 show: vi.fn(), 
                 hide: vi.fn() 

@@ -321,4 +321,85 @@ export class BodyFactory {
         mesh.matrixAutoUpdate = false;
         return mesh;
     }
+    createRadarContact(radarData, absolutePos, cameraZoom, currentOrigin) {
+        const { scene, savedColors, dotTexture, orbitFactory } = this;
+
+        const datasetColor = savedColors[radarData.datasetName] || '#00ff00';
+
+        // 1. Sprite
+        const spriteMat = new THREE.SpriteMaterial({
+            map: dotTexture,
+            depthTest: false,
+        });
+        spriteMat.color.set(datasetColor);
+        
+        const sprite = new THREE.Sprite(spriteMat);
+        sprite.userData = radarData;
+        sprite.renderOrder = 1400;
+        
+        sprite.position.copy(absolutePos.clone().sub(currentOrigin));
+        const scale = 1.2 / cameraZoom;
+        sprite.scale.set(scale, scale, 1);
+        
+        sprite.matrixAutoUpdate = false;
+        sprite.updateMatrix();
+        sprite.updateMatrixWorld();
+        
+        scene.add(sprite);
+
+        // 2. Dummy Mesh
+        const dummyMesh = new THREE.Object3D();
+
+        // 3. Orbit Line
+        let orbitLine;
+        if (orbitFactory && typeof orbitFactory.createOrbitPath === 'function') {
+            orbitLine = orbitFactory.createOrbitPath(radarData, radarData.a);
+            orbitLine.material.color.set(datasetColor);
+            orbitLine.visible = false;
+            orbitLine.matrixAutoUpdate = false;
+            scene.add(orbitLine);
+        } else {
+            orbitLine = new THREE.Line(
+                new THREE.BufferGeometry(),
+                new THREE.LineBasicMaterial({
+                    color: datasetColor,
+                    transparent: true,
+                    opacity: 0.5,
+                })
+            );
+            orbitLine.visible = false;
+            scene.add(orbitLine);
+        }
+
+        // 4. Dummy Curtain
+        const dummyLineMat = new THREE.LineBasicMaterial();
+        const dummyCurtain = new THREE.LineSegments(
+            new THREE.BufferGeometry(),
+            dummyLineMat
+        );
+
+        // 5. Label
+        const label = document.createElement('div');
+        label.className = 'tactical-label';
+        label.innerText = radarData.name;
+        label.style.color = datasetColor;
+        document.body.appendChild(label);
+
+        // 6. Return CelestialBody
+        return new CelestialBody({
+            data: radarData,
+            mesh: dummyMesh,
+            sprite: sprite,
+            orbitLine: orbitLine,
+            orbitCurtain: dummyCurtain,
+            label: label,
+            isMoon: false,
+            datasetVisible: true,
+            isCulled: false,
+            hideLabel: true,
+            globalPos: absolutePos,
+            scaledA: radarData.a,
+            physicalRadius: 0,
+        });
+    }
 }

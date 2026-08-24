@@ -1,7 +1,6 @@
 // js/ui/MeasurementManager.js
 import * as THREE from 'three';
-
-const STAR_FAR_PLANE_AU = 1e14;
+import { STAR_FAR_PLANE_AU } from '@core/constants.js';
 
 export class MeasurementManager {
     constructor(scene) {
@@ -48,17 +47,13 @@ export class MeasurementManager {
         document.body.appendChild(this.labelContainer);
     }
 
-    handleNodeSelection(bodyData, celestialBodies) {
+    handleNodeSelection(bodyData, bodyRegistry) {
         let node;
 
         if (bodyData.datasetCategory === 'BACKGROUND_STAR') {
             node = { data: bodyData, isStar: true };
         } else {
-            const body =
-                typeof celestialBodies.getByName === 'function'
-                    ? celestialBodies.getByName(bodyData.name)
-                    : celestialBodies.find((b) => b.data.name === bodyData.name);
-
+            const body = bodyRegistry.getByName(bodyData.name);
             if (!body) return;
             node = body;
         }

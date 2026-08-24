@@ -37,7 +37,10 @@ export class Input {
 
         window.addEventListener('pointerup', (e) => {
             if (e.target.closest('.panel') || e.target.closest('button')) return;
-            const dist = Math.hypot(e.clientX - this._mouseDownPos.x, e.clientY - this._mouseDownPos.y);
+            const dist = Math.hypot(
+                e.clientX - this._mouseDownPos.x,
+                e.clientY - this._mouseDownPos.y
+            );
             if (dist > 15) return;
 
             const isHardLock = this._currentMouseAction === 0 || e.pointerType === 'touch';
@@ -51,7 +54,7 @@ export class Input {
                 return;
             }
             if (e.buttons !== 0) return;
-            
+
             this.onPointerMove(e.clientX, e.clientY);
         });
 

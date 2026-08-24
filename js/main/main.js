@@ -128,6 +128,7 @@ terrainController.onActiveBodiesChanged = (names) => {
 const seasonMarkerController = new SeasonMarkerController({
     scene,
     celestialBodies,
+    bodyRegistry,
     camera,
     tooltipManager,
 });
@@ -198,14 +199,14 @@ const interactionController = new InteractionController({
     onBodyClicked: (data, isHardLock) => {
         if (data && data.datasetCategory === 'BACKGROUND_STAR') {
             if (UI.isMeasureMode) {
-                measurementManager.handleNodeSelection(data, celestialBodies);
+                measurementManager.handleNodeSelection(data, bodyRegistry);
             } else {
                 UI.showStarSelection(data);
             }
             return;
         }
         if (UI.isMeasureMode) {
-            measurementManager.handleNodeSelection(data, celestialBodies);
+            measurementManager.handleNodeSelection(data, bodyRegistry);
         } else {
             UI.onFocusBody(data, isHardLock);
         }
@@ -234,15 +235,12 @@ const asteroidController = new AsteroidController({
 });
 
 const tacticalScanner = new TacticalScanner({
-    scene,
+    bodyFactory,
     camera,
     UI,
     celestialBodies,
     pickableObjects,
     gpuParticleSystems,
-    dotTexture,
-    savedColors,
-    systemBuilder,
     bodyRegistry,
     asteroidPromotionService,
     currentOrigin: appState.currentOrigin,
@@ -268,6 +266,7 @@ const renderingLoop = new RenderingLoop({
     controls,
     renderPipeline,
     celestialBodies,
+    bodyRegistry,
     measurementManager,
     pinnedStarManager,
     seasonMarkerController,

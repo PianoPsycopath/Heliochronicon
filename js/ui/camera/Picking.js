@@ -4,7 +4,14 @@ import { logger } from '@core/logger.js';
 import { StarFieldShaders } from '@rendering/shaders/starField.js';
 
 export class Picking {
-    constructor({ camera, renderer, pickableObjects, gpuParticleSystems, getDaysSinceJ2000, getCurrentOrigin }) {
+    constructor({
+        camera,
+        renderer,
+        pickableObjects,
+        gpuParticleSystems,
+        getDaysSinceJ2000,
+        getCurrentOrigin,
+    }) {
         this.camera = camera;
         this.renderer = renderer;
         this.pickableObjects = pickableObjects;
@@ -16,10 +23,10 @@ export class Picking {
         this._mouse = new THREE.Vector2();
 
         this.pickingScene = new THREE.Scene();
-        
+
         // Fetch the material directly from the rendering layer
         this.pickingMaterial = StarFieldShaders.getStarPickingMaterial();
-        
+
         this.pickingTexture = new THREE.WebGLRenderTarget(1, 1, { type: THREE.UnsignedByteType });
         this.pixelBuffer = new Uint8Array(4);
         this.starMeshClone = null;
@@ -73,7 +80,9 @@ export class Picking {
         if (!this.gpuParticleSystems || this.gpuParticleSystems.length === 0) return;
         const starSystem = this.gpuParticleSystems.find(
             (s) =>
-                s.geometry && s.geometry.userData && s.geometry.userData.sourceData &&
+                s.geometry &&
+                s.geometry.userData &&
+                s.geometry.userData.sourceData &&
                 s.geometry.userData.sourceData[0] &&
                 s.geometry.userData.sourceData[0].datasetCategory === 'BACKGROUND_STAR'
         );
@@ -98,11 +107,14 @@ export class Picking {
         const pickCam = this._pickingCamera;
         pickCam.copy(this.camera);
         pickCam.setViewOffset(
-            this.renderer.domElement.width, this.renderer.domElement.height,
-            clientX * window.devicePixelRatio, clientY * window.devicePixelRatio,
-            1, 1
+            this.renderer.domElement.width,
+            this.renderer.domElement.height,
+            clientX * window.devicePixelRatio,
+            clientY * window.devicePixelRatio,
+            1,
+            1
         );
-        
+
         const realFar = pickCam.far;
         pickCam.far = this._STAR_FAR_PLANE_AU;
         pickCam.updateProjectionMatrix();
@@ -110,7 +122,8 @@ export class Picking {
         this.pickingMaterial.uniforms.uTime.value = this.getDaysSinceJ2000();
         this.pickingMaterial.uniforms.uOrigin.value.copy(this.getCurrentOrigin());
         this.pickingMaterial.uniforms.uZoom.value = this.camera.zoom;
-        this.pickingMaterial.uniforms.uPixelRatio.value = (typeof window !== 'undefined' ? window.devicePixelRatio : 1) || 1;
+        this.pickingMaterial.uniforms.uPixelRatio.value =
+            (typeof window !== 'undefined' ? window.devicePixelRatio : 1) || 1;
         this.pickingMaterial.uniforms.uStarProjectionMatrix.value.copy(pickCam.projectionMatrix);
 
         let id = 0;

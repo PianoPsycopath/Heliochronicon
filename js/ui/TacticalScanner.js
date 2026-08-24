@@ -1,5 +1,4 @@
 import { OrbitalMath } from '@physics/OrbitalMath.js';
-import { CelestialBody } from '@core/CelestialBody.js';
 import { shouldPurgeInFullSweep } from '@core/bodyRegistryPredicates.js';
 import * as THREE from 'three';
 
@@ -7,15 +6,12 @@ export class TacticalScanner {
     constructor({
         UI,
         celestialBodies,
-        scene,
         camera,
         currentOrigin,
         gpuParticleSystems,
-        dotTexture,
-        savedColors,
         bodyRegistry,
-        systemBuilder,
         asteroidPromotionService,
+        bodyFactory,
         getSystemDate,
         getCurrentTarget,
         getJ2000Days,
@@ -23,15 +19,12 @@ export class TacticalScanner {
     }) {
         this.UI = UI;
         this.celestialBodies = celestialBodies;
-        this.scene = scene;
         this.camera = camera;
         this.currentOrigin = currentOrigin;
         this.gpuParticleSystems = gpuParticleSystems;
-        this.dotTexture = dotTexture;
-        this.savedColors = savedColors;
         this.bodyRegistry = bodyRegistry;
-        this.systemBuilder = systemBuilder;
         this.asteroidPromotionService = asteroidPromotionService;
+        this.bodyFactory = bodyFactory;
         this.getSystemDate = getSystemDate;
         this.getCurrentTarget = getCurrentTarget;
         this.getJ2000Days = getJ2000Days;
@@ -127,20 +120,9 @@ export class TacticalScanner {
                 }
             });
 
-            // 2. Spawn 3D Green Radar Blips
+            // 2. Spawn 3D Green Radar Blips via BodyFactory
             closestList.forEach((hit) => {
                 const radarData = { ...hit.data, datasetCategory: 'RADAR_CONTACT' };
-                const datasetColor = this.savedColors[radarData.datasetName] || '#00ff00';
-
-                const spriteMat = new THREE.SpriteMaterial({
-                    map: this.dotTexture,
-                    depthTest: false,
-                });
-                spriteMat.color.set(datasetColor);
-                const sprite = new THREE.Sprite(spriteMat);
-                sprite.userData = radarData;
-                sprite.renderOrder = 1400;
-
                 const M_current = radarData.M0 + radarData.n * currentJ2000Days;
 
                 const rawPos = OrbitalMath.calcPosFromM(
@@ -153,70 +135,9 @@ export class TacticalScanner {
                 );
                 const absolutePos = new THREE.Vector3(rawPos.x, rawPos.y, rawPos.z);
 
-                sprite.position.copy(absolutePos.clone().sub(this.currentOrigin));
-                const scale = 1.2 / this.camera.zoom;
-                sprite.scale.set(scale, scale, 1);
-
-                sprite.matrixAutoUpdate = false;
-                sprite.updateMatrix();
-                sprite.updateMatrixWorld();
-
-                this.scene.add(sprite);
-
-                const dummyMesh = new THREE.Object3D();
-
-                let orbitLine = null;
-                if (typeof this.systemBuilder?.createOrbitPath === 'function') {
-                    orbitLine = this.systemBuilder.createOrbitPath(radarData, radarData.a);
-                    orbitLine.material.color.set(datasetColor);
-                    orbitLine.visible = false;
-                    orbitLine.matrixAutoUpdate = false;
-                    this.scene.add(orbitLine);
-                } else {
-                    orbitLine = new THREE.Line(
-                        new THREE.BufferGeometry(),
-                        new THREE.LineBasicMaterial({
-                            color: datasetColor,
-                            transparent: true,
-                            opacity: 0.5,
-                        })
-                    );
-                    orbitLine.visible = false;
-                    this.scene.add(orbitLine);
-                    console.warn(
-                        '[TacticalScanner] systemBuilder.createOrbitPath missing; using empty orbit line'
-                    );
-                }
-
-                const dummyLineMat = new THREE.LineBasicMaterial();
-                const dummyCurtain = new THREE.LineSegments(
-                    new THREE.BufferGeometry(),
-                    dummyLineMat
-                );
-
-                const label = document.createElement('div');
-                label.className = 'tactical-label';
-                label.innerText = radarData.name;
-                label.style.color = datasetColor;
-                document.body.appendChild(label);
-
-                this.bodyRegistry.registerBody(
-                    new CelestialBody({
-                        data: radarData,
-                        mesh: dummyMesh,
-                        sprite: sprite,
-                        orbitLine: orbitLine,
-                        orbitCurtain: dummyCurtain,
-                        label: label,
-                        isMoon: false,
-                        datasetVisible: true,
-                        isCulled: false,
-                        hideLabel: true,
-                        globalPos: absolutePos,
-                        scaledA: radarData.a,
-                        physicalRadius: 0,
-                    })
-                );
+                // Delegate construction entirely to the Factory
+                const body = this.bodyFactory.createRadarContact(radarData, absolutePos, this.camera.zoom, this.currentOrigin);
+                this.bodyRegistry.registerBody(body);
             });
 
             this.UI.renderScanResults(closestList, referenceName);

@@ -1,6 +1,8 @@
-// js/constants.js
+// js/core/constants.js
 
 export const AU_IN_KM = 149597870.7;
+
+export const STAR_FAR_PLANE_AU = 1e14;
 
 // Convert daysSinceJ2000 to centuries for pole-precession rates (deg/century).
 export const JULIAN_CENTURY_DAYS = 36525.0;
