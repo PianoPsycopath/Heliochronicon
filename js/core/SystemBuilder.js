@@ -1,31 +1,45 @@
 // js/core/SystemBuilder.js
-import { BodyFactory } from '@core/BodyFactory.js';
-import { OrbitFactory } from '@core/OrbitFactory.js';
 
 export class SystemBuilder {
-    constructor(engineContext) {
-        this.ctx = engineContext;
-        this.orbitFactory = new OrbitFactory();
-        this.bodyFactory = new BodyFactory(engineContext, this.orbitFactory);
+    constructor({
+        bodyRegistry,
+        celestialBodies,
+        bodyFactory,
+        orbitFactory,
+        getCurrentTarget,
+        onClearTarget,
+        onSystemCleared,
+        onClearMemory,
+        onBodiesChanged,
+    }) {
+        this.bodyRegistry = bodyRegistry;
+        this.celestialBodies = celestialBodies;
+        this.bodyFactory = bodyFactory;
+        this.orbitFactory = orbitFactory;
+        this.getCurrentTarget = getCurrentTarget;
+        this.onClearTarget = onClearTarget;
+        this.onSystemCleared = onSystemCleared;
+        this.onClearMemory = onClearMemory;
+        this.onBodiesChanged = onBodiesChanged;
     }
 
     clearSolarSystem() {
-        const { bodyRegistry } = this.ctx;
+        const { bodyRegistry, onClearTarget, onSystemCleared, onClearMemory } = this;
 
         bodyRegistry.clearAll();
 
-        this.ctx.onClearTarget();
-        this.ctx.onSystemCleared();
-        this.ctx.onClearMemory();
+        onClearTarget();
+        onSystemCleared();
+        onClearMemory();
     }
 
     buildSolarSystem(planetaryData) {
         if (planetaryData.length === 0) return;
 
-        const { celestialBodies, bodyRegistry } = this.ctx;
+        const { celestialBodies, bodyRegistry, getCurrentTarget, onBodiesChanged } = this;
         const datasetCategory = planetaryData[0].datasetCategory;
         const datasetName = planetaryData[0].datasetName;
-        const currentTargetData = this.ctx.getCurrentTarget();
+        const currentTargetData = getCurrentTarget();
 
         // --- PATH A: GPU PARTICLE (ASTEROIDS ONLY) ---
         if (datasetCategory === 'ASTEROID') {
@@ -35,7 +49,7 @@ export class SystemBuilder {
             );
             bodyRegistry.registerParticleSystem(particleSystem);
 
-            this.ctx.onBodiesChanged(celestialBodies, currentTargetData);
+            onBodiesChanged(celestialBodies, currentTargetData);
             return;
         }
 
@@ -59,7 +73,7 @@ export class SystemBuilder {
             if (index < planetaryData.length) {
                 requestAnimationFrame(buildChunk);
             } else {
-                this.ctx.onBodiesChanged(celestialBodies, currentTargetData);
+                onBodiesChanged(celestialBodies, currentTargetData);
             }
         };
 
@@ -69,9 +83,11 @@ export class SystemBuilder {
     createPromotedAsteroidBody(d) {
         return this.bodyFactory.createPromotedAsteroidBody(d);
     }
+
     createOrbitPath(data, semiMajorAxis) {
         return this.orbitFactory.createOrbitPath(data, semiMajorAxis);
     }
+
     getTacticalA(data, isMoon = false) {
         return this.orbitFactory.getTacticalA(data, isMoon);
     }

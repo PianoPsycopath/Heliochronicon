@@ -1,3 +1,4 @@
+// js/rendering/EclipseShadowController.js
 import * as THREE from 'three';
 import { Shaders } from '@rendering/Shaders.js';
 import { EclipseEngine } from '@physics/EclipseEngine.js';
@@ -7,13 +8,14 @@ const OVERLAY_GEOMETRY = new THREE.SphereGeometry(1, 32, 32);
 const OVERLAY_SCALE_PAD = 1.006;
 
 export class EclipseShadowController {
-    constructor(ctx) {
-        this.ctx = ctx;
+    constructor({ scene, celestialBodies }) {
+        this.scene = scene;
+        this.celestialBodies = celestialBodies;
         this.overlays = new Map();
     }
 
     _findStarBody(bodyObj) {
-        const bodies = this.ctx.celestialBodies;
+        const bodies = this.celestialBodies;
         let current = bodyObj.data;
         const visited = new Set();
         while (current && !visited.has(current.name)) {
@@ -27,7 +29,7 @@ export class EclipseShadowController {
 
     _candidates(bodyObj) {
         const systemName = bodyObj.isMoon ? bodyObj.data.parent : bodyObj.data.name;
-        return this.ctx.celestialBodies.filter(
+        return this.celestialBodies.filter(
             (b) =>
                 b !== bodyObj &&
                 b.data.parent !== b.data.name &&
@@ -44,7 +46,7 @@ export class EclipseShadowController {
             mesh.renderOrder = (bodyObj.mesh.renderOrder || 0) + 2;
             entry = { mesh, material };
             this.overlays.set(bodyObj.data.name, entry);
-            this.ctx.scene.add(mesh);
+            this.scene.add(mesh);
         }
         return entry;
     }
@@ -113,13 +115,13 @@ export class EclipseShadowController {
     removeBody(name) {
         const e = this.overlays.get(name);
         if (!e) return;
-        this.ctx.scene.remove(e.mesh);
+        this.scene.remove(e.mesh);
         e.material.dispose();
         this.overlays.delete(name);
     }
     dispose() {
         this.overlays.forEach(({ mesh, material }) => {
-            this.ctx.scene.remove(mesh);
+            this.scene.remove(mesh);
             material.dispose();
         });
         this.overlays.clear();

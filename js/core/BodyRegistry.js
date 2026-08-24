@@ -7,13 +7,20 @@ import {
 } from '@core/bodyRegistryPredicates.js';
 
 export class BodyRegistry {
-    constructor(ctx) {
-        this.scene = ctx.scene;
-        this.celestialBodies = ctx.celestialBodies;
-        this.pickableObjects = ctx.pickableObjects;
-        this.gpuParticleSystems = ctx.gpuParticleSystems;
-        this.daylightController = ctx.daylightController;
-        this.eclipseShadowController = ctx.eclipseShadowController;
+    constructor({
+        scene,
+        celestialBodies,
+        pickableObjects,
+        gpuParticleSystems,
+        daylightController,
+        eclipseShadowController,
+    }) {
+        this.scene = scene;
+        this.celestialBodies = celestialBodies;
+        this.pickableObjects = pickableObjects;
+        this.gpuParticleSystems = gpuParticleSystems;
+        this.daylightController = daylightController;
+        this.eclipseShadowController = eclipseShadowController;
     }
 
     registerBody(body) {

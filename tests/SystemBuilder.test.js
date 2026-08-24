@@ -16,6 +16,8 @@ vi.mock('@rendering/Shaders.js', () => ({
 
 import { Shaders } from '@rendering/Shaders.js';
 import { SystemBuilder } from '@core/SystemBuilder.js';
+import { BodyFactory } from '@core/BodyFactory.js';
+import { OrbitFactory } from '@core/OrbitFactory.js';
 
 beforeEach(() => {
     Shaders.getAsteroidParticleMaterial.mockClear();
@@ -27,16 +29,37 @@ beforeEach(() => {
 function makeCtx(overrides = {}) {
     const celestialBodies = overrides.celestialBodies || [];
     const gpuParticleSystems = overrides.gpuParticleSystems || [];
+    const scene = overrides.scene || { add: vi.fn(), remove: vi.fn() };
+    
+    // Define shared reference objects FIRST so BodyFactory and ctx point to the same memory
+    const datasetMaterials = overrides.datasetMaterials || {};
+    const savedColors = overrides.savedColors || {};
+    const tacticalMaterial = overrides.tacticalMaterial || {};
+    const dotTexture = overrides.dotTexture || {};
+    
+    const orbitFactory = new OrbitFactory();
+    const bodyFactory = new BodyFactory({
+        scene,
+        tacticalMaterial,
+        auInKm: AU_IN_KM,
+        savedColors,
+        dotTexture,
+        datasetMaterials,
+        orbitFactory
+    });
+
     return {
-        scene: { add: vi.fn() },
+        scene,
         celestialBodies,
         gpuParticleSystems,
         UI: { renderBodyList: vi.fn(), updateTargetPanel: vi.fn() },
-        datasetMaterials: {},
-        savedColors: {},
-        tacticalMaterial: {},
-        dotTexture: {},
+        datasetMaterials,
+        savedColors,
+        tacticalMaterial,
+        dotTexture,
         AU_IN_KM,
+        orbitFactory,
+        bodyFactory,
         bodyRegistry: {
             registerBody: vi.fn((cb) => celestialBodies.push(cb)),
             promote: vi.fn((cb) => celestialBodies.push(cb)),

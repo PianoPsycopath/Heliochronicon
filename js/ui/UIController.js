@@ -13,9 +13,8 @@ const CURTAIN_MODE_TITLES = [
 ];
 
 export class UIController {
-    constructor(ctx = {}) {
-        // Optional so UIController works standalone; falls back to native title.
-        this.tooltipManager = ctx.tooltipManager || null;
+    constructor({ tooltipManager = null } = {}) {
+        this.tooltipManager = tooltipManager;
 
         this.datasets = new Set();
         this.timeThrottle = new TimeThrottle({

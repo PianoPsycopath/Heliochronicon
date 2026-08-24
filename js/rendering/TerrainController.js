@@ -4,17 +4,12 @@ import { Shaders } from '@rendering/Shaders.js';
 import { logger } from '@core/logger.js';
 
 export class TerrainController {
-    constructor(ctx, manifestUrl = 'data/heightmaps/manifest.json') {
-        this.ctx = ctx; // needs ctx.celestialBodies
+    constructor({ celestialBodies }, manifestUrl = 'data/heightmaps/manifest.json') {
+        this.celestialBodies = celestialBodies;
         this.loader = new THREE.TextureLoader();
         this.cache = new Map();
         this.pending = new Set();
         this.registry = null;
-
-        // Names of bodies currently textured with a heightmap (planet, and a
-        // moon too if both are concurrently visible). Populated/cleared from
-        // the SAME per-frame visibility hook RenderPipeline already calls
-        // (`onMeshVisibilityChange`) -- no extra wiring needed elsewhere.
         this.activeBodyNames = new Set();
         this.onActiveBodiesChanged = null;
 
@@ -78,7 +73,7 @@ export class TerrainController {
                 const material = Shaders.createTerrainContourMat(texture, cfg.elevMin, cfg.elevMax);
 
                 // Guard: Was this body purged from the scene during the async texture load?
-                if (this.ctx.celestialBodies.includes(bodyObj) && bodyObj.mesh) {
+                if (this.celestialBodies.includes(bodyObj) && bodyObj.mesh) {
                     this.cache.set(name, { texture, material });
                     bodyObj.mesh.material = material;
                 } else {

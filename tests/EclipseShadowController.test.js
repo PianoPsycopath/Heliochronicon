@@ -18,8 +18,6 @@ function makeShadowMaterial() {
     };
 }
 
-// Shaders.js was not supplied; mock it with a uniform shape that mirrors what
-// updateForBody actually reads/writes, so the controller's real branching logic runs.
 vi.mock('@rendering/Shaders.js', () => ({
     Shaders: {
         createEclipseShadowMat: vi.fn(() => makeShadowMaterial())
@@ -55,14 +53,14 @@ describe('EclipseShadowController', () => {
             const sun = mkBody('SUN', 'SUN');
             const earth = mkBody('EARTH', 'SUN');
             const moon = mkBody('MOON', 'EARTH', { isMoon: true });
-            ctx.celestialBodies = [sun, earth, moon];
+            ctx.celestialBodies.push(sun, earth, moon);
 
             expect(ctrl._findStarBody(moon)).toBe(sun);
         });
 
         it('returns null on a broken parent chain without infinite-looping', () => {
             const orphan = mkBody('ROGUE', 'NOWHERE');
-            ctx.celestialBodies = [orphan];
+            ctx.celestialBodies.push(orphan);
             expect(ctrl._findStarBody(orphan)).toBeNull();
         });
     });
@@ -73,21 +71,21 @@ describe('EclipseShadowController', () => {
             const earth = mkBody('EARTH', 'SUN');
             const moon = mkBody('MOON', 'EARTH', { isMoon: true });
             const mars = mkBody('MARS', 'SUN');
-            ctx.celestialBodies = [sun, earth, moon, mars];
+            ctx.celestialBodies.push(sun, earth, moon, mars);
 
             const candidates = ctrl._candidates(earth);
             const names = candidates.map(c => c.data.name);
             expect(names).toContain('MOON');
             expect(names).not.toContain('EARTH');
             expect(names).not.toContain('MARS');
-            expect(names).not.toContain('SUN'); // stars (parent === name) are excluded
+            expect(names).not.toContain('SUN');
         });
 
         it('for a moon target, includes its parent planet and sibling moons but not itself', () => {
             const earth = mkBody('EARTH', 'SUN');
             const moonA = mkBody('MOON_A', 'EARTH', { isMoon: true });
             const moonB = mkBody('MOON_B', 'EARTH', { isMoon: true });
-            ctx.celestialBodies = [earth, moonA, moonB];
+            ctx.celestialBodies.push(earth, moonA, moonB);
 
             const candidates = ctrl._candidates(moonA);
             const names = candidates.map(c => c.data.name);
@@ -100,14 +98,14 @@ describe('EclipseShadowController', () => {
     describe('onMeshVisibilityChange', () => {
         it('is a no-op for a self-referencing star', () => {
             const sun = mkBody('SUN', 'SUN');
-            ctx.celestialBodies = [sun];
+            ctx.celestialBodies.push(sun);
             expect(() => ctrl.onMeshVisibilityChange(sun, false)).not.toThrow();
             expect(scene.remove).not.toHaveBeenCalled();
         });
 
         it('hides an existing overlay when visibility turns off', () => {
             const earth = mkBody('EARTH', 'SUN', { renderPos: new THREE.Vector3(1, 0, 0) });
-            ctx.celestialBodies = [earth];
+            ctx.celestialBodies.push(earth);
             const entry = ctrl._ensureOverlay(earth);
             entry.mesh.visible = true;
 
@@ -127,7 +125,7 @@ describe('EclipseShadowController', () => {
 
         it('does nothing (no overlay created) when no star can be found', () => {
             const orphan = mkBody('ROGUE', 'NOWHERE', { renderPos: new THREE.Vector3() });
-            ctx.celestialBodies = [orphan];
+            ctx.celestialBodies.push(orphan);
 
             ctrl.updateForBody(orphan);
 
@@ -138,7 +136,7 @@ describe('EclipseShadowController', () => {
         it('creates and hides the overlay when there are no eclipsing candidates', () => {
             const sun = mkBody('SUN', 'SUN', { renderPos: new THREE.Vector3(0, 0, 0) });
             const earth = mkBody('EARTH', 'SUN', { renderPos: new THREE.Vector3(1, 0, 0) });
-            ctx.celestialBodies = [sun, earth];
+            ctx.celestialBodies.push(sun, earth);
 
             ctrl.updateForBody(earth);
 
@@ -151,12 +149,12 @@ describe('EclipseShadowController', () => {
             const sun = mkBody('SUN', 'SUN', { renderPos: new THREE.Vector3(0, 0, 0) });
             const earth = mkBody('EARTH', 'SUN', { renderPos: new THREE.Vector3(1, 0, 0) });
             const moonNoPos = mkBody('MOON', 'EARTH', { isMoon: true, renderPos: null, physicalRadius: 0.00001 });
-            ctx.celestialBodies = [sun, earth, moonNoPos];
+            ctx.celestialBodies.push(sun, earth, moonNoPos);
 
             ctrl.updateForBody(earth);
 
             const entry = ctrl.overlays.get('EARTH');
-            expect(entry.mesh.visible).toBe(false); // moon was skipped, no eclipse detected
+            expect(entry.mesh.visible).toBe(false); 
         });
 
         it('shows the overlay and populates uniforms when a moon eclipses its planet', () => {
@@ -166,11 +164,10 @@ describe('EclipseShadowController', () => {
             const earth = mkBody('EARTH', 'SUN', {
                 renderPos: new THREE.Vector3(1, 0, 0), physicalRadius: 6371 / AU_IN_KM
             });
-            // Between the Sun and Earth (occluder must be nearer the star than the shadowed body)
             const moon = mkBody('MOON', 'EARTH', {
                 isMoon: true, renderPos: new THREE.Vector3(0.9974, 0, 0), physicalRadius: 1737 / AU_IN_KM
             });
-            ctx.celestialBodies = [sun, earth, moon];
+            ctx.celestialBodies.push(sun, earth, moon);
 
             ctrl.updateForBody(earth);
 
@@ -189,13 +186,12 @@ describe('EclipseShadowController', () => {
             const earth = mkBody('EARTH', 'SUN', {
                 renderPos: new THREE.Vector3(1, 0, 0), physicalRadius: 6371 / AU_IN_KM
             });
-            // 12 tiny "moons" all between the Sun and Earth, all valid occluders
             const moons = Array.from({ length: 12 }, (_, idx) => mkBody(`MOON_${idx}`, 'EARTH', {
                 isMoon: true,
                 renderPos: new THREE.Vector3(0.9974, 0, 0),
-                physicalRadius: (1737 + idx) / AU_IN_KM // slightly different radii so sort order is deterministic
+                physicalRadius: (1737 + idx) / AU_IN_KM 
             }));
-            ctx.celestialBodies = [sun, earth, ...moons];
+            ctx.celestialBodies.push(sun, earth, ...moons);
 
             ctrl.updateForBody(earth);
 
@@ -207,7 +203,7 @@ describe('EclipseShadowController', () => {
         it('reuses the same overlay mesh/material across repeated calls instead of recreating it', () => {
             const sun = mkBody('SUN', 'SUN', { renderPos: new THREE.Vector3(0, 0, 0) });
             const earth = mkBody('EARTH', 'SUN', { renderPos: new THREE.Vector3(1, 0, 0) });
-            ctx.celestialBodies = [sun, earth];
+            ctx.celestialBodies.push(sun, earth);
 
             ctrl.updateForBody(earth);
             ctrl.updateForBody(earth);
@@ -220,7 +216,7 @@ describe('EclipseShadowController', () => {
     describe('removeBody', () => {
         it('removes the overlay from the scene, disposes its material, and drops it from the map', () => {
             const earth = mkBody('EARTH', 'SUN', { renderPos: new THREE.Vector3(1, 0, 0) });
-            ctx.celestialBodies = [earth];
+            ctx.celestialBodies.push(earth);
             const entry = ctrl._ensureOverlay(earth);
 
             ctrl.removeBody('EARTH');
@@ -240,7 +236,7 @@ describe('EclipseShadowController', () => {
         it('removes and disposes every overlay and clears the map', () => {
             const earth = mkBody('EARTH', 'SUN', { renderPos: new THREE.Vector3(1, 0, 0) });
             const mars = mkBody('MARS', 'SUN', { renderPos: new THREE.Vector3(1.5, 0, 0) });
-            ctx.celestialBodies = [earth, mars];
+            ctx.celestialBodies.push(earth, mars);
             const earthEntry = ctrl._ensureOverlay(earth);
             const marsEntry = ctrl._ensureOverlay(mars);
 

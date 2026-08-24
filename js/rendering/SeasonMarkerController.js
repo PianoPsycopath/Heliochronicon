@@ -43,11 +43,11 @@ function createTextSpriteMat(symbol, symbolKey) {
 }
 
 export class SeasonMarkerController {
-    constructor(ctx) {
-        this.scene = ctx.scene;
-        this.celestialBodies = ctx.celestialBodies;
-        this.camera = ctx.camera;
-        this.tooltipManager = ctx.tooltipManager;
+    constructor({ scene, celestialBodies, camera, tooltipManager }) {
+        this.scene = scene;
+        this.celestialBodies = celestialBodies;
+        this.camera = camera;
+        this.tooltipManager = tooltipManager;
 
         this.seasonBody = null;
         this.markers = [];

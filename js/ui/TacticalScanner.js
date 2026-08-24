@@ -1,52 +1,67 @@
-// js/ui/TacticalScanner.js
 import { OrbitalMath } from '@physics/OrbitalMath.js';
 import { CelestialBody } from '@core/CelestialBody.js';
 import { shouldPurgeInFullSweep } from '@core/bodyRegistryPredicates.js';
 import * as THREE from 'three';
 
 export class TacticalScanner {
-    constructor(engineContext) {
-        // The context provides references to the main engine state and arrays
-        this.ctx = engineContext;
+    constructor({
+        UI,
+        celestialBodies,
+        scene,
+        camera,
+        currentOrigin,
+        gpuParticleSystems,
+        dotTexture,
+        savedColors,
+        bodyRegistry,
+        systemBuilder,
+        asteroidPromotionService,
+        getSystemDate,
+        getCurrentTarget,
+        getJ2000Days,
+        onTargetPurged,
+    }) {
+        this.UI = UI;
+        this.celestialBodies = celestialBodies;
+        this.scene = scene;
+        this.camera = camera;
+        this.currentOrigin = currentOrigin;
+        this.gpuParticleSystems = gpuParticleSystems;
+        this.dotTexture = dotTexture;
+        this.savedColors = savedColors;
+        this.bodyRegistry = bodyRegistry;
+        this.systemBuilder = systemBuilder;
+        this.asteroidPromotionService = asteroidPromotionService;
+        this.getSystemDate = getSystemDate;
+        this.getCurrentTarget = getCurrentTarget;
+        this.getJ2000Days = getJ2000Days;
+        this.onTargetPurged = onTargetPurged;
     }
 
     purgeTacticalClones() {
-        const { UI, celestialBodies } = this.ctx;
-
-        const currentTargetData = this.ctx.getCurrentTarget();
-
-        this.ctx.asteroidPromotionService.purgeUnpinned();
+        const currentTargetData = this.getCurrentTarget();
+        this.asteroidPromotionService.purgeUnpinned();
 
         if (currentTargetData && shouldPurgeInFullSweep(currentTargetData)) {
-            this.ctx.onTargetPurged();
+            this.onTargetPurged();
         } else {
-            UI.updateTargetPanel(currentTargetData);
-            UI.renderBodyList(celestialBodies, currentTargetData);
+            this.UI.updateTargetPanel(currentTargetData);
+            this.UI.renderBodyList(this.celestialBodies, currentTargetData);
         }
     }
 
     performTacticalScan() {
-        const {
-            UI,
-            scene,
-            camera,
-            currentOrigin,
-            gpuParticleSystems,
-            dotTexture,
-            savedColors,
-            bodyRegistry,
-        } = this.ctx;
-        const systemDate = this.ctx.getSystemDate();
-        const currentTargetData = this.ctx.getCurrentTarget();
+        const currentTargetData = this.getCurrentTarget();
+        const systemDate = this.getSystemDate();
 
-        UI.showScanningStatus();
+        this.UI.showScanningStatus();
 
         setTimeout(() => {
             let scanOrigin = new THREE.Vector3();
             let referenceName = 'CAMERA';
 
             if (currentTargetData) {
-                const tBody = bodyRegistry.getByName(currentTargetData.name);
+                const tBody = this.bodyRegistry.getByName(currentTargetData.name);
                 if (tBody) {
                     scanOrigin.copy(tBody.globalPos);
                 } else if (
@@ -54,8 +69,7 @@ export class TacticalScanner {
                     currentTargetData.datasetCategory === 'PROMOTED_ASTEROID'
                 ) {
                     const M_current =
-                        currentTargetData.M0 +
-                        currentTargetData.n * this.ctx.getJ2000Days(systemDate);
+                        currentTargetData.M0 + currentTargetData.n * this.getJ2000Days(systemDate);
                     scanOrigin = OrbitalMath.calcPosFromM(
                         currentTargetData.a,
                         currentTargetData.e,
@@ -67,19 +81,20 @@ export class TacticalScanner {
                 }
                 referenceName = currentTargetData.name;
             } else {
-                scanOrigin.copy(camera.position).add(currentOrigin);
+                scanOrigin.copy(this.camera.position).add(this.currentOrigin);
             }
 
-            const currentJ2000Days = this.ctx.getJ2000Days(systemDate);
+            const currentJ2000Days = this.getJ2000Days(systemDate);
             let closestList = [];
 
-            this.ctx.asteroidPromotionService.sweepForRescan(currentTargetData);
+            this.asteroidPromotionService.sweepForRescan(currentTargetData);
 
-            gpuParticleSystems.forEach((system) => {
+            this.gpuParticleSystems.forEach((system) => {
                 if (!system.visible) return;
 
                 const sourceData = system.userData.sourceData;
                 if (!sourceData || !system.geometry.attributes.a) return;
+
                 const a_arr = system.geometry.attributes.a.array;
                 const e_arr = system.geometry.attributes.e.array;
                 const i_arr = system.geometry.attributes.i.array;
@@ -113,12 +128,14 @@ export class TacticalScanner {
             });
 
             // 2. Spawn 3D Green Radar Blips
-            const systemBuilder = this.ctx.systemBuilder;
             closestList.forEach((hit) => {
                 const radarData = { ...hit.data, datasetCategory: 'RADAR_CONTACT' };
-                const datasetColor = savedColors[radarData.datasetName] || '#00ff00';
+                const datasetColor = this.savedColors[radarData.datasetName] || '#00ff00';
 
-                const spriteMat = new THREE.SpriteMaterial({ map: dotTexture, depthTest: false });
+                const spriteMat = new THREE.SpriteMaterial({
+                    map: this.dotTexture,
+                    depthTest: false,
+                });
                 spriteMat.color.set(datasetColor);
                 const sprite = new THREE.Sprite(spriteMat);
                 sprite.userData = radarData;
@@ -136,25 +153,25 @@ export class TacticalScanner {
                 );
                 const absolutePos = new THREE.Vector3(rawPos.x, rawPos.y, rawPos.z);
 
-                sprite.position.copy(absolutePos.clone().sub(currentOrigin));
-                const scale = 1.2 / camera.zoom;
+                sprite.position.copy(absolutePos.clone().sub(this.currentOrigin));
+                const scale = 1.2 / this.camera.zoom;
                 sprite.scale.set(scale, scale, 1);
 
                 sprite.matrixAutoUpdate = false;
                 sprite.updateMatrix();
                 sprite.updateMatrixWorld();
 
-                scene.add(sprite);
+                this.scene.add(sprite);
 
                 const dummyMesh = new THREE.Object3D();
 
                 let orbitLine = null;
-                if (typeof systemBuilder?.createOrbitPath === 'function') {
-                    orbitLine = systemBuilder.createOrbitPath(radarData, radarData.a);
+                if (typeof this.systemBuilder?.createOrbitPath === 'function') {
+                    orbitLine = this.systemBuilder.createOrbitPath(radarData, radarData.a);
                     orbitLine.material.color.set(datasetColor);
                     orbitLine.visible = false;
                     orbitLine.matrixAutoUpdate = false;
-                    scene.add(orbitLine);
+                    this.scene.add(orbitLine);
                 } else {
                     orbitLine = new THREE.Line(
                         new THREE.BufferGeometry(),
@@ -165,7 +182,7 @@ export class TacticalScanner {
                         })
                     );
                     orbitLine.visible = false;
-                    scene.add(orbitLine);
+                    this.scene.add(orbitLine);
                     console.warn(
                         '[TacticalScanner] systemBuilder.createOrbitPath missing; using empty orbit line'
                     );
@@ -183,7 +200,7 @@ export class TacticalScanner {
                 label.style.color = datasetColor;
                 document.body.appendChild(label);
 
-                bodyRegistry.registerBody(
+                this.bodyRegistry.registerBody(
                     new CelestialBody({
                         data: radarData,
                         mesh: dummyMesh,
@@ -202,7 +219,7 @@ export class TacticalScanner {
                 );
             });
 
-            UI.renderScanResults(closestList, referenceName);
+            this.UI.renderScanResults(closestList, referenceName);
         }, 50);
     }
 }

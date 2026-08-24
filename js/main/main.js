@@ -26,6 +26,8 @@ import { SeasonMarkerController } from '@rendering/SeasonMarkerController.js';
 import { TooltipManager } from '@ui/TooltipManager.js';
 import { AppState } from '@core/AppState.js';
 import { logger } from '@core/logger.js';
+import { BodyFactory } from '@core/BodyFactory.js';
+import { OrbitFactory } from '@core/OrbitFactory.js';
 import { AsteroidPromotionService } from '@core/AsteroidPromotionService.js';
 import { DatasetCoordinator } from '@main/DatasetCoordinator.js';
 import { AsteroidController } from '@main/AsteroidController.js';
@@ -135,37 +137,38 @@ const dataSource =
     storage.get('heliochronicon_dataSourcePath') ||
     'data/';
 
-const systemBuilder = new SystemBuilder({
+const orbitFactory = new OrbitFactory();
+const bodyFactory = new BodyFactory({
     scene,
-    celestialBodies,
-    gpuParticleSystems,
-    datasetMaterials,
+    tacticalMaterial,
+    auInKm: AU_IN_KM,
     savedColors,
     dotTexture,
-    tacticalMaterial,
-    AU_IN_KM,
+    datasetMaterials,
+    orbitFactory,
+});
+
+const systemBuilder = new SystemBuilder({
     bodyRegistry,
+    celestialBodies,
+    bodyFactory,
+    orbitFactory,
     getCurrentTarget: () => appState.currentTargetData,
     onClearTarget: () => {
         appState.currentTargetData = null;
         appState.trackingTargetData = null;
-        updateCredits();
-        seasonMarkerController.setTarget(null);
     },
     onSystemCleared: () => {
         UI.updateTargetPanel(null);
         UI.renderBodyList(celestialBodies, null);
     },
-    onBodiesChanged: (bodies, currentTargetData) => {
-        UI.renderBodyList(bodies, currentTargetData);
-    },
+    onBodiesChanged: (bodies, target) => UI.renderBodyList(bodies, target),
     onClearMemory: () => {},
 });
 
 const asteroidPromotionService = new AsteroidPromotionService({
     bodyRegistry,
     systemBuilder,
-    celestialBodies,
 });
 
 const datasetCoordinator = new DatasetCoordinator({

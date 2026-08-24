@@ -21,17 +21,13 @@ export class AsteroidController {
     }) {
         this.appState = appState;
         this.UI = UI;
-
         this.asteroidPromotionService = asteroidPromotionService;
-
         this.bodyRegistry = bodyRegistry;
         this.interactionController = interactionController;
         this.seasonMarkerController = seasonMarkerController;
         this.storage = storage;
-
         this.celestialBodies = celestialBodies;
         this.gpuParticleSystems = gpuParticleSystems;
-
         this.updateCredits = updateCredits;
         this.getAssetManifest = getAssetManifest;
         this.auInKm = auInKm;

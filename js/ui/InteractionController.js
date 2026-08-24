@@ -7,21 +7,38 @@ function escapeHtml(str) {
 }
 
 export class InteractionController {
-    constructor(ctx) {
-        this.ctx = ctx;
-        this.camera = ctx.camera;
-        this.controls = ctx.controls;
-        this.frustumSize = ctx.frustumSize;
-        this.pickableObjects = ctx.pickableObjects;
-        this.gpuParticleSystems = ctx.gpuParticleSystems || [];
-        this.UI = ctx.UI;
+    constructor({
+        camera,
+        controls,
+        frustumSize,
+        pickableObjects,
+        gpuParticleSystems = [],
+        UI,
+        getCurrentTarget,
+        onBodyClicked,
+        onTrackingBroken,
+        onBodyHovered = () => {},
+        tooltipManager,
+        renderer,
+        getDaysSinceJ2000,
+        getCurrentOrigin,
+    }) {
+        this.camera = camera;
+        this.controls = controls;
+        this.frustumSize = frustumSize;
+        this.pickableObjects = pickableObjects;
+        this.gpuParticleSystems = gpuParticleSystems;
+        this.UI = UI;
 
-        this.getCurrentTarget = ctx.getCurrentTarget;
-        this.onBodyClicked = ctx.onBodyClicked;
-        this.onTrackingBroken = ctx.onTrackingBroken;
-        this.onBodyHovered = ctx.onBodyHovered || (() => {});
+        this.getCurrentTarget = getCurrentTarget;
+        this.onBodyClicked = onBodyClicked;
+        this.onTrackingBroken = onTrackingBroken;
+        this.onBodyHovered = onBodyHovered;
 
-        this.tooltipManager = ctx.tooltipManager;
+        this.tooltipManager = tooltipManager;
+        this.renderer = renderer;
+        this.getDaysSinceJ2000 = getDaysSinceJ2000;
+        this.getCurrentOrigin = getCurrentOrigin;
 
         this.isCameraTracking = false;
         this.flyPanActive = false;
@@ -195,7 +212,7 @@ export class InteractionController {
 
         let newData = this._pickAtScreenPos(clientX, clientY);
 
-        if (!newData && this.ctx.renderer) {
+        if (!newData && this.renderer) {
             newData = this._pickStar(clientX, clientY);
         }
 
@@ -280,9 +297,9 @@ export class InteractionController {
         if (!this.starMeshClone) this.setupPickingScene();
         if (!this.starMeshClone) return null;
 
-        const renderer = this.ctx.renderer;
-        const daysSinceJ2000 = this.ctx.getDaysSinceJ2000();
-        const currentOrigin = this.ctx.getCurrentOrigin();
+        const renderer = this.renderer;
+        const daysSinceJ2000 = this.getDaysSinceJ2000();
+        const currentOrigin = this.getCurrentOrigin();
         const camera = this.camera;
 
         this.pickingMaterial.uniforms.uTime.value = daysSinceJ2000;
@@ -380,7 +397,7 @@ export class InteractionController {
             if (dist > 15) return;
 
             let clickedData = this._pickAtScreenPos(event.clientX, event.clientY);
-            if (!clickedData && this.ctx.renderer) {
+            if (!clickedData && this.renderer) {
                 clickedData = this._pickStar(event.clientX, event.clientY);
             }
 

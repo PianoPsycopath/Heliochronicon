@@ -4,20 +4,33 @@ import { CelestialBody } from '@core/CelestialBody.js';
 import * as THREE from 'three';
 
 export class BodyFactory {
-    constructor(ctx, orbitFactory) {
-        this.ctx = ctx;
+    constructor({
+        scene,
+        tacticalMaterial,
+        auInKm,
+        savedColors,
+        dotTexture,
+        datasetMaterials,
+        orbitFactory,
+    }) {
+        this.scene = scene;
+        this.tacticalMaterial = tacticalMaterial;
+        this.auInKm = auInKm;
+        this.savedColors = savedColors;
+        this.dotTexture = dotTexture;
+        this.datasetMaterials = datasetMaterials;
         this.orbitFactory = orbitFactory;
     }
 
     createTacticalBody(d) {
-        const { scene, tacticalMaterial, AU_IN_KM } = this.ctx;
+        const { scene, tacticalMaterial, auInKm } = this;
 
         const isSun = d.parent === d.name;
         const isMoon = !isSun && d.category === 'MOON';
 
         const scaledA = this.orbitFactory.getTacticalA(d, isMoon);
 
-        const physicalRadius = d.radius_km > 0 ? d.radius_km / AU_IN_KM : 1.0 / AU_IN_KM;
+        const physicalRadius = d.radius_km > 0 ? d.radius_km / auInKm : 1.0 / auInKm;
 
         const geometry = new THREE.SphereGeometry(physicalRadius, 32, 32);
         geometry.rotateY(Math.PI / 2);
@@ -111,7 +124,7 @@ export class BodyFactory {
     }
 
     createPromotedAsteroidBody(d) {
-        const { scene, savedColors, dotTexture, tacticalMaterial, AU_IN_KM } = this.ctx;
+        const { scene, savedColors, dotTexture, tacticalMaterial, auInKm } = this;
 
         const promotedData = {
             ...d,
@@ -121,7 +134,7 @@ export class BodyFactory {
         const scaledA = this.orbitFactory.getTacticalA(promotedData, false);
 
         const physicalRadius =
-            promotedData.radius_km > 0 ? promotedData.radius_km / AU_IN_KM : 1.0 / AU_IN_KM;
+            promotedData.radius_km > 0 ? promotedData.radius_km / auInKm : 1.0 / auInKm;
 
         // ---------------------------------------------------------------------
         // CPU mesh representation
@@ -220,7 +233,7 @@ export class BodyFactory {
     }
 
     createAsteroidParticleSystem(planetaryData, datasetName) {
-        const { scene, savedColors, datasetMaterials } = this.ctx;
+        const { scene, savedColors, datasetMaterials } = this;
 
         const count = planetaryData.length;
         const geometry = new THREE.BufferGeometry();

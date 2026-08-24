@@ -1,9 +1,5 @@
 // @vitest-environment jsdom
 // tests/integration.DataLoaderToSystemBuilder.test.js
-//
-// End-to-end (no-renderer) check that raw manifest-shaped rows survive
-// DataLoader.processPlanetaryData intact enough for SystemBuilder to build a
-// scene graph out of them without throwing, with the right shape at each hop.
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { DataLoader } from '@core/DataLoader.js';
 import { AU_IN_KM } from '@core/constants.js';
@@ -18,19 +14,43 @@ vi.mock('@rendering/Shaders.js', () => ({
 }));
 
 import { SystemBuilder } from '@core/SystemBuilder.js';
+import { BodyFactory } from '@core/BodyFactory.js';
+import { OrbitFactory } from '@core/OrbitFactory.js';
 
 function makeCtx() {
     const celestialBodies = [];
     const gpuParticleSystems = [];
+    const scene = { add: vi.fn() };
+    
+    // Shared reference objects
+    const datasetMaterials = {};
+    const savedColors = {};
+    const tacticalMaterial = {};
+    const dotTexture = {};
+    
+    const orbitFactory = new OrbitFactory();
+    const bodyFactory = new BodyFactory({
+        scene,
+        tacticalMaterial,
+        auInKm: AU_IN_KM,
+        savedColors,
+        dotTexture,
+        datasetMaterials,
+        orbitFactory
+    });
+
     return {
-        scene: { add: vi.fn() },
+        scene,
         celestialBodies,
         gpuParticleSystems,
         UI: { renderBodyList: vi.fn(), updateTargetPanel: vi.fn() },
-        datasetMaterials: {},
-        savedColors: {},
-        tacticalMaterial: {},
+        datasetMaterials,
+        savedColors,
+        tacticalMaterial,
+        dotTexture,
         AU_IN_KM,
+        orbitFactory,
+        bodyFactory,
         bodyRegistry: {
             registerBody: vi.fn((cb) => celestialBodies.push(cb)),
             promote: vi.fn((cb) => celestialBodies.push(cb)),

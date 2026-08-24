@@ -1,4 +1,4 @@
-// js/shaders/tactical.js
+// js/rendering/shaders/tactical.js
 // Tactical-scan rim material, canvas-sprite materials (dot/star/diamond/group
 // label), and the GPU asteroid-particle field (Kepler solve on the GPU).
 // Split out of the former Shaders.js monolith -- see ShaderManager.js for the

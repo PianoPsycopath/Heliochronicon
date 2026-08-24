@@ -5,10 +5,9 @@ import { logger } from '@core/logger.js';
 const PROMOTABLE_CATEGORIES = new Set(['ASTEROID', 'RADAR_CONTACT']);
 
 export class AsteroidPromotionService {
-    constructor({ bodyRegistry, systemBuilder, celestialBodies }) {
+    constructor({ bodyRegistry, systemBuilder }) {
         this.bodyRegistry = bodyRegistry;
         this.systemBuilder = systemBuilder;
-        this.celestialBodies = celestialBodies;
     }
 
     promote(data) {

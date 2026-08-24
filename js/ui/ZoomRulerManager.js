@@ -1,8 +1,8 @@
 // js/ZoomRulerManager.js
 export class ZoomRulerManager {
-    constructor(ctx) {
-        this.camera = ctx.camera;
-        this.controls = ctx.controls;
+    constructor({ camera, controls }) {
+        this.camera = camera;
+        this.controls = controls;
 
         this.slider = document.getElementById('zoom-slider');
         this.landmarks = document.querySelectorAll('.landmark');

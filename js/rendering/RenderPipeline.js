@@ -38,18 +38,30 @@ export function getActiveSystemName(currentTargetData) {
 }
 
 export class RenderPipeline {
-    constructor(pipelineContext) {
-        this.camera = pipelineContext.camera;
-        this.controls = pipelineContext.controls;
-        this.gridMaterial = pipelineContext.gridMaterial;
-        this.gpuParticleSystems = pipelineContext.gpuParticleSystems;
-        this.uiController = pipelineContext.UI;
-        this.savedColors = pipelineContext.savedColors;
-        this.maximumWells = pipelineContext.MAX_WELLS;
-        this.terrainController = pipelineContext.terrainController;
-        this.daylightController = pipelineContext.daylightController;
-        this.eclipseShadowController = pipelineContext.eclipseShadowController;
-        this.bodyRegistry = pipelineContext.bodyRegistry;
+    constructor({
+        camera,
+        controls,
+        gridMaterial,
+        gpuParticleSystems,
+        UI,
+        savedColors,
+        MAX_WELLS,
+        terrainController,
+        daylightController,
+        eclipseShadowController,
+        bodyRegistry,
+    }) {
+        this.camera = camera;
+        this.controls = controls;
+        this.gridMaterial = gridMaterial;
+        this.gpuParticleSystems = gpuParticleSystems;
+        this.uiController = UI;
+        this.savedColors = savedColors;
+        this.maximumWells = MAX_WELLS;
+        this.terrainController = terrainController;
+        this.daylightController = daylightController;
+        this.eclipseShadowController = eclipseShadowController;
+        this.bodyRegistry = bodyRegistry;
 
         this.PLANET_SPRITE_SIZE = 4.5;
         this.MOON_SPRITE_SIZE = 2.5;
