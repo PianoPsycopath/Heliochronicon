@@ -405,4 +405,7 @@ export class UIController {
             this.chronometerDisplay.pushPerfSample(perfSample);
         }
     }
+    syncMasterToggle() {
+        this.visibilityTreeManager.syncMasterToggle();
+    }
 }

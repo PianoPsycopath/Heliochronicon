@@ -56,6 +56,7 @@ export class VisibilityTreeManager {
                 element: rowMaster,
                 kind: 'checkbox',
                 checked: rowMaster.classList.contains('checked'),
+                activeClass: 'checked',
                 onActivate: activate,
             });
         } else {
@@ -92,6 +93,7 @@ export class VisibilityTreeManager {
                 element: row,
                 kind: 'checkbox',
                 checked: isChecked,
+                activeClass: 'checked',
                 label: `${datasetName} visibility`,
             });
         } else {
@@ -203,7 +205,6 @@ export class VisibilityTreeManager {
 
         const toggleRow = async (eventTarget) => {
             if (colorPicker && eventTarget === colorPicker) return;
-
             if (row.classList.contains('loading')) return;
 
             const newState = !row.classList.contains('checked');
@@ -242,6 +243,10 @@ export class VisibilityTreeManager {
             })();
 
             await row.togglePromise;
+
+            if (!isRightSide) {
+                this.syncMasterToggle();
+            }
         };
 
         row.addEventListener('click', (e) => toggleRow(e.target));
@@ -266,5 +271,15 @@ export class VisibilityTreeManager {
         const magiTrunk = document.getElementById('magi-trunk');
         if (rowMaster) this._setChecked(rowMaster, false);
         if (magiTrunk) magiTrunk.classList.remove('checked');
+    }
+    syncMasterToggle() {
+        const rowMaster = document.getElementById('row-master-toggle');
+        const allAsteroids = document.querySelectorAll('#dataset-list-asteroids .magi-row');
+
+        if (!rowMaster || allAsteroids.length === 0) return;
+        const allChecked = Array.from(allAsteroids).every((row) =>
+            row.classList.contains('checked')
+        );
+        this._setChecked(rowMaster, allChecked);
     }
 }

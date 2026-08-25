@@ -175,6 +175,7 @@ export class DatasetCoordinator {
         }
 
         this.storage.set('activeDatasets', this.appState.getActiveDatasets());
+        this.UI.syncMasterToggle();
     }
 
     initializeDatasetColor(datasetName, isCore, asteroidColorIndex) {
