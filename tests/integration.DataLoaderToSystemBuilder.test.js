@@ -29,6 +29,15 @@ function makeCtx() {
     const dotTexture = {};
     
     const orbitFactory = new OrbitFactory();
+    const mockLabelManager = {
+        createLabel: vi.fn(() => document.createElement('div')),
+        destroyLabel: vi.fn(),
+        setVisible: vi.fn(),
+        setPosition: vi.fn(),
+        setColor: vi.fn(),
+        setText: vi.fn()
+    };
+
     const bodyFactory = new BodyFactory({
         scene,
         tacticalMaterial,
@@ -36,7 +45,8 @@ function makeCtx() {
         savedColors,
         dotTexture,
         datasetMaterials,
-        orbitFactory
+        orbitFactory,
+        labelManager: mockLabelManager 
     });
 
     return {
@@ -51,6 +61,7 @@ function makeCtx() {
         AU_IN_KM,
         orbitFactory,
         bodyFactory,
+        labelManager: mockLabelManager,
         bodyRegistry: {
             registerBody: vi.fn((cb) => celestialBodies.push(cb)),
             promote: vi.fn((cb) => celestialBodies.push(cb)),

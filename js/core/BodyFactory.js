@@ -12,6 +12,7 @@ export class BodyFactory {
         dotTexture,
         datasetMaterials,
         orbitFactory,
+        labelManager,
     }) {
         this.scene = scene;
         this.tacticalMaterial = tacticalMaterial;
@@ -20,6 +21,7 @@ export class BodyFactory {
         this.dotTexture = dotTexture;
         this.datasetMaterials = datasetMaterials;
         this.orbitFactory = orbitFactory;
+        this.labelManager = labelManager;
     }
 
     createTacticalBody(d) {
@@ -68,11 +70,10 @@ export class BodyFactory {
 
         scene.add(mesh);
 
-        const label = document.createElement('div');
-        label.className = 'tactical-label';
-        label.innerText = d.name;
-        label.style.color = isMoon ? '#aaa' : '#ffcc00';
-        document.body.appendChild(label);
+        const label = this.labelManager.createLabel({
+            text: d.name,
+            colorHex: isMoon ? '#aaa' : '#ffcc00',
+        });
 
         const spriteMat = isSun
             ? Shaders.createStarSpriteMat()
@@ -174,11 +175,10 @@ export class BodyFactory {
 
         const datasetColor = savedColors[promotedData.datasetName] || '#00ffff';
 
-        const label = document.createElement('div');
-        label.className = 'tactical-label';
-        label.innerText = promotedData.name;
-        label.style.color = datasetColor;
-        document.body.appendChild(label);
+        const label = this.labelManager.createLabel({
+            text: promotedData.name,
+            colorHex: datasetColor,
+        });
 
         // ---------------------------------------------------------------------
         // Sprite
@@ -376,11 +376,10 @@ export class BodyFactory {
         const dummyCurtain = new THREE.LineSegments(new THREE.BufferGeometry(), dummyLineMat);
 
         // 5. Label
-        const label = document.createElement('div');
-        label.className = 'tactical-label';
-        label.innerText = radarData.name;
-        label.style.color = datasetColor;
-        document.body.appendChild(label);
+        const label = this.labelManager.createLabel({
+            text: radarData.name,
+            colorHex: datasetColor,
+        });
 
         // 6. Return CelestialBody
         return new CelestialBody({

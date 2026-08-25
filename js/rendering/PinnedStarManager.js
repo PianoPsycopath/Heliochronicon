@@ -5,10 +5,11 @@ import * as THREE from 'three';
 const STAR_FAR_PLANE_AU = 1e14;
 
 export class PinnedStarManager {
-    constructor() {
+    constructor({ labelManager }) {
         this.pinned = new Map(); // key -> { data, label }
         this._vec = new THREE.Vector3();
         this._farCamera = null;
+        this.labelManager = labelManager;
     }
 
     static keyFor(data) {
@@ -35,12 +36,12 @@ export class PinnedStarManager {
 
         data.isPinned = true;
 
-        const label = document.createElement('div');
-        label.className = 'tactical-label pinned-star-label';
-        label.innerText = key;
-        label.style.color = '#ffcc00';
-        label.style.display = 'none';
-        document.body.appendChild(label);
+        const label = this.labelManager.createLabel({
+            text: key,
+            colorHex: '#ffcc00',
+            extraClassName: 'pinned-star-label',
+            visible: false,
+        });
 
         this.pinned.set(key, { data, label });
     }
@@ -51,7 +52,7 @@ export class PinnedStarManager {
         if (!entry) return;
 
         data.isPinned = false;
-        if (entry.label && entry.label.parentNode) entry.label.parentNode.removeChild(entry.label);
+        this.labelManager.destroyLabel(entry.label);
         this.pinned.delete(key);
     }
 
@@ -66,21 +67,15 @@ export class PinnedStarManager {
 
     clearAll() {
         this.pinned.forEach((entry) => {
-            if (entry.label && entry.label.parentNode)
-                entry.label.parentNode.removeChild(entry.label);
+            this.labelManager.destroyLabel(entry.label);
         });
         this.pinned.clear();
     }
 
-    // Call once per frame. Mirrors the position math baked into the star
-    // field vertex/picking shaders: globalPos = position + velocity * years.
     update(camera, currentOrigin, daysSinceJ2000) {
         if (this.pinned.size === 0) return;
         const years = daysSinceJ2000 / 365.25;
 
-        // Keep a persistent clone in sync with the real camera's transform
-        // and zoom, but with far pushed out -- same technique as
-        // InteractionController's _pickingCamera.
         if (!this._farCamera) this._farCamera = camera.clone();
         this._farCamera.copy(camera);
         this._farCamera.far = STAR_FAR_PLANE_AU;

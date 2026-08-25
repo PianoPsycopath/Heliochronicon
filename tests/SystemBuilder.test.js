@@ -36,6 +36,21 @@ function makeCtx(overrides = {}) {
     const savedColors = overrides.savedColors || {};
     const tacticalMaterial = overrides.tacticalMaterial || {};
     const dotTexture = overrides.dotTexture || {};
+    const mockLabelManager = {
+        createLabel: vi.fn((options = {}) => {
+            const label = document.createElement('div');
+            label.className = options.extraClassName ? `tactical-label ${options.extraClassName}` : 'tactical-label';
+            document.body.appendChild(label);
+            return label;
+        }),
+        destroyLabel: vi.fn((label) => {
+            if (label && label.parentNode) label.parentNode.removeChild(label);
+        }),
+        setVisible: vi.fn(),
+        setPosition: vi.fn(),
+        setColor: vi.fn(),
+        setText: vi.fn()
+    };
     
     const orbitFactory = new OrbitFactory();
     const bodyFactory = new BodyFactory({
@@ -45,7 +60,8 @@ function makeCtx(overrides = {}) {
         savedColors,
         dotTexture,
         datasetMaterials,
-        orbitFactory
+        orbitFactory,
+        labelManager: mockLabelManager
     });
 
     return {
@@ -60,6 +76,7 @@ function makeCtx(overrides = {}) {
         AU_IN_KM,
         orbitFactory,
         bodyFactory,
+        labelManager: mockLabelManager,
         bodyRegistry: {
             registerBody: vi.fn((cb) => celestialBodies.push(cb)),
             promote: vi.fn((cb) => celestialBodies.push(cb)),

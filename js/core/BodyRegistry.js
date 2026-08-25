@@ -14,6 +14,7 @@ export class BodyRegistry {
         gpuParticleSystems,
         daylightController,
         eclipseShadowController,
+        labelManager,
     }) {
         this.scene = scene;
         this.celestialBodies = celestialBodies;
@@ -21,6 +22,7 @@ export class BodyRegistry {
         this.gpuParticleSystems = gpuParticleSystems;
         this.daylightController = daylightController;
         this.eclipseShadowController = eclipseShadowController;
+        this.labelManager = labelManager;
     }
 
     registerBody(body) {
@@ -60,8 +62,8 @@ export class BodyRegistry {
             if (body.orbitCurtain.geometry) body.orbitCurtain.geometry.dispose();
             if (body.orbitCurtain.material) body.orbitCurtain.material.dispose();
         }
-        if (body.label && body.label.parentNode) {
-            body.label.parentNode.removeChild(body.label);
+        if (body.label) {
+            this.labelManager.destroyLabel(body.label);
         }
 
         if (this.daylightController) this.daylightController.removeBody(body.data.name);
