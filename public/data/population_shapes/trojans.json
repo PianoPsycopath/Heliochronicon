@@ -1,0 +1,104 @@
+{
+  "id": "trojans",
+  "datasetName": "trojans",
+  "type": "density-mesh",
+  "inferredShapes": [
+    "torus"
+  ],
+  "epoch": {
+    "daysSinceJ2000": 0.0,
+    "description": "Single-epoch density snapshot"
+  },
+  "components": [
+    {
+      "type": "torus",
+      "isBase": true,
+      "isSubComponent": false,
+      "meanA_au": 4.89334,
+      "innerRadius_au": 3.14752,
+      "outerRadius_au": 6.46015,
+      "width_au": 3.31263,
+      "thickness_au": 7.36401,
+      "zCenter_au": -0.07335,
+      "particleCountInComponent": 16357,
+      "meanOrbit": {
+        "a_au": 5.20386,
+        "e": 0.074,
+        "i_deg": 14.21528,
+        "w_deg": 221.12491,
+        "node_deg": 155.38842,
+        "m_deg": 21.03225,
+        "n_deg_per_day": 0.08305
+      }
+    },
+    {
+      "type": "torus",
+      "isBase": false,
+      "isSubComponent": true,
+      "meanA_au": 4.9519,
+      "innerRadius_au": 4.29741,
+      "outerRadius_au": 5.71036,
+      "width_au": 1.41295,
+      "thickness_au": 4.49418,
+      "zCenter_au": 0.04334,
+      "particleCountInComponent": 8825,
+      "meanOrbit": {
+        "a_au": 5.20411,
+        "e": 0.06977,
+        "i_deg": 11.05681,
+        "w_deg": 324.88562,
+        "node_deg": 170.5547,
+        "m_deg": 26.66176,
+        "n_deg_per_day": 0.08304
+      },
+      "resonanceLock": {
+        "lockToBody": "Jupiter",
+        "angularOffset_deg": 60,
+        "arcWidth_deg": 50
+      }
+    },
+    {
+      "type": "torus",
+      "isBase": false,
+      "isSubComponent": true,
+      "meanA_au": 4.86277,
+      "innerRadius_au": 4.19441,
+      "outerRadius_au": 5.63039,
+      "width_au": 1.43598,
+      "thickness_au": 4.99741,
+      "zCenter_au": 0.03247,
+      "particleCountInComponent": 4357,
+      "meanOrbit": {
+        "a_au": 5.20479,
+        "e": 0.07061,
+        "i_deg": 16.8395,
+        "w_deg": 139.15747,
+        "node_deg": 167.4546,
+        "m_deg": 10.50722,
+        "n_deg_per_day": 0.08302
+      },
+      "resonanceLock": {
+        "lockToBody": "Jupiter",
+        "angularOffset_deg": -60,
+        "arcWidth_deg": 50
+      }
+    }
+  ],
+  "stats": {
+    "totalParticlesConsidered": 16357,
+    "meanOccupiedDensity": 2.9136,
+    "densityFractionOfMean": 0.35,
+    "densityThreshold": 1.0198,
+    "componentCount": 3
+  },
+  "source": {
+    "chunks": [
+      "trojans_chunk_0.json",
+      "trojans_chunk_1.json",
+      "trojans_chunk_2.json",
+      "trojans_chunk_3.json"
+    ],
+    "generatedAt": "2026-08-25T22:47:04.025708+00:00",
+    "generator": "generate_population_shapes.py"
+  }
+}

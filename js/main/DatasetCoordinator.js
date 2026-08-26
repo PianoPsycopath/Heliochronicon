@@ -2,11 +2,14 @@
 
 import { DataRepository } from '@core/DataRepository.js';
 import { PlanetaryDataProcessor } from '@core/PlanetaryDataProcessor.js';
+import { PopulationShapeLoader } from '@core/PopulationShapeLoader.js';
+import { PopulationDensityFactory } from '@rendering/PopulationDensityFactory.js';
 import { TutorialManager } from '@ui/TutorialManager.js';
 import { logger } from '@core/logger.js';
 
 const DATA_SOURCE_STORAGE_KEY = 'heliochronicon_dataSourcePath';
 const DEFAULT_DATA_BASE_PATH = 'data/';
+const DEFAULT_POPULATION_SHAPES_BASE_PATH = 'data/population_shapes/';
 
 const CORE_CATEGORIES = new Set(['STAR', 'PLANET', 'DWARF_PLANET', 'MOON']);
 
@@ -24,6 +27,7 @@ function normalizeDataBasePath(path) {
 
 export class DatasetCoordinator {
     constructor({
+        scene,
         storage,
         appState,
         systemBuilder,
@@ -32,8 +36,10 @@ export class DatasetCoordinator {
         datasetMaterials,
         savedColors,
         dataBasePath,
+        populationShapesBasePath = DEFAULT_POPULATION_SHAPES_BASE_PATH,
         asteroidPromotionService,
     }) {
+        this.scene = scene;
         this.storage = storage;
         this.appState = appState;
         this.systemBuilder = systemBuilder;
@@ -44,8 +50,11 @@ export class DatasetCoordinator {
         this.asteroidPromotionService = asteroidPromotionService;
 
         this.dataBasePath = normalizeDataBasePath(dataBasePath);
+        this.populationShapesBasePath = populationShapesBasePath;
 
         this.assetManifest = null;
+        this.populationShapesManifest = null;
+        this.datasetDisplayModes = {};
     }
 
     get manifest() {
@@ -80,6 +89,17 @@ export class DatasetCoordinator {
         }
 
         this.assetManifest = manifest;
+        try {
+            this.populationShapesManifest = await PopulationShapeLoader.loadManifest(
+                this.populationShapesBasePath
+            );
+        } catch (error) {
+            logger.warn(
+                `[Heliochronicon] Population density shapes unavailable (${this.populationShapesBasePath}); continuing without density objects.`,
+                error
+            );
+            this.populationShapesManifest = null;
+        }
 
         await this.initializeDatasets();
         this.restorePinnedAsteroids();
@@ -230,6 +250,12 @@ export class DatasetCoordinator {
             }
 
             this.systemBuilder.buildSolarSystem(processedData);
+            this.bodyRegistry.setDatasetDisplayMode(
+                datasetName,
+                this.datasetDisplayModes[datasetName] || 'particles'
+            );
+
+            this.loadDensityObjectFor(datasetName);
 
             this.appState.addActiveDataset(datasetName);
 
@@ -251,6 +277,42 @@ export class DatasetCoordinator {
         } finally {
             this.appState.removeInFlightDataset(datasetName);
         }
+    }
+    async loadDensityObjectFor(datasetName) {
+        if (!this.populationShapesManifest) return;
+        if (this.bodyRegistry.getDensityObjectByDataset(datasetName)) return;
+
+        const entry = PopulationShapeLoader.findShapeEntry(
+            this.populationShapesManifest,
+            datasetName
+        );
+        if (!entry) return;
+
+        try {
+            const shapeDescriptor = await PopulationShapeLoader.loadShape(
+                this.populationShapesBasePath,
+                entry
+            );
+
+            const densityObject = PopulationDensityFactory.buildDensityObject(
+                shapeDescriptor,
+                datasetName,
+                this.savedColors[datasetName]
+            );
+
+            this.scene.add(densityObject);
+            this.bodyRegistry.registerDensityObject(densityObject);
+            this.bodyRegistry.setDatasetDisplayMode(
+                datasetName,
+                this.datasetDisplayModes[datasetName] || 'particles'
+            );
+        } catch (error) {
+            logger.warn(`[Heliochronicon] Failed to build density object for "${datasetName}"`, error);
+        }
+    }
+    setDisplayMode(datasetName, mode) {
+        this.datasetDisplayModes[datasetName] = mode;
+        this.bodyRegistry.setDatasetDisplayMode(datasetName, mode);
     }
 
     async setDatasetVisibility(datasetName, isVisible, urls) {

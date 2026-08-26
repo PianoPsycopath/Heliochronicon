@@ -44,6 +44,7 @@ const appState = new AppState();
 const celestialBodies = [];
 const pickableObjects = [];
 const gpuParticleSystems = [];
+const densityObjects = [];
 const datasetMaterials = {};
 const savedColors = storage.get('tacticalMapColors', {});
 
@@ -89,6 +90,7 @@ const bodyRegistry = new BodyRegistry({
     celestialBodies,
     pickableObjects,
     gpuParticleSystems,
+    densityObjects,
     daylightController,
     eclipseShadowController,
     labelManager: celestialLabelManager,
@@ -99,6 +101,7 @@ const renderPipeline = new RenderPipeline({
     controls,
     gridMaterial,
     gpuParticleSystems,
+    densityObjects,
     UI,
     savedColors,
     MAX_WELLS,
@@ -181,6 +184,7 @@ const asteroidPromotionService = new AsteroidPromotionService({
 });
 
 const datasetCoordinator = new DatasetCoordinator({
+    scene,
     storage,
     appState,
     systemBuilder,
@@ -288,6 +292,7 @@ const renderingLoop = new RenderingLoop({
         starsVisibleState = value;
     },
     updateCredits,
+    getBodyAngleRad,
 });
 
 async function initializeStarField() {
@@ -331,6 +336,10 @@ UI.onDatasetVisibilityChanged = async (datasetName, isVisible, urls) => {
     ) {
         asteroidController.clearTarget();
     }
+};
+
+UI.onDatasetDisplayModeChanged = (datasetName, mode) => {
+    datasetCoordinator.setDisplayMode(datasetName, mode);
 };
 
 UI.onFocusBody = (data, isHardLock = true) => {
@@ -448,6 +457,23 @@ UI.onDatasetColorChanged = (datasetName, colorHex) => {
         if (body.sprite?.material?.color) body.sprite.material.color.set(colorHex);
         if (body.orbitLine?.material?.color) body.orbitLine.material.color.set(colorHex);
     }
+};
+
+function getBodyAngleRad(bodyName) {
+    const body = bodyRegistry.getByName(bodyName);
+    if (!body) return null;
+    return Math.atan2(body.globalPos.z, body.globalPos.x);
+}
+
+window.setDensityMode = (datasetName, useDensity = true) => {
+    if (useDensity === 'both' || useDensity === 'shapes' || useDensity === 'particles') {
+        datasetCoordinator.setDisplayMode(datasetName, useDensity);
+        return;
+    }
+    if (!bodyRegistry.getDensityObjectByDataset(datasetName)) {
+        logger.warn(`[Heliochronicon] No density object loaded for "${datasetName}" yet.`);
+    }
+    datasetCoordinator.setDisplayMode(datasetName, useDensity ? 'shapes' : 'particles');
 };
 
 datasetCoordinator.configureGlobalDataSourceControls();

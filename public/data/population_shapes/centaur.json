@@ -1,0 +1,79 @@
+{
+  "id": "centaur",
+  "datasetName": "centaur",
+  "type": "density-mesh",
+  "inferredShapes": [
+    "bubble",
+    "shell"
+  ],
+  "epoch": {
+    "daysSinceJ2000": 0.0,
+    "description": "Single-epoch density snapshot"
+  },
+  "components": [
+    {
+      "type": "bubble",
+      "isBase": true,
+      "isSubComponent": false,
+      "center_au": [
+        -0.99712,
+        -0.25456,
+        0.09841
+      ],
+      "semiAxes_au": [
+        23.09108,
+        22.75682,
+        10.33754
+      ],
+      "meanRadius_au": 14.04476,
+      "radialSpread_au": 8.15913,
+      "innerRadius_au": 0.9419,
+      "outerRadius_au": 49.11133,
+      "particleCountInComponent": 1036,
+      "meanOrbit": {
+        "a_au": 13.4771,
+        "e": 0.47559,
+        "i_deg": 28.93048,
+        "w_deg": 338.03098,
+        "node_deg": 147.92582,
+        "m_deg": 296.17313,
+        "n_deg_per_day": 0.03501
+      }
+    },
+    {
+      "type": "shell",
+      "isBase": false,
+      "isSubComponent": true,
+      "meanA_au": 5.27161,
+      "innerRadius_au": 3.55634,
+      "outerRadius_au": 7.7477,
+      "width_au": 4.19135,
+      "thickness_au": 3.945,
+      "zCenter_au": -0.05748,
+      "particleCountInComponent": 93,
+      "meanOrbit": {
+        "a_au": 5.97618,
+        "e": 0.24154,
+        "i_deg": 11.70785,
+        "w_deg": 209.86296,
+        "node_deg": 269.30909,
+        "m_deg": 351.47845,
+        "n_deg_per_day": 0.06918
+      }
+    }
+  ],
+  "stats": {
+    "totalParticlesConsidered": 1036,
+    "meanOccupiedDensity": 1.0736,
+    "densityFractionOfMean": 0.35,
+    "densityThreshold": 1.0,
+    "componentCount": 2
+  },
+  "source": {
+    "chunks": [
+      "centaur_chunk_0.json"
+    ],
+    "generatedAt": "2026-08-25T22:46:45.760643+00:00",
+    "generator": "generate_population_shapes.py"
+  }
+}

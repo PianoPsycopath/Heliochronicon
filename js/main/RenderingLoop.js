@@ -24,6 +24,7 @@ export class RenderingLoop {
         getStarVisibilityState,
         setStarVisibilityState,
         updateCredits,
+        getBodyAngleRad,
     }) {
         this.appState = appState;
         this.UI = UI;
@@ -45,6 +46,7 @@ export class RenderingLoop {
         this.getStarVisibilityState = getStarVisibilityState;
         this.setStarVisibilityState = setStarVisibilityState;
         this.updateCredits = updateCredits;
+        this.getBodyAngleRad = getBodyAngleRad || (() => null);
         this.lastFrameTime = performance.now();
         this.running = false;
     }
@@ -203,6 +205,11 @@ export class RenderingLoop {
     }
     executeFinalRender(daysSinceJ2000) {
         this.renderPipeline.updateGPU(daysSinceJ2000, this.appState.currentOrigin, this.gridPlane);
+        this.renderPipeline.updateDensityObjects(
+            this.appState.currentOrigin,
+            daysSinceJ2000,
+            this.getBodyAngleRad
+        );
         this.updateStarFieldFarProjection();
         this.renderer.render(this.scene, this.camera);
     }

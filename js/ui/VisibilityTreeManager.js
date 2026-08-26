@@ -1,15 +1,21 @@
 // js/ui/VisibilityTreeManager.js
+const DENSITY_DISPLAY_MODES = [
+    { key: 'particles', masterLabel: 'PARTICLES', className: 'mode-particles', label: 'Display: Particles' },
+    { key: 'shapes', masterLabel: 'SHAPES', className: 'mode-shapes', label: 'Display: Density Shapes' },
+    { key: 'both', masterLabel: 'PARTICLES + SHAPES', className: 'mode-both', label: 'Display: Particles + Shapes' },
+].map((mode) => ({ ...mode, tooltip: mode.label }));
+
 export class VisibilityTreeManager {
     constructor({ accessibilityManager = null } = {}) {
         this.onDatasetVisibilityChanged = null;
         this.onDatasetColorChanged = null;
+        this.onDatasetDisplayModeChanged = null;
         this.a11y = accessibilityManager;
+        this.assetDatasetNames = [];
         this.initMasterToggle();
+        this.initMasterDisplayModeToggle();
     }
 
-    // checked-state DOM writes go through AccessibilityManager when present
-    // (aria-checked + the 'checked' class, in one call) so this module no
-    // longer hand-rolls it in three places.
     _setChecked(row, isChecked) {
         if (this.a11y) {
             this.a11y.setChecked(row, isChecked);
@@ -49,9 +55,6 @@ export class VisibilityTreeManager {
         };
 
         if (this.a11y) {
-            // register() gives the master row its role/tabIndex/keyboard
-            // activation (Enter + Space) for free instead of the manual
-            // keydown handler this module used to carry.
             this.a11y.register({
                 element: rowMaster,
                 kind: 'checkbox',
@@ -70,6 +73,52 @@ export class VisibilityTreeManager {
         }
     }
 
+    initMasterDisplayModeToggle() {
+        const btn = document.getElementById('btn-master-mode-toggle');
+        if (!btn) return;
+
+        let modeIndex = 0;
+
+        const applyMode = (index) => {
+            modeIndex = index;
+            const mode = DENSITY_DISPLAY_MODES[modeIndex];
+            btn.textContent = mode.masterLabel;
+            const longLabel = `Display mode for all asteroid datasets: ${mode.label}`;
+            if (this.a11y) {
+                this.a11y.setLabel(btn, longLabel);
+            } else {
+                btn.className = `magi-mode-toggle ${mode.className}`;
+                btn.setAttribute('aria-label', longLabel);
+            }
+
+            if (this.onDatasetDisplayModeChanged) {
+                this.assetDatasetNames.forEach((name) =>
+                    this.onDatasetDisplayModeChanged(name, mode.key)
+                );
+            }
+        };
+        const activate = () => {
+            const nextIndex = this.a11y
+                ? this.a11y.nextState(btn)
+                : (modeIndex + 1) % DENSITY_DISPLAY_MODES.length;
+            applyMode(nextIndex);
+        };
+
+        if (this.a11y) {
+            this.a11y.register({
+                element: btn,
+                kind: 'cycle',
+                tooltipLive: true,
+                states: DENSITY_DISPLAY_MODES,
+                label: `Display mode for all asteroid datasets: ${DENSITY_DISPLAY_MODES[0].label}`,
+                onActivate: activate,
+            });
+        } else {
+            btn.addEventListener('click', activate);
+        }
+        applyMode(0);
+    }
+
     addDatasetToggle(datasetName, category, colorHex, isChecked = false, urls = []) {
         const isPlanet = category === 'PLANET';
         const isMoon = category === 'MOON';
@@ -79,15 +128,14 @@ export class VisibilityTreeManager {
 
         if (!list) return;
 
+        if (!isRightSide && !this.assetDatasetNames.includes(datasetName)) {
+            this.assetDatasetNames.push(datasetName);
+        }
+
         const row = document.createElement('div');
         row.className = `magi-row ${isPlanet ? 'planet-row' : ''} ${isMoon ? 'moon-row' : ''} ${isChecked ? 'checked' : ''}`;
         row.dataset.category = category;
 
-        // role/aria-checked/aria-label/tabIndex all come from one registration
-        // instead of four separate DOM writes. Activation (click/keydown) is
-        // still wired below rather than via `onActivate`, because it needs to
-        // ignore clicks that originated on the nested color-picker input —
-        // logic specific to this control, not to accessibility wiring.
         if (this.a11y) {
             this.a11y.register({
                 element: row,
@@ -266,7 +314,8 @@ export class VisibilityTreeManager {
         const asteroidList = document.getElementById('dataset-list-asteroids');
         if (planetList) planetList.innerHTML = '';
         if (asteroidList) asteroidList.innerHTML = '';
-
+        
+        this.assetDatasetNames = [];
         const rowMaster = document.getElementById('row-master-toggle');
         const magiTrunk = document.getElementById('magi-trunk');
         if (rowMaster) this._setChecked(rowMaster, false);

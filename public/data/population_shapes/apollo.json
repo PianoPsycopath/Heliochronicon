@@ -1,0 +1,90 @@
+{
+  "id": "apollo",
+  "datasetName": "apollo",
+  "type": "density-mesh",
+  "inferredShapes": [
+    "bubble"
+  ],
+  "epoch": {
+    "daysSinceJ2000": 0.0,
+    "description": "Single-epoch density snapshot"
+  },
+  "components": [
+    {
+      "type": "bubble",
+      "isBase": true,
+      "isSubComponent": false,
+      "center_au": [
+        -0.11397,
+        -0.10367,
+        0.00423
+      ],
+      "semiAxes_au": [
+        2.99144,
+        3.06945,
+        0.78926
+      ],
+      "meanRadius_au": 1.9313,
+      "radialSpread_au": 0.94149,
+      "innerRadius_au": 0.21163,
+      "outerRadius_au": 11.71993,
+      "particleCountInComponent": 23906,
+      "meanOrbit": {
+        "a_au": 1.71031,
+        "e": 0.47503,
+        "i_deg": 11.02076,
+        "w_deg": 266.7292,
+        "node_deg": 106.64452,
+        "m_deg": 95.59104,
+        "n_deg_per_day": 0.51308
+      }
+    },
+    {
+      "type": "bubble",
+      "isBase": false,
+      "isSubComponent": true,
+      "center_au": [
+        -0.12773,
+        -0.10905,
+        0.0049
+      ],
+      "semiAxes_au": [
+        2.75418,
+        2.8379,
+        0.45349
+      ],
+      "meanRadius_au": 1.80817,
+      "radialSpread_au": 0.81762,
+      "innerRadius_au": 0.23577,
+      "outerRadius_au": 4.64261,
+      "particleCountInComponent": 21033,
+      "meanOrbit": {
+        "a_au": 1.65805,
+        "e": 0.45579,
+        "i_deg": 9.44562,
+        "w_deg": 264.02026,
+        "node_deg": 104.30143,
+        "m_deg": 7.03612,
+        "n_deg_per_day": 0.53097
+      }
+    }
+  ],
+  "stats": {
+    "totalParticlesConsidered": 23906,
+    "meanOccupiedDensity": 4.0712,
+    "densityFractionOfMean": 0.35,
+    "densityThreshold": 1.4249,
+    "componentCount": 2
+  },
+  "source": {
+    "chunks": [
+      "apollo_chunk_0.json",
+      "apollo_chunk_1.json",
+      "apollo_chunk_2.json",
+      "apollo_chunk_3.json",
+      "apollo_chunk_4.json"
+    ],
+    "generatedAt": "2026-08-25T22:46:45.624392+00:00",
+    "generator": "generate_population_shapes.py"
+  }
+}

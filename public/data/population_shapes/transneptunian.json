@@ -1,0 +1,80 @@
+{
+  "id": "transneptunian",
+  "datasetName": "transneptunian",
+  "type": "density-mesh",
+  "inferredShapes": [
+    "bubble",
+    "scattered-disk"
+  ],
+  "epoch": {
+    "daysSinceJ2000": 0.0,
+    "description": "Single-epoch density snapshot"
+  },
+  "components": [
+    {
+      "type": "bubble",
+      "isBase": true,
+      "isSubComponent": false,
+      "center_au": [
+        0.29323,
+        -2.42653,
+        -0.90827
+      ],
+      "semiAxes_au": [
+        65.77559,
+        50.42645,
+        15.82707
+      ],
+      "meanRadius_au": 40.58943,
+      "radialSpread_au": 8.70553,
+      "innerRadius_au": 2.29108,
+      "outerRadius_au": 159.49729,
+      "particleCountInComponent": 6388,
+      "meanOrbit": {
+        "a_au": 63.27706,
+        "e": 0.24653,
+        "i_deg": 15.17381,
+        "w_deg": 268.09958,
+        "node_deg": 117.87727,
+        "m_deg": 345.13068,
+        "n_deg_per_day": 0.00307
+      }
+    },
+    {
+      "type": "scattered-disk",
+      "isBase": false,
+      "isSubComponent": true,
+      "meanA_au": 40.17199,
+      "innerRadius_au": 23.08368,
+      "outerRadius_au": 55.30857,
+      "width_au": 32.22489,
+      "thickness_au": 41.75905,
+      "zCenter_au": -3.47882,
+      "particleCountInComponent": 5273,
+      "meanOrbit": {
+        "a_au": 51.8914,
+        "e": 0.20352,
+        "i_deg": 11.92608,
+        "w_deg": 241.96657,
+        "node_deg": 116.05681,
+        "m_deg": 345.87266,
+        "n_deg_per_day": 0.0032
+      }
+    }
+  ],
+  "stats": {
+    "totalParticlesConsidered": 6388,
+    "meanOccupiedDensity": 1.9177,
+    "densityFractionOfMean": 0.35,
+    "densityThreshold": 1.0,
+    "componentCount": 2
+  },
+  "source": {
+    "chunks": [
+      "transneptunian_chunk_0.json",
+      "transneptunian_chunk_1.json"
+    ],
+    "generatedAt": "2026-08-25T22:47:03.806449+00:00",
+    "generator": "generate_population_shapes.py"
+  }
+}

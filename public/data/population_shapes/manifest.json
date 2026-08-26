@@ -1,0 +1,106 @@
+{
+  "shapes": [
+    {
+      "id": "amor",
+      "file": "amor.json",
+      "inferredShapes": [
+        "bubble"
+      ],
+      "componentCount": 1
+    },
+    {
+      "id": "apollo",
+      "file": "apollo.json",
+      "inferredShapes": [
+        "bubble"
+      ],
+      "componentCount": 2
+    },
+    {
+      "id": "aten",
+      "file": "aten.json",
+      "inferredShapes": [
+        "bubble",
+        "torus"
+      ],
+      "componentCount": 3
+    },
+    {
+      "id": "atira",
+      "file": "atira.json",
+      "inferredShapes": [
+        "bubble"
+      ],
+      "componentCount": 1
+    },
+    {
+      "id": "centaur",
+      "file": "centaur.json",
+      "inferredShapes": [
+        "bubble",
+        "shell"
+      ],
+      "componentCount": 2
+    },
+    {
+      "id": "inner-belt",
+      "file": "inner-belt.json",
+      "inferredShapes": [
+        "torus"
+      ],
+      "componentCount": 1
+    },
+    {
+      "id": "main-belt",
+      "file": "main-belt.json",
+      "inferredShapes": [
+        "torus"
+      ],
+      "componentCount": 1
+    },
+    {
+      "id": "martian",
+      "file": "martian.json",
+      "inferredShapes": [
+        "bubble",
+        "shell"
+      ],
+      "componentCount": 2
+    },
+    {
+      "id": "other",
+      "file": "other.json",
+      "inferredShapes": [
+        "bubble"
+      ],
+      "componentCount": 1
+    },
+    {
+      "id": "outer-belt",
+      "file": "outer-belt.json",
+      "inferredShapes": [
+        "shell"
+      ],
+      "componentCount": 1
+    },
+    {
+      "id": "transneptunian",
+      "file": "transneptunian.json",
+      "inferredShapes": [
+        "bubble",
+        "scattered-disk"
+      ],
+      "componentCount": 2
+    },
+    {
+      "id": "trojans",
+      "file": "trojans.json",
+      "inferredShapes": [
+        "torus"
+      ],
+      "componentCount": 3
+    }
+  ],
+  "sourceManifest": "public\\data\\manifest.json",
+  "generatedAt": "2026-08-25T22:47:04.038026+00:00"
+}

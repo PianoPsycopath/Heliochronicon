@@ -1,0 +1,55 @@
+{
+  "id": "inner-belt",
+  "datasetName": "inner-belt",
+  "type": "density-mesh",
+  "inferredShapes": [
+    "torus"
+  ],
+  "epoch": {
+    "daysSinceJ2000": 0.0,
+    "description": "Single-epoch density snapshot"
+  },
+  "components": [
+    {
+      "type": "torus",
+      "isBase": true,
+      "isSubComponent": false,
+      "meanA_au": 1.85199,
+      "innerRadius_au": 1.33477,
+      "outerRadius_au": 2.29116,
+      "width_au": 0.95639,
+      "thickness_au": 2.86652,
+      "zCenter_au": 0.00993,
+      "particleCountInComponent": 32821,
+      "meanOrbit": {
+        "a_au": 1.91136,
+        "e": 0.07518,
+        "i_deg": 21.3005,
+        "w_deg": 125.19014,
+        "node_deg": 317.00831,
+        "m_deg": 234.04051,
+        "n_deg_per_day": 0.37334
+      }
+    }
+  ],
+  "stats": {
+    "totalParticlesConsidered": 32821,
+    "meanOccupiedDensity": 2.5542,
+    "densityFractionOfMean": 0.35,
+    "densityThreshold": 1.0,
+    "componentCount": 1
+  },
+  "source": {
+    "chunks": [
+      "inner-belt_chunk_0.json",
+      "inner-belt_chunk_1.json",
+      "inner-belt_chunk_2.json",
+      "inner-belt_chunk_3.json",
+      "inner-belt_chunk_4.json",
+      "inner-belt_chunk_5.json",
+      "inner-belt_chunk_6.json"
+    ],
+    "generatedAt": "2026-08-25T22:46:46.149334+00:00",
+    "generator": "generate_population_shapes.py"
+  }
+}

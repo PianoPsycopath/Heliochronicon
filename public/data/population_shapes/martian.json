@@ -1,0 +1,84 @@
+{
+  "id": "martian",
+  "datasetName": "martian",
+  "type": "density-mesh",
+  "inferredShapes": [
+    "bubble",
+    "shell"
+  ],
+  "epoch": {
+    "daysSinceJ2000": 0.0,
+    "description": "Single-epoch density snapshot"
+  },
+  "components": [
+    {
+      "type": "bubble",
+      "isBase": true,
+      "isSubComponent": false,
+      "center_au": [
+        -0.44133,
+        0.05464,
+        0.00116
+      ],
+      "semiAxes_au": [
+        3.39116,
+        3.36816,
+        1.04557
+      ],
+      "meanRadius_au": 2.34002,
+      "radialSpread_au": 0.65818,
+      "innerRadius_au": 0.7783,
+      "outerRadius_au": 4.96167,
+      "particleCountInComponent": 29700,
+      "meanOrbit": {
+        "a_au": 2.26935,
+        "e": 0.30013,
+        "i_deg": 14.4193,
+        "w_deg": 240.6932,
+        "node_deg": 98.26216,
+        "m_deg": 108.3449,
+        "n_deg_per_day": 0.29944
+      }
+    },
+    {
+      "type": "shell",
+      "isBase": false,
+      "isSubComponent": true,
+      "meanA_au": 2.23452,
+      "innerRadius_au": 1.19414,
+      "outerRadius_au": 4.01454,
+      "width_au": 2.8204,
+      "thickness_au": 3.70508,
+      "zCenter_au": 0.05194,
+      "particleCountInComponent": 26214,
+      "meanOrbit": {
+        "a_au": 2.22668,
+        "e": 0.28607,
+        "i_deg": 13.38819,
+        "w_deg": 248.07873,
+        "node_deg": 94.38352,
+        "m_deg": 4.9834,
+        "n_deg_per_day": 0.30671
+      }
+    }
+  ],
+  "stats": {
+    "totalParticlesConsidered": 29700,
+    "meanOccupiedDensity": 2.1398,
+    "densityFractionOfMean": 0.35,
+    "densityThreshold": 1.0,
+    "componentCount": 2
+  },
+  "source": {
+    "chunks": [
+      "martian_chunk_0.json",
+      "martian_chunk_1.json",
+      "martian_chunk_2.json",
+      "martian_chunk_3.json",
+      "martian_chunk_4.json",
+      "martian_chunk_5.json"
+    ],
+    "generatedAt": "2026-08-25T22:47:03.105650+00:00",
+    "generator": "generate_population_shapes.py"
+  }
+}

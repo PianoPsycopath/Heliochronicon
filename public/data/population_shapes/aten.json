@@ -1,0 +1,100 @@
+{
+  "id": "aten",
+  "datasetName": "aten",
+  "type": "density-mesh",
+  "inferredShapes": [
+    "bubble",
+    "torus"
+  ],
+  "epoch": {
+    "daysSinceJ2000": 0.0,
+    "description": "Single-epoch density snapshot"
+  },
+  "components": [
+    {
+      "type": "bubble",
+      "isBase": true,
+      "isSubComponent": false,
+      "center_au": [
+        0.044,
+        0.02574,
+        0.00753
+      ],
+      "semiAxes_au": [
+        1.35054,
+        1.32354,
+        0.34464
+      ],
+      "meanRadius_au": 0.92272,
+      "radialSpread_au": 0.21238,
+      "innerRadius_au": 0.17922,
+      "outerRadius_au": 1.69289,
+      "particleCountInComponent": 3421,
+      "meanOrbit": {
+        "a_au": 0.88901,
+        "e": 0.3071,
+        "i_deg": 11.77615,
+        "w_deg": 263.82395,
+        "node_deg": 94.53914,
+        "m_deg": 277.104,
+        "n_deg_per_day": 1.19521
+      }
+    },
+    {
+      "type": "torus",
+      "isBase": false,
+      "isSubComponent": true,
+      "meanA_au": 0.98273,
+      "innerRadius_au": 0.7373,
+      "outerRadius_au": 1.18443,
+      "width_au": 0.44713,
+      "thickness_au": 0.44093,
+      "zCenter_au": 0.03036,
+      "particleCountInComponent": 515,
+      "meanOrbit": {
+        "a_au": 0.87968,
+        "e": 0.26079,
+        "i_deg": 7.50918,
+        "w_deg": 294.65924,
+        "node_deg": 358.85663,
+        "m_deg": 183.19021,
+        "n_deg_per_day": 1.21701
+      }
+    },
+    {
+      "type": "torus",
+      "isBase": false,
+      "isSubComponent": true,
+      "meanA_au": 0.98628,
+      "innerRadius_au": 0.79477,
+      "outerRadius_au": 1.14177,
+      "width_au": 0.347,
+      "thickness_au": 0.38323,
+      "zCenter_au": -0.01309,
+      "particleCountInComponent": 277,
+      "meanOrbit": {
+        "a_au": 0.90204,
+        "e": 0.24557,
+        "i_deg": 7.59206,
+        "w_deg": 295.75775,
+        "node_deg": 107.23455,
+        "m_deg": 149.20678,
+        "n_deg_per_day": 1.16884
+      }
+    }
+  ],
+  "stats": {
+    "totalParticlesConsidered": 3421,
+    "meanOccupiedDensity": 1.1283,
+    "densityFractionOfMean": 0.35,
+    "densityThreshold": 1.0,
+    "componentCount": 3
+  },
+  "source": {
+    "chunks": [
+      "aten_chunk_0.json"
+    ],
+    "generatedAt": "2026-08-25T22:46:45.699907+00:00",
+    "generator": "generate_population_shapes.py"
+  }
+}

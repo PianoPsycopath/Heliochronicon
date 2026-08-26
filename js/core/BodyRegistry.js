@@ -5,6 +5,7 @@ import {
     shouldPurgeInFullSweep,
     shouldPurgeInRescan,
 } from '@core/bodyRegistryPredicates.js';
+import { PopulationDensityFactory } from '@rendering/PopulationDensityFactory.js';
 
 export class BodyRegistry {
     constructor({
@@ -12,6 +13,7 @@ export class BodyRegistry {
         celestialBodies,
         pickableObjects,
         gpuParticleSystems,
+        densityObjects = [],
         daylightController,
         eclipseShadowController,
         labelManager,
@@ -20,6 +22,7 @@ export class BodyRegistry {
         this.celestialBodies = celestialBodies;
         this.pickableObjects = pickableObjects;
         this.gpuParticleSystems = gpuParticleSystems;
+        this.densityObjects = densityObjects;
         this.daylightController = daylightController;
         this.eclipseShadowController = eclipseShadowController;
         this.labelManager = labelManager;
@@ -119,6 +122,15 @@ export class BodyRegistry {
                 this.gpuParticleSystems.splice(i, 1);
             }
         }
+
+        for (let i = this.densityObjects.length - 1; i >= 0; i--) {
+            const obj = this.densityObjects[i];
+            if (obj.userData && obj.userData.datasetName === datasetName) {
+                this.scene.remove(obj);
+                PopulationDensityFactory.disposeDensityObject(obj);
+                this.densityObjects.splice(i, 1);
+            }
+        }
     }
 
     // Radar contacts + unpinned promoted asteroids. Used when scanning is toggled off.
@@ -162,6 +174,13 @@ export class BodyRegistry {
             }
             this.gpuParticleSystems.splice(i, 1);
         }
+
+        for (let i = this.densityObjects.length - 1; i >= 0; i--) {
+            const obj = this.densityObjects[i];
+            this.scene.remove(obj);
+            PopulationDensityFactory.disposeDensityObject(obj);
+            this.densityObjects.splice(i, 1);
+        }
     }
     getByName(name) {
         return this.celestialBodies.find((b) => b.data.name === name) || null;
@@ -186,5 +205,31 @@ export class BodyRegistry {
     registerParticleSystem(system) {
         this.gpuParticleSystems.push(system);
         return system;
+    }
+
+    registerDensityObject(object) {
+        this.densityObjects.push(object);
+        return object;
+    }
+
+    getDensityObjectByDataset(datasetName) {
+        return (
+            this.densityObjects.find((obj) => obj.userData?.datasetName === datasetName) || null
+        );
+    }
+    setDatasetDisplayMode(datasetName, mode) {
+        const showShapes = mode === 'shapes' || mode === 'both';
+        const showParticles = mode !== 'shapes';
+
+        const densityObject = this.getDensityObjectByDataset(datasetName);
+        if (densityObject) {
+            densityObject.userData.datasetVisible = showShapes;
+        }
+
+        for (const system of this.gpuParticleSystems) {
+            if (system.userData?.datasetName === datasetName) {
+                system.userData.datasetVisible = showParticles;
+            }
+        }
     }
 }

@@ -213,7 +213,25 @@
                     <div class="magi-circuit">
                         <!-- ASTEROIDS (LEFT) -->
                         <div class="magi-column left-col">
+                            <!-- Master display-mode cycle (Particles / Shapes / Both) -->
+                            <button
+                                id="btn-master-mode-toggle"
+                                type="button"
+                                class="magi-mode-toggle mode-particles"
+                                style="margin-bottom: 8px"
+                                aria-label="Display mode for all asteroid datasets: Particles"
+                                aria-pressed="false"
+                            >
+                                PARTICLES
+                            </button>
+
                             <!-- MASTER OVERRIDE (Root of Asteroid Tree) -->
+                            <!-- Sits directly above dataset-list-asteroids (no
+                                 element without wire art in between) so this
+                                 row's own right-edge stub is what each list
+                                 row's upward stub (see VisibilityTreeManager's
+                                 magi-svg-wire polyline) visually connects into,
+                                 forming one continuous circuit-board trunk. -->
                             <div
                                 class="magi-row master-row"
                                 id="row-master-toggle"

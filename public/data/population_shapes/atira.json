@@ -1,0 +1,57 @@
+{
+  "id": "atira",
+  "datasetName": "atira",
+  "type": "density-mesh",
+  "inferredShapes": [
+    "bubble"
+  ],
+  "epoch": {
+    "daysSinceJ2000": 0.0,
+    "description": "Single-epoch density snapshot"
+  },
+  "components": [
+    {
+      "type": "bubble",
+      "isBase": true,
+      "isSubComponent": false,
+      "center_au": [
+        -0.02075,
+        -0.06519,
+        0.00848
+      ],
+      "semiAxes_au": [
+        1.02351,
+        0.92178,
+        0.44025
+      ],
+      "meanRadius_au": 0.66809,
+      "radialSpread_au": 0.1807,
+      "innerRadius_au": 0.32374,
+      "outerRadius_au": 0.96461,
+      "particleCountInComponent": 38,
+      "meanOrbit": {
+        "a_au": 0.67506,
+        "e": 0.33415,
+        "i_deg": 23.44105,
+        "w_deg": 289.70257,
+        "node_deg": 47.22444,
+        "m_deg": 301.28701,
+        "n_deg_per_day": 1.86593
+      }
+    }
+  ],
+  "stats": {
+    "totalParticlesConsidered": 38,
+    "meanOccupiedDensity": 1.0,
+    "densityFractionOfMean": 0.35,
+    "densityThreshold": 1.0,
+    "componentCount": 1
+  },
+  "source": {
+    "chunks": [
+      "atira_chunk_0.json"
+    ],
+    "generatedAt": "2026-08-25T22:46:45.724148+00:00",
+    "generator": "generate_population_shapes.py"
+  }
+}

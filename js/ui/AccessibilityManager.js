@@ -1,44 +1,4 @@
 // js/ui/AccessibilityManager.js
-//
-// Centralized accessibility metadata + wiring for interactive controls.
-//
-// PROBLEM THIS SOLVES
-// --------------------
-// Before this module, ARIA/keyboard/tooltip logic was hand-rolled per UI
-// module, each slightly differently:
-//   - UIController:            classList.toggle('active', x) + setAttribute('aria-pressed', ...)
-//                               repeated for btn-scan / btn-measure / btn-daylight-toggle
-//   - TimeThrottle:             the same toggle pattern again, independently, for btn-live
-//   - VisibilityTreeManager:    role="checkbox" + aria-checked + hand-written
-//                               Enter/Space keydown handling, duplicated for the
-//                               master toggle AND every per-dataset row
-//   - TelemetryManager:         aria-label baked into template strings at
-//                               creation time, no update path if state changes
-//
-// New UI work (esp. the notes engine) should not require re-deriving any of
-// this. Everything a control needs — label, description, tooltip, pressed/
-// checked/expanded state, disabled sync, keyboard activation — is declared
-// once at `register()` time and updated afterwards through one handle.
-//
-// USAGE
-// -----
-//   const a11y = new AccessibilityManager({ tooltipManager });
-//
-//   const scanBtn = a11y.register({
-//       element: document.getElementById('btn-scan'),
-//       kind: 'toggle',
-//       label: 'Scan for nearby objects',
-//       tooltip: 'Scan for nearby objects',
-//       tooltipLive: true,          // tooltip stays visible through the click (toggle buttons)
-//       onActivate: () => toggleScan(),
-//   });
-//   scanBtn.setPressed(true);        // syncs aria-pressed + .active + tooltip refresh
-//
-// For elements created far from where they were registered (e.g. a row
-// re-rendered by another module), operate on the element directly instead of
-// holding a handle:
-//   a11y.setChecked(rowEl, true);
-//
 // CONTROL KINDS
 // -------------
 //   'static'    plain button/control, no pressed/checked state (default)
@@ -106,7 +66,15 @@ export class AccessibilityManager {
             throw new Error('AccessibilityManager.register: element is required');
         }
 
-        const descriptor = { element, kind, activeClass, onActivate, states, stateIndex: 0 };
+        const descriptor = {
+            element,
+            kind,
+            activeClass,
+            onActivate,
+            states,
+            stateIndex: 0,
+            tooltipLive,
+        };
         this._registry.set(element, descriptor);
 
         const resolvedRole = role ?? (kind === 'checkbox' ? 'checkbox' : undefined);
@@ -264,7 +232,7 @@ export class AccessibilityManager {
         element.setAttribute('aria-pressed', isPressed ? 'true' : 'false');
 
         if (state.label) this.setLabel(element, state.label);
-        if (state.tooltip) this.setTooltip(element, state.tooltip);
+        if (state.tooltip) this.setTooltip(element, state.tooltip, { live: descriptor.tooltipLive });
     }
 
     /** Advance a kind:'cycle' control to its next state; returns the new index. */

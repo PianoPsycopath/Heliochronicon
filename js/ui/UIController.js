@@ -7,8 +7,6 @@ import { TelemetryManager } from '@ui/TelemetryManager.js';
 import { VisibilityTreeManager } from '@ui/VisibilityTreeManager.js';
 import { AccessibilityManager } from '@ui/AccessibilityManager.js';
 
-// Drives the btn-ecliptic-toggle kind:'cycle' registration below — each
-// entry supplies the class/label/tooltip for that step of the cycle.
 const CURTAIN_MODES = [
     { label: 'Inclination Mode 1 [Equatorial]' },
     { className: 'mode-both', label: 'Inclination Mode 2 [Equatorial + Ecliptic]' },
@@ -18,9 +16,6 @@ const CURTAIN_MODES = [
 export class UIController {
     constructor({ tooltipManager = null, accessibilityManager = null } = {}) {
         this.tooltipManager = tooltipManager;
-        // Single accessibility integration point for this module and the
-        // sub-managers it owns. See AccessibilityManager.js for the "how to
-        // add a new accessible control" pattern.
         this.a11y = accessibilityManager ?? new AccessibilityManager({ tooltipManager });
 
         this.datasets = new Set();
@@ -65,6 +60,7 @@ export class UIController {
         this.onRefreshList = null;
         this.onDatasetVisibilityChanged = null;
         this.onDatasetColorChanged = null;
+        this.onDatasetDisplayModeChanged = null;
         this.onPinRequested = null;
         this.onPurgeRequested = null;
         this.onScanRequested = null;
@@ -104,6 +100,9 @@ export class UIController {
         };
         this.visibilityTreeManager.onDatasetColorChanged = (name, color) => {
             if (this.onDatasetColorChanged) this.onDatasetColorChanged(name, color);
+        };
+        this.visibilityTreeManager.onDatasetDisplayModeChanged = (name, mode) => {
+            if (this.onDatasetDisplayModeChanged) this.onDatasetDisplayModeChanged(name, mode);
         };
 
         this.initBindings();

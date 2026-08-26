@@ -43,6 +43,7 @@ export class RenderPipeline {
         controls,
         gridMaterial,
         gpuParticleSystems,
+        densityObjects = [],
         UI,
         savedColors,
         MAX_WELLS,
@@ -55,6 +56,7 @@ export class RenderPipeline {
         this.controls = controls;
         this.gridMaterial = gridMaterial;
         this.gpuParticleSystems = gpuParticleSystems;
+        this.densityObjects = densityObjects;
         this.uiController = UI;
         this.savedColors = savedColors;
         this.maximumWells = MAX_WELLS;
@@ -560,9 +562,6 @@ export class RenderPipeline {
         return activeWellIndex + 1;
     }
 
-    // Build orbit line placement after establishing relative geometry.
-    // Use relative geometry for orbit lines to maintain Float32 precision.
-    // Force the trailing end of the previous period to the origin (0,0,0) and place the line object at the render position of the body.
     _updateOrbitLineGeometry(celestialBody, bodyData, daysSinceJ2000) {
         const orbitPoints = [];
 
@@ -791,6 +790,37 @@ export class RenderPipeline {
             systemLabel.updateMatrixWorld();
         });
     }
+    updateDensityObjects(currentOrigin, daysSinceJ2000 = 0, getBodyAngleRad = () => null) {
+    this.densityObjects.forEach((object) => {
+        object.visible = object.userData.datasetVisible !== false;
+        if (!object.visible) return;
+
+        object.position.copy(object.userData.basePosition).sub(currentOrigin);
+
+        object.children.forEach((child) => {
+            if (child.userData?.isResonanceLocked) {
+                const lockAngleRad = getBodyAngleRad(child.userData.lockToBody);
+                if (lockAngleRad !== null && lockAngleRad !== undefined) {
+                    child.rotation.y = lockAngleRad + child.userData.angularOffsetRad;
+                    return;
+                }
+                const fallbackElements = child.userData.orbitElements;
+                if (fallbackElements) {
+                    child.rotation.y =
+                        fallbackElements.m0 +
+                        fallbackElements.n * daysSinceJ2000 +
+                        child.userData.angularOffsetRad;
+                }
+                return;
+            }
+
+            const orbitElements = child.userData?.orbitsSun && child.userData.orbitElements;
+            if (!orbitElements) return;
+
+            child.rotation.y = orbitElements.m0 + orbitElements.n * daysSinceJ2000;
+        });
+    });
+}
 
     computeGroupCentroid(sourceData, daysSinceJ2000) {
         const totalItems = sourceData.length;
