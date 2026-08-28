@@ -92,8 +92,11 @@ export class PopulationDensityFactory {
         return mesh;
     }
     static _buildResonantArc(component, colorHex) {
-        const { lockToBody, angularOffset_deg = 0, arcWidth_deg = DEFAULT_RESONANT_ARC_WIDTH_DEG } =
-            component.resonanceLock;
+        const {
+            lockToBody,
+            angularOffset_deg = 0,
+            arcWidth_deg = DEFAULT_RESONANT_ARC_WIDTH_DEG,
+        } = component.resonanceLock;
 
         const tubeRadius = component.width_au / 2;
         const arcRad = THREE.MathUtils.degToRad(arcWidth_deg);
@@ -147,10 +150,7 @@ export class PopulationDensityFactory {
             SHELL_WIDTH_SEGMENTS,
             SHELL_HEIGHT_SEGMENTS
         );
-        const material = DensityShaders.getDensitySurfaceMaterial(
-            colorHex,
-            DEFAULT_OPACITY * 1.2
-        );
+        const material = DensityShaders.getDensitySurfaceMaterial(colorHex, DEFAULT_OPACITY * 1.2);
         const mesh = new THREE.Mesh(geometry, material);
         PopulationDensityFactory._applyOrbitMotion(
             mesh,

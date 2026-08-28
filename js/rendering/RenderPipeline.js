@@ -791,36 +791,36 @@ export class RenderPipeline {
         });
     }
     updateDensityObjects(currentOrigin, daysSinceJ2000 = 0, getBodyAngleRad = () => null) {
-    this.densityObjects.forEach((object) => {
-        object.visible = object.userData.datasetVisible !== false;
-        if (!object.visible) return;
+        this.densityObjects.forEach((object) => {
+            object.visible = object.userData.datasetVisible !== false;
+            if (!object.visible) return;
 
-        object.position.copy(object.userData.basePosition).sub(currentOrigin);
+            object.position.copy(object.userData.basePosition).sub(currentOrigin);
 
-        object.children.forEach((child) => {
-            if (child.userData?.isResonanceLocked) {
-                const lockAngleRad = getBodyAngleRad(child.userData.lockToBody);
-                if (lockAngleRad !== null && lockAngleRad !== undefined) {
-                    child.rotation.y = lockAngleRad + child.userData.angularOffsetRad;
+            object.children.forEach((child) => {
+                if (child.userData?.isResonanceLocked) {
+                    const lockAngleRad = getBodyAngleRad(child.userData.lockToBody);
+                    if (lockAngleRad !== null && lockAngleRad !== undefined) {
+                        child.rotation.y = lockAngleRad + child.userData.angularOffsetRad;
+                        return;
+                    }
+                    const fallbackElements = child.userData.orbitElements;
+                    if (fallbackElements) {
+                        child.rotation.y =
+                            fallbackElements.m0 +
+                            fallbackElements.n * daysSinceJ2000 +
+                            child.userData.angularOffsetRad;
+                    }
                     return;
                 }
-                const fallbackElements = child.userData.orbitElements;
-                if (fallbackElements) {
-                    child.rotation.y =
-                        fallbackElements.m0 +
-                        fallbackElements.n * daysSinceJ2000 +
-                        child.userData.angularOffsetRad;
-                }
-                return;
-            }
 
-            const orbitElements = child.userData?.orbitsSun && child.userData.orbitElements;
-            if (!orbitElements) return;
+                const orbitElements = child.userData?.orbitsSun && child.userData.orbitElements;
+                if (!orbitElements) return;
 
-            child.rotation.y = orbitElements.m0 + orbitElements.n * daysSinceJ2000;
+                child.rotation.y = orbitElements.m0 + orbitElements.n * daysSinceJ2000;
+            });
         });
-    });
-}
+    }
 
     computeGroupCentroid(sourceData, daysSinceJ2000) {
         const totalItems = sourceData.length;

@@ -7,6 +7,7 @@ export class SystemBuilder {
         bodyFactory,
         orbitFactory,
         getCurrentTarget,
+        getAsteroidDisplayMode,
         onClearTarget,
         onSystemCleared,
         onClearMemory,
@@ -17,6 +18,7 @@ export class SystemBuilder {
         this.bodyFactory = bodyFactory;
         this.orbitFactory = orbitFactory;
         this.getCurrentTarget = getCurrentTarget;
+        this.getAsteroidDisplayMode = getAsteroidDisplayMode;
         this.onClearTarget = onClearTarget;
         this.onSystemCleared = onSystemCleared;
         this.onClearMemory = onClearMemory;
@@ -37,17 +39,27 @@ export class SystemBuilder {
         if (planetaryData.length === 0) return;
 
         const { celestialBodies, bodyRegistry, getCurrentTarget, onBodiesChanged } = this;
+
         const datasetCategory = planetaryData[0].datasetCategory;
         const datasetName = planetaryData[0].datasetName;
         const currentTargetData = getCurrentTarget();
 
-        // --- PATH A: GPU PARTICLE (ASTEROIDS ONLY) ---
+        // --- PATH A: ASTEROIDS ---
         if (datasetCategory === 'ASTEROID') {
-            const particleSystem = this.bodyFactory.createAsteroidParticleSystem(
-                planetaryData,
-                datasetName
-            );
-            bodyRegistry.registerParticleSystem(particleSystem);
+            const mode = this.getAsteroidDisplayMode
+                ? this.getAsteroidDisplayMode(datasetName)
+                : 'particles';
+
+            const wantsParticles = mode === 'particles' || mode === 'both';
+
+            if (wantsParticles) {
+                const particleSystem = this.bodyFactory.createAsteroidParticleSystem(
+                    planetaryData,
+                    datasetName
+                );
+
+                bodyRegistry.registerParticleSystem(particleSystem);
+            }
 
             onBodiesChanged(celestialBodies, currentTargetData);
             return;
@@ -64,7 +76,9 @@ export class SystemBuilder {
 
             for (; index < end; index++) {
                 const d = planetaryData[index];
+
                 if (registeredNames.has(d.name)) continue;
+
                 registeredNames.add(d.name);
 
                 bodyRegistry.registerBody(this.bodyFactory.createTacticalBody(d));

@@ -232,7 +232,8 @@ export class AccessibilityManager {
         element.setAttribute('aria-pressed', isPressed ? 'true' : 'false');
 
         if (state.label) this.setLabel(element, state.label);
-        if (state.tooltip) this.setTooltip(element, state.tooltip, { live: descriptor.tooltipLive });
+        if (state.tooltip)
+            this.setTooltip(element, state.tooltip, { live: descriptor.tooltipLive });
     }
 
     /** Advance a kind:'cycle' control to its next state; returns the new index. */

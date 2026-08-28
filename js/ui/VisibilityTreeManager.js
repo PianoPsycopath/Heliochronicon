@@ -1,17 +1,39 @@
 // js/ui/VisibilityTreeManager.js
 const DENSITY_DISPLAY_MODES = [
-    { key: 'particles', masterLabel: 'PARTICLES', className: 'mode-particles', label: 'Display: Particles' },
-    { key: 'shapes', masterLabel: 'SHAPES', className: 'mode-shapes', label: 'Display: Density Shapes' },
-    { key: 'both', masterLabel: 'PARTICLES + SHAPES', className: 'mode-both', label: 'Display: Particles + Shapes' },
+    {
+        key: 'particles',
+        masterLabel: 'PARTICLES',
+        className: 'mode-particles',
+        label: 'Display: Particles',
+    },
+    {
+        key: 'shapes',
+        masterLabel: 'SHAPES',
+        className: 'mode-shapes',
+        label: 'Display: Density Shapes',
+    },
+    {
+        key: 'both',
+        masterLabel: 'PARTICLES + SHAPES',
+        className: 'mode-both',
+        label: 'Display: Particles + Shapes',
+    },
 ].map((mode) => ({ ...mode, tooltip: mode.label }));
 
 export class VisibilityTreeManager {
-    constructor({ accessibilityManager = null } = {}) {
+    constructor({ accessibilityManager = null, initialDisplayMode = 'shapes' } = {}) {
         this.onDatasetVisibilityChanged = null;
         this.onDatasetColorChanged = null;
         this.onDatasetDisplayModeChanged = null;
         this.a11y = accessibilityManager;
         this.assetDatasetNames = [];
+
+        const initialIndex = DENSITY_DISPLAY_MODES.findIndex(
+            (mode) => mode.key === initialDisplayMode
+        );
+
+        this.initialDisplayModeIndex = initialIndex >= 0 ? initialIndex : 1;
+
         this.initMasterToggle();
         this.initMasterDisplayModeToggle();
     }
@@ -32,10 +54,18 @@ export class VisibilityTreeManager {
         const activate = async () => {
             if (rowMaster.classList.contains('loading')) return;
 
+            const modeBtn = document.getElementById('btn-master-mode-toggle');
+
             const newState = !rowMaster.classList.contains('checked');
             this._setChecked(rowMaster, newState);
+
             rowMaster.classList.add('loading');
             rowMaster.setAttribute('aria-busy', 'true');
+
+            if (modeBtn) {
+                modeBtn.classList.add('loading');
+                modeBtn.setAttribute('aria-busy', 'true');
+            }
 
             const allAsteroids = document.querySelectorAll('#dataset-list-asteroids .magi-row');
             const loadingPromises = [];
@@ -52,6 +82,10 @@ export class VisibilityTreeManager {
 
             rowMaster.classList.remove('loading');
             rowMaster.removeAttribute('aria-busy');
+            if (modeBtn) {
+                modeBtn.classList.remove('loading');
+                modeBtn.removeAttribute('aria-busy');
+            }
         };
 
         if (this.a11y) {
@@ -77,46 +111,86 @@ export class VisibilityTreeManager {
         const btn = document.getElementById('btn-master-mode-toggle');
         if (!btn) return;
 
-        let modeIndex = 0;
+        let modeIndex = this.initialDisplayModeIndex;
+        let a11yController = null;
 
-        const applyMode = (index) => {
+        const applyMode = async (index) => {
             modeIndex = index;
             const mode = DENSITY_DISPLAY_MODES[modeIndex];
             btn.textContent = mode.masterLabel;
             const longLabel = `Display mode for all asteroid datasets: ${mode.label}`;
+            btn.className = `magi-mode-toggle ${mode.className}`;
+
             if (this.a11y) {
                 this.a11y.setLabel(btn, longLabel);
             } else {
-                btn.className = `magi-mode-toggle ${mode.className}`;
                 btn.setAttribute('aria-label', longLabel);
             }
 
             if (this.onDatasetDisplayModeChanged) {
-                this.assetDatasetNames.forEach((name) =>
+                const promises = this.assetDatasetNames.map((name) =>
                     this.onDatasetDisplayModeChanged(name, mode.key)
                 );
+                await Promise.all(promises);
             }
         };
-        const activate = () => {
-            const nextIndex = this.a11y
-                ? this.a11y.nextState(btn)
-                : (modeIndex + 1) % DENSITY_DISPLAY_MODES.length;
-            applyMode(nextIndex);
+
+        const activate = async () => {
+            if (btn.classList.contains('loading')) return;
+
+            const rowMaster = document.getElementById('row-master-toggle');
+
+            btn.classList.add('loading');
+            btn.setAttribute('aria-busy', 'true');
+
+            if (rowMaster) {
+                rowMaster.classList.add('loading');
+                rowMaster.setAttribute('aria-busy', 'true');
+            }
+
+            try {
+                const nextIndex =
+                    a11yController && typeof a11yController.nextState === 'function'
+                        ? a11yController.nextState()
+                        : this.a11y && typeof this.a11y.nextState === 'function'
+                          ? this.a11y.nextState(btn)
+                          : (modeIndex + 1) % DENSITY_DISPLAY_MODES.length;
+
+                await applyMode(nextIndex);
+            } finally {
+                btn.classList.remove('loading');
+                btn.removeAttribute('aria-busy');
+
+                // Release the master toggle
+                if (rowMaster) {
+                    rowMaster.classList.remove('loading');
+                    rowMaster.removeAttribute('aria-busy');
+                }
+            }
         };
 
         if (this.a11y) {
-            this.a11y.register({
+            a11yController = this.a11y.register({
                 element: btn,
                 kind: 'cycle',
                 tooltipLive: true,
                 states: DENSITY_DISPLAY_MODES,
-                label: `Display mode for all asteroid datasets: ${DENSITY_DISPLAY_MODES[0].label}`,
+                initialIndex: modeIndex,
+                label: `Display mode for all asteroid datasets: ${DENSITY_DISPLAY_MODES[modeIndex].label}`,
                 onActivate: activate,
             });
+            for (let i = 0; i < modeIndex; i++) {
+                if (a11yController && typeof a11yController.nextState === 'function') {
+                    a11yController.nextState();
+                } else if (this.a11y && typeof this.a11y.nextState === 'function') {
+                    this.a11y.nextState(btn);
+                }
+            }
         } else {
             btn.addEventListener('click', activate);
         }
-        applyMode(0);
+
+        applyMode(modeIndex);
     }
 
     addDatasetToggle(datasetName, category, colorHex, isChecked = false, urls = []) {
@@ -314,7 +388,7 @@ export class VisibilityTreeManager {
         const asteroidList = document.getElementById('dataset-list-asteroids');
         if (planetList) planetList.innerHTML = '';
         if (asteroidList) asteroidList.innerHTML = '';
-        
+
         this.assetDatasetNames = [];
         const rowMaster = document.getElementById('row-master-toggle');
         const magiTrunk = document.getElementById('magi-trunk');

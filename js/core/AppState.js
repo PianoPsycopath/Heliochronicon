@@ -1,6 +1,8 @@
 // js/AppState.js
 import * as THREE from 'three';
 
+const VALID_ASTEROID_DISPLAY_MODES = new Set(['particles', 'shapes', 'both']);
+
 export class AppState {
     constructor() {
         this._systemDate = new Date();
@@ -11,6 +13,7 @@ export class AppState {
         this._inFlightDatasets = new Set();
         this._currentOrigin = new THREE.Vector3(0, 0, 0);
         this._lookupInFlight = false;
+        this._asteroidDisplayMode = 'shapes';
     }
 
     // -------------------------------------------------------------------------
@@ -133,5 +136,19 @@ export class AppState {
 
     set lookupInFlight(value) {
         this._lookupInFlight = Boolean(value);
+    }
+    // -------------------------------------------------------------------------
+    // Asteroid Display State
+    // -------------------------------------------------------------------------
+    get asteroidDisplayMode() {
+        return this._asteroidDisplayMode;
+    }
+
+    set asteroidDisplayMode(mode) {
+        if (!VALID_ASTEROID_DISPLAY_MODES.has(mode)) {
+            throw new TypeError(`Invalid asteroid display mode: ${mode}`);
+        }
+
+        this._asteroidDisplayMode = mode;
     }
 }

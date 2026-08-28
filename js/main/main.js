@@ -76,7 +76,8 @@ const measurementManager = new MeasurementManager(scene, camera);
 const tooltipManager = new TooltipManager();
 
 const accessibilityManager = new AccessibilityManager({ tooltipManager });
-const UI = new UIController({ tooltipManager, accessibilityManager });
+const initialDisplayMode = storage.get('masterDisplayMode', 'shapes');
+const UI = new UIController({ tooltipManager, accessibilityManager, initialDisplayMode });
 tooltipManager.attachButtonTooltips();
 
 const celestialLabelManager = new CelestialLabelManager({ accessibilityManager });
@@ -166,6 +167,7 @@ const systemBuilder = new SystemBuilder({
     bodyFactory,
     orbitFactory,
     getCurrentTarget: () => appState.currentTargetData,
+    getAsteroidDisplayMode: (datasetName) => datasetCoordinator.getDisplayMode(datasetName),
     onClearTarget: () => {
         appState.currentTargetData = null;
         appState.trackingTargetData = null;
@@ -337,9 +339,9 @@ UI.onDatasetVisibilityChanged = async (datasetName, isVisible, urls) => {
         asteroidController.clearTarget();
     }
 };
-
-UI.onDatasetDisplayModeChanged = (datasetName, mode) => {
-    datasetCoordinator.setDisplayMode(datasetName, mode);
+UI.onDatasetDisplayModeChanged = async (datasetName, mode) => {
+    await datasetCoordinator.setDisplayMode(datasetName, mode);
+    storage.set('masterDisplayMode', mode);
 };
 
 UI.onFocusBody = (data, isHardLock = true) => {

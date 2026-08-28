@@ -47,6 +47,8 @@ export class DatasetCoordinator {
         this.UI = UI;
         this.datasetMaterials = datasetMaterials;
         this.savedColors = savedColors;
+        this.datasetDisplayModes = this.storage.get('datasetDisplayModes', {});
+        this.datasetsWithParticles = new Set();
         this.asteroidPromotionService = asteroidPromotionService;
 
         this.dataBasePath = normalizeDataBasePath(dataBasePath);
@@ -225,6 +227,28 @@ export class DatasetCoordinator {
 
         try {
             const urlArray = Array.isArray(urls) ? urls : [urls];
+            const shapeEntry = this.populationShapesManifest
+                ? PopulationShapeLoader.findShapeEntry(this.populationShapesManifest, datasetName)
+                : null;
+
+            if (shapeEntry && this.getDisplayMode(datasetName) === 'shapes') {
+                this.loadDensityObjectFor(datasetName);
+
+                this.appState.addActiveDataset(datasetName);
+                this.storage.set('activeDatasets', this.appState.getActiveDatasets());
+
+                if (addToggle) {
+                    this.UI.addDatasetToggle(
+                        datasetName,
+                        iconCategory,
+                        this.savedColors[datasetName],
+                        true,
+                        urlArray
+                    );
+                }
+
+                return;
+            }
 
             const chunks = await Promise.all(
                 urlArray.map((url) => DataRepository.fetchJSONDataset(url))
@@ -248,13 +272,8 @@ export class DatasetCoordinator {
             if (processedData.length === 0) {
                 return;
             }
-
             this.systemBuilder.buildSolarSystem(processedData);
-            this.bodyRegistry.setDatasetDisplayMode(
-                datasetName,
-                this.datasetDisplayModes[datasetName] || 'particles'
-            );
-
+            this.datasetsWithParticles.add(datasetName);
             this.loadDensityObjectFor(datasetName);
 
             this.appState.addActiveDataset(datasetName);
@@ -302,22 +321,43 @@ export class DatasetCoordinator {
 
             this.scene.add(densityObject);
             this.bodyRegistry.registerDensityObject(densityObject);
-            this.bodyRegistry.setDatasetDisplayMode(
-                datasetName,
-                this.datasetDisplayModes[datasetName] || 'particles'
-            );
+            this.bodyRegistry.setDatasetDisplayMode(datasetName, this.getDisplayMode(datasetName));
         } catch (error) {
-            logger.warn(`[Heliochronicon] Failed to build density object for "${datasetName}"`, error);
+            logger.warn(
+                `[Heliochronicon] Failed to build density object for "${datasetName}"`,
+                error
+            );
         }
     }
-    setDisplayMode(datasetName, mode) {
+    async setDisplayMode(datasetName, mode) {
         this.datasetDisplayModes[datasetName] = mode;
+        this.storage.set('datasetDisplayModes', this.datasetDisplayModes);
+
+        const needsParticles = mode === 'particles' || mode === 'both';
+
+        if (needsParticles && !this.datasetsWithParticles.has(datasetName)) {
+            const groupData = this.assetManifest.datasets[datasetName];
+            if (groupData) {
+                const chunkUrls = (groupData.chunks || []).map(
+                    (chunkFile) => `${this.dataBasePath}${chunkFile}`
+                );
+                this.appState.removeActiveDataset(datasetName);
+                await this.loadDataset(datasetName, chunkUrls);
+            }
+        }
         this.bodyRegistry.setDatasetDisplayMode(datasetName, mode);
+    }
+
+    getDisplayMode(datasetName) {
+        return (
+            this.datasetDisplayModes[datasetName] || this.storage.get('masterDisplayMode', 'shapes')
+        );
     }
 
     async setDatasetVisibility(datasetName, isVisible, urls) {
         if (isVisible) {
             await this.loadDataset(datasetName, urls);
+            this.datasetsWithParticles.delete(datasetName);
 
             return;
         }

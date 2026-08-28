@@ -135,9 +135,16 @@
     z-index: 10;
 }
 /* Async Loading State */
-.magi-row.loading { pointer-events: none; }.magi-row.loading .magi-btn { animation: magi-dark-pulse 0.1s infinite alternate; }
+.magi-row.loading { pointer-events: none; }
+.magi-row.loading .magi-btn { animation: magi-dark-pulse 0.1s infinite alternate; }
+.magi-mode-toggle.loading { 
+    pointer-events: none; 
+    animation: magi-dark-pulse 0.1s infinite alternate; 
+}
+
 @keyframes magi-dark-pulse {
-    0% { filter: brightness(1); }    100% { filter: brightness(0.25); }
+    0% { filter: brightness(1); }    
+    100% { filter: brightness(0.25); }
 }
 .master-row.loading .magi-label {
     animation: flicker 0.1s infinite alternate;

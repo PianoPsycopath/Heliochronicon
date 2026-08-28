@@ -213,9 +213,7 @@ export class BodyRegistry {
     }
 
     getDensityObjectByDataset(datasetName) {
-        return (
-            this.densityObjects.find((obj) => obj.userData?.datasetName === datasetName) || null
-        );
+        return this.densityObjects.find((obj) => obj.userData?.datasetName === datasetName) || null;
     }
     setDatasetDisplayMode(datasetName, mode) {
         const showShapes = mode === 'shapes' || mode === 'both';

@@ -14,7 +14,11 @@ const CURTAIN_MODES = [
 ].map((mode) => ({ ...mode, tooltip: mode.label }));
 
 export class UIController {
-    constructor({ tooltipManager = null, accessibilityManager = null } = {}) {
+    constructor({
+        tooltipManager = null,
+        accessibilityManager = null,
+        initialDisplayMode = 'shapes',
+    } = {}) {
         this.tooltipManager = tooltipManager;
         this.a11y = accessibilityManager ?? new AccessibilityManager({ tooltipManager });
 
@@ -36,7 +40,10 @@ export class UIController {
             sortToggleEl: document.getElementById('sort-toggle'),
         });
         this.telemetryManager = new TelemetryManager();
-        this.visibilityTreeManager = new VisibilityTreeManager({ accessibilityManager: this.a11y });
+        this.visibilityTreeManager = new VisibilityTreeManager({
+            accessibilityManager: this.a11y,
+            initialDisplayMode,
+        });
 
         this.btnMobileToggle = document.getElementById('btn-mobile-toggle');
         this.panelLeft = document.getElementById('panel-left');
@@ -101,8 +108,10 @@ export class UIController {
         this.visibilityTreeManager.onDatasetColorChanged = (name, color) => {
             if (this.onDatasetColorChanged) this.onDatasetColorChanged(name, color);
         };
-        this.visibilityTreeManager.onDatasetDisplayModeChanged = (name, mode) => {
-            if (this.onDatasetDisplayModeChanged) this.onDatasetDisplayModeChanged(name, mode);
+        this.visibilityTreeManager.onDatasetDisplayModeChanged = async (name, mode) => {
+            if (this.onDatasetDisplayModeChanged) {
+                await this.onDatasetDisplayModeChanged(name, mode);
+            }
         };
 
         this.initBindings();
