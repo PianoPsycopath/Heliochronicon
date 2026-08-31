@@ -107,7 +107,7 @@ See [CHANGELOG.md](CHANGELOG.md) for the full list.
   <tr>
     <td width="50%" align="center">
       <img src="https://github.com/user-attachments/assets/b254abdb-a0f9-4776-b6d8-f15f38d947a1" width="100%" alt="Solar Eclipse 1"><br>
-      <em>Earth Seasons marked on orbite</em>
+      <em>Earth Seasons marked on orbit line</em>
     </td>
     <td width="50%" align="center">
       <img src="https://github.com/user-attachments/assets/43f007c4-b2af-4771-908d-fa2f18c8c4e4"><br>
@@ -189,8 +189,8 @@ Two example CSVs (`atira.csv`, `kerbin_system.csv`) are provided in `raw/` as a 
 
 Orbital positions are propagated using two-body Keplerian mechanics from a
 single fixed-epoch element set per body (no continuous N-body integration
-at runtime). This is accurate to within roughly ±40 years around the 
-element epoch, and degrades noticeably outside that window.
+at runtime). Positions are accurate to roughly ±40 years around 
+the element epoch and degrade noticeably outside that window.
 
 ## Contributing
 See `CONTRIBUTING.md` for local setup, conventions, and where `ARCHITECTURE.md` fits into the workflow.
