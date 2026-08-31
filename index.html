@@ -27,13 +27,19 @@
         <div id="crt-overlay" aria-hidden="true"></div>
         <div id="magi-boot-container" aria-hidden="true">
             <div id="magi-boot-balthasar" class="magi-boot-panel">
-                <span class="magi-boot-label">CHRONOMETER<small>BALTHASAR&nbsp;&middot;&nbsp;2</small></span>
+                <span class="magi-boot-label"
+                    >CHRONOMETER<small>BALTHASAR&nbsp;&middot;&nbsp;2</small></span
+                >
             </div>
             <div id="magi-boot-casper" class="magi-boot-panel">
-                <span class="magi-boot-label">OCULARIS<small>CASPER&nbsp;&middot;&nbsp;3</small></span>
+                <span class="magi-boot-label"
+                    >OCULARIS<small>CASPER&nbsp;&middot;&nbsp;3</small></span
+                >
             </div>
             <div id="magi-boot-melchor" class="magi-boot-panel">
-                <span class="magi-boot-label">SENSORIUM<small>MELCHIOR&nbsp;&middot;&nbsp;1</small></span>
+                <span class="magi-boot-label"
+                    >SENSORIUM<small>MELCHIOR&nbsp;&middot;&nbsp;1</small></span
+                >
             </div>
         </div>
         <div id="tactical-zoom-ruler">
@@ -137,9 +143,36 @@
                 TARGET: <span id="current-target" aria-live="polite" aria-atomic="true">NONE</span>
             </p>
             <div class="tab-nav flex-row" role="tablist" aria-label="System Status views">
-                <button id="btn-tab-search" class="tab-btn active" role="tab" aria-selected="true" aria-controls="tab-search" tabindex="0">SEARCH</button>
-                <button id="btn-tab-vis" class="tab-btn" role="tab" aria-selected="false" aria-controls="tab-visibility" tabindex="-1">VISIBILITY</button>
-                <button id="btn-tab-settings" class="tab-btn" role="tab" aria-selected="false" aria-controls="tab-settings" tabindex="-1">SETTINGS</button>
+                <button
+                    id="btn-tab-search"
+                    class="tab-btn active"
+                    role="tab"
+                    aria-selected="true"
+                    aria-controls="tab-search"
+                    tabindex="0"
+                >
+                    SEARCH
+                </button>
+                <button
+                    id="btn-tab-vis"
+                    class="tab-btn"
+                    role="tab"
+                    aria-selected="false"
+                    aria-controls="tab-visibility"
+                    tabindex="-1"
+                >
+                    VISIBILITY
+                </button>
+                <button
+                    id="btn-tab-settings"
+                    class="tab-btn"
+                    role="tab"
+                    aria-selected="false"
+                    aria-controls="tab-settings"
+                    tabindex="-1"
+                >
+                    SETTINGS
+                </button>
             </div>
 
             <div
@@ -333,13 +366,18 @@
                     </div>
                 </div>
             </div>
-            <div id="tab-settings" class="tab-content" role="tabpanel" aria-labelledby="btn-tab-settings" tabindex="0" hidden style="padding: 10px 5px;">
+            <div
+                id="tab-settings"
+                class="tab-content"
+                role="tabpanel"
+                aria-labelledby="btn-tab-settings"
+                tabindex="0"
+                hidden
+                style="padding: 10px 5px"
+            >
                 <div class="control-group">
                     <label>UI COLOR THEME</label>
-                    <div class="flex-row">
-                        <button id="btn-theme-amber" class="full-btn active" style="margin-right: 5px;">TACTICAL AMBER</button>
-                        <button id="btn-theme-magi" class="full-btn" style="margin-left: 5px;">MAGI BLUE</button>
-                    </div>
+                    <div id="theme-grid" class="theme-grid"></div>
                 </div>
             </div>
         </div>
@@ -437,10 +475,20 @@
 
                 <div class="throttle-container">
                     <button id="btn-time-rev" class="throttle-btn" aria-label="Decrease time scale">
-                        ◀◀
+                        <svg viewBox="0 0 24 24" aria-hidden="true">
+                            <polygon points="11,19 11,5 2,12" />
+                            <polygon points="22,19 22,5 13,12" />
+                        </svg>
                     </button>
-                    <button id="btn-time-pause" class="throttle-btn" aria-label="Pause simulation time">
-                        ▐▐
+                    <button
+                        id="btn-time-pause"
+                        class="throttle-btn"
+                        aria-label="Pause simulation time"
+                    >
+                        <svg viewBox="0 0 24 24" aria-hidden="true">
+                            <rect x="6" y="4" width="4" height="16" />
+                            <rect x="14" y="4" width="4" height="16" />
+                        </svg>
                     </button>
 
                     <div id="chrono-slider-wrapper">
@@ -459,7 +507,10 @@
                     </div>
 
                     <button id="btn-time-fwd" class="throttle-btn" aria-label="Increase time scale">
-                        ▶▶
+                        <svg viewBox="0 0 24 24" aria-hidden="true">
+                            <polygon points="13,19 13,5 22,12" />
+                            <polygon points="2,19 2,5 11,12" />
+                        </svg>
                     </button>
                     <button
                         id="btn-time-1x"

@@ -60,7 +60,7 @@ const frustumSize = sceneManager.frustumSize;
 
 const cinematicManager = new CinematicManager({ camera, controls, appState });
 
-new PanelExtensionController({ storage });
+new PanelExtensionController();
 new ThemeManager();
 
 const dotTexture = Shaders.createDotTexture();

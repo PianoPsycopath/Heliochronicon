@@ -1,5 +1,7 @@
 /* css/themes.css */
 :root {
+    --font-instrument: 'DSEG7-Classic', 'DSEG7 Classic', 'DSEG7-Modern', monospace;
+
     /* AMBER THEME (Default) */
     --theme-bg: #000000;
     --theme-bg-panel: #050505;
@@ -14,7 +16,9 @@
     --theme-edge-text: #ffcc00;
     --theme-focus-ring: rgba(0, 255, 255, 0.6);
 
-    --theme-live: #00ff00;             
+    --theme-font-primary: 'Helvetica Compressed', 'Helvetica Inserat', 'Teko', sans-serif;
+
+    --theme-live: #00ff00;       
     --theme-live-glow: rgba(0, 255, 0, 0.3);
     --theme-live-bg: #222222;          
     --theme-danger-bright: #ff5555;    
@@ -31,6 +35,7 @@ body.theme-magi {
     --theme-bg: linear-gradient(180deg, #9fe6ff 0%, #3fb8ef 100%);
     --theme-bg-panel: rgba(255, 255, 255, 0.85); 
     
+
     --theme-text-primary: #001824; /* 14:1 ratio on light blue */
     --theme-text-secondary: #004c66;
     --theme-border: #003366; 
@@ -41,6 +46,7 @@ body.theme-magi {
     --theme-shadow-inset: rgba(0, 0, 0, 0.18);
     --theme-edge-text: #001824;
     --theme-focus-ring: rgba(0, 51, 102, 0.6);
+    --theme-font-primary: 'Helvetica Compressed', 'Helvetica Inserat', 'Teko', sans-serif;
 
     --theme-live: #006622;             
     --theme-live-glow: rgba(0, 102, 34, 0.35);
@@ -52,4 +58,35 @@ body.theme-magi {
     --theme-instrument-border: #9fe6ff;
     --theme-instrument-muted: #5599cc;
     --theme-border-soft: rgba(159, 230, 255, 0.45);
+}
+
+body.theme-gothic {
+    /* GOTHIC CRIMSON THEME */
+    --theme-bg: #0d0000;
+    --theme-bg-panel: #1a0202;
+
+    --theme-text-primary: #ff3333;
+    --theme-text-secondary: #cc0000;
+    --theme-border: #800000;
+    --theme-accent: #ff0000;
+    --theme-danger: #ff6666;
+
+    --theme-shadow: rgba(255, 0, 0, 0.4);
+    --theme-shadow-inset: rgba(128, 0, 0, 0.2);
+    --theme-edge-text: #ff3333;
+    --theme-focus-ring: rgba(255, 51, 51, 0.6);
+
+    /* Gothic Text Integration */
+    --theme-font-primary: 'Pirata One', 'UnifrakturMaguntia', 'Creepster', serif;
+
+    --theme-live: #cc0000;
+    --theme-live-glow: rgba(204, 0, 0, 0.4);
+    --theme-live-bg: #2a0000;
+    --theme-danger-bright: #ff1111;
+    --theme-muted: #660000;
+
+    --theme-instrument-text: #ff3333;
+    --theme-instrument-border: #800000;
+    --theme-instrument-muted: #660000;
+    --theme-border-soft: rgba(255, 0, 0, 0.3);
 }

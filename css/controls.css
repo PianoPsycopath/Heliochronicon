@@ -35,7 +35,7 @@ input[type="text"] {
     background: #110800;
     border: 1px solid var(--theme-instrument-border);
     color: var(--theme-instrument-text);
-    font-family: 'Helvetica Compressed', 'Helvetica Inserat', 'Teko', sans-serif;
+    font-family: var(--theme-font-primary);
     padding: 8px;
     box-sizing: border-box;
     outline: none;
@@ -60,7 +60,7 @@ button {
     cursor: pointer;
     transition: all 0.2s;
     margin-bottom: 5px;
-    font-family: 'Helvetica Compressed', 'Helvetica Inserat', 'Teko', sans-serif;
+    font-family: var(--theme-font-primary);
     font-size: 1.1rem;
     letter-spacing: 2px;
     text-transform: uppercase;
@@ -290,4 +290,52 @@ button:hover, button.active {
     color: #ffcc66;
     font-weight: normal;
     text-shadow: none;
+}
+/* =========================================
+   DYNAMIC THEME GRID
+========================================= */
+.theme-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 5px;
+    width: 100%;
+}
+
+.theme-btn {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 8px;
+    padding: 6px 8px;
+    font-family: var(--theme-font-primary);
+    font-size: 0.9rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis; /* Enforces character limits visually */
+    width: 100%;
+    cursor: pointer;
+    background: #110800;
+    border: 1px solid var(--theme-instrument-border);
+    color: var(--theme-instrument-text);
+    transition: all 0.2s;
+}
+
+.theme-btn:hover, .theme-btn.active {
+    background: var(--theme-instrument-text);
+    color: #000;
+}
+
+/* Revert inner swatch color on hover so it remains visible against the active background */
+.theme-btn:hover .swatch, .theme-btn.active .swatch {
+    border-color: #000;
+}
+
+.theme-btn .swatch {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    display: inline-block;
+    border: 1px solid var(--theme-bg-panel);
+    box-shadow: 0 0 4px currentColor;
+    flex-shrink: 0;
 }

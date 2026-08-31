@@ -12,7 +12,7 @@ export class ZoomRulerManager {
         this.AU_IN_KM = 149597870.7;
         this.LY_IN_AU = 63241.1;
 
-        this.minZoom = 0.0000001;
+        this.minZoom = 0.00000001;
         this.maxZoom = 150000000;
 
         this.logMin = Math.log(this.minZoom);
@@ -21,6 +21,7 @@ export class ZoomRulerManager {
 
         this.isDragging = false;
         this.lastZoom = this.camera.zoom;
+        this.lastWidth = this.canvas.offsetWidth; // Track container width
 
         this.initBindings();
         this.updateRuler();
@@ -28,11 +29,11 @@ export class ZoomRulerManager {
     }
 
     startContinuousTracking() {
-        // Continuous Sync: By checking the camera every frame, the UI will flawlessly track
-        // the depth even when the engine animates the camera programmatically (clicking planets).
         const sync = () => {
-            if (this.camera.zoom !== this.lastZoom) {
+            const currentWidth = this.canvas.offsetWidth;
+            if (this.camera.zoom !== this.lastZoom || currentWidth !== this.lastWidth) {
                 this.lastZoom = this.camera.zoom;
+                this.lastWidth = currentWidth;
 
                 if (!this.isDragging) {
                     const zoom = Math.max(this.minZoom, Math.min(this.maxZoom, this.camera.zoom));
@@ -135,7 +136,8 @@ export class ZoomRulerManager {
 
         const visibleWidthAU = (this.camera.right - this.camera.left) / this.camera.zoom;
         const auPerPixel = visibleWidthAU / window.innerWidth;
-        const targetAU = auPerPixel * 150;
+        const tickGapPx = window.innerWidth < 768 ? 75 : 150;
+        const targetAU = auPerPixel * tickGapPx;
 
         let magnitude, unit, multiplier;
 

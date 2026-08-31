@@ -55,7 +55,13 @@ export class CinematicManager {
      * @param {Document['body']} [deps.bodyEl]
      * @param {object} [deps.config] override for boot.anim.json (mostly for tests)
      */
-    constructor({ camera, controls = null, appState = null, bodyEl = document.body, config = bootAnimConfig }) {
+    constructor({
+        camera,
+        controls = null,
+        appState = null,
+        bodyEl = document.body,
+        config = bootAnimConfig,
+    }) {
         this.camera = camera;
         this.controls = controls;
         this.appState = appState;

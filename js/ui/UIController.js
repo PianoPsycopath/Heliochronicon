@@ -228,34 +228,6 @@ export class UIController {
                 },
             });
         }
-
-        if (this.btnMeasure && (this.btnDaylightToggle || this.btnEclipticToggle)) {
-            const bottomDeck = document.getElementById('bottom-deck');
-            const iconToggleButtons = [this.btnDaylightToggle, this.btnEclipticToggle].filter(
-                Boolean
-            );
-            const syncToggleLayout = () => {
-                const measureRect = this.btnMeasure.getBoundingClientRect();
-                if (measureRect.height > 0) {
-                    iconToggleButtons.forEach((btn) => {
-                        btn.style.height = `${measureRect.height}px`;
-                        btn.style.width = `${measureRect.height}px`;
-                    });
-                }
-                if (bottomDeck) {
-                    const deckRect = bottomDeck.getBoundingClientRect();
-                    const gap = measureRect.left - deckRect.left;
-                    if (gap > 0) {
-                        iconToggleButtons.forEach((btn) => {
-                            btn.style.marginLeft = `${gap}px`;
-                        });
-                    }
-                }
-            };
-            syncToggleLayout();
-            window.addEventListener('resize', syncToggleLayout);
-        }
-
         document.getElementById('btn-clear-map').addEventListener('click', () => {
             if (this.onClearData) {
                 this.onClearData();
@@ -312,8 +284,7 @@ export class UIController {
             });
         }
     }
-    
-    
+
     // Re-wire tooltips after dynamic content is inserted (idempotent).
     addDatasetToggle(datasetName, category, colorHex, isChecked = false, urls = []) {
         this.visibilityTreeManager.addDatasetToggle(
