@@ -12,7 +12,7 @@ export class ZoomRulerManager {
         this.AU_IN_KM = 149597870.7;
         this.LY_IN_AU = 63241.1;
 
-        this.minZoom = 0.00001;
+        this.minZoom = 0.0000001;
         this.maxZoom = 150000000;
 
         this.logMin = Math.log(this.minZoom);
