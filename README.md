@@ -34,7 +34,7 @@ Control time flow with a chronometer to observe orbital evolution.
 Group and label asteroid populations (e.g., TNOs, Apollo, Amor).
 - **Session Persistence** 
 Saves pinned asteroids and view settings in the browser.
-- **Telemetry Panel** 
+- **Sensorium** 
 Shows real-time information about selected targets.
 - **Custom Planetary Systems**
 Bring your own orbital elements via CSV and load them in place of the default dataset (see Custom Solar Systems below).
@@ -42,12 +42,13 @@ Bring your own orbital elements via CSV and load them in place of the default da
 <details>
 <summary><strong>What’s new</strong> (recent feature wave)</summary>
 
-- Planetary surface heightmaps (Earth, Moon, Jupiter)
-- Day/night shading and multi-body eclipse overlays
-- GPU star field with proper motion + star pinning
-- Spatial measurements and dynamic zoom ruler
-- Analytic orbits: VSOP87 (Earth) and Meeus (Moon)
-- Architecture docs and sequence diagrams under `docs/`
+- Cinematic MAGI-inspired boot sequence with coordinated camera + panel reveal
+- Theme system (Amber default + MAGI blue) with persistent preference and settings UI
+- Collapsible panels: **Ocularis** (left) and **Sensorium** (right/telemetry) + collapsible chronometer
+- Oort Cloud density-mesh visualization (~2 000–100 000 AU abstract shell)
+- Galactic-scale zoom (far deeper outward reach)
+- Starfield rendering fix (no longer culled at extreme distances)
+- Mobile / vertical-screen UI fixes for the new theme and panel layout
 
 See [CHANGELOG.md](CHANGELOG.md) for the full list.
 
@@ -196,11 +197,6 @@ See `CONTRIBUTING.md` for local setup, conventions, and where `ARCHITECTURE.md` 
 See `docs/` for sequence and flow diagrams for a visual understanding.
 
 ## Roadmap
-
-### Phase 1: Immediate Tasks (UI Polish, Culling, & State Persistence)
-
-- Finalize CSS Flexbox/Grid layout architecture.
-- Add tactical hover previews with raycast tooltips.
 
 ### Phase 2: Next Big Features (Astrodynamics & Advanced Graphics)
 
