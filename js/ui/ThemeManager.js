@@ -8,49 +8,19 @@ export class ThemeManager {
     async init() {
         if (!this.container) return;
 
-        await this.parseThemesFromCSS();
+        await this.loadThemesFromJSON();
         this.renderButtons();
 
         const savedTheme = localStorage.getItem('hc-ui-theme') || 'amber';
         this.setTheme(savedTheme);
     }
 
-    async parseThemesFromCSS() {
+    async loadThemesFromJSON() {
         try {
-            const response = await fetch('css/themes.css');
-            const cssText = await response.text();
-
-            // Match the default :root block and any body.theme-* blocks
-            const blockRegex = /(?::root|body\.theme-[a-z0-9-]+)\s*\{[^}]+\}/g;
-            const blocks = cssText.match(blockRegex) || [];
-
-            blocks.forEach((block) => {
-                let id = 'amber'; // Default fallback for :root
-                let name = 'AMBER';
-
-                const classMatch = block.match(/body\.theme-([a-z0-9-]+)/);
-                if (classMatch) {
-                    id = classMatch[1];
-                    name = id.toUpperCase();
-                }
-
-                // Extract a clean display name from a CSS comment (e.g., /* MAGI THEME */)
-                const commentMatch = block.match(/\/\*\s*(.+?)\s*THEME\s*(?:\(.*\))?\s*\*\//i);
-                if (commentMatch) {
-                    name = commentMatch[1].trim();
-                }
-
-                // Extract the primary text color for the swatch preview
-                let swatch = '#ffffff';
-                const colorMatch = block.match(/--theme-text-primary:\s*([^;]+);/);
-                if (colorMatch) {
-                    swatch = colorMatch[1].trim();
-                }
-
-                this.themes.push({ id, name, swatch });
-            });
+            const response = await fetch('resources/themes.json');
+            this.themes = await response.json();
         } catch (err) {
-            console.error('ThemeManager: Failed to parse themes.css', err);
+            console.error('ThemeManager: Failed to load themes.json', err);
         }
     }
 
@@ -62,7 +32,6 @@ export class ThemeManager {
             btn.title = `${theme.name} Theme`;
             btn.dataset.themeId = theme.id;
 
-            // Inject inline swatch and enforce character limits via CSS
             btn.innerHTML = `<span class="swatch" style="background: ${theme.swatch};"></span> ${theme.name}`;
             btn.addEventListener('click', () => this.setTheme(theme.id));
 
@@ -71,15 +40,12 @@ export class ThemeManager {
     }
 
     setTheme(themeId) {
-        // Strip all existing theme classes, then apply the selected one (unless it's the amber root default)
-        this.themes.forEach((t) => {
-            if (t.id !== 'amber') {
-                document.body.classList.remove(`theme-${t.id}`);
-            }
-        });
+        const theme = this.themes.find(t => t.id === themeId) || this.themes[0];
 
-        if (themeId !== 'amber') {
-            document.body.classList.add(`theme-${themeId}`);
+        // Apply all variables directly to the document root
+        const root = document.documentElement;
+        for (const [key, value] of Object.entries(theme.variables)) {
+            root.style.setProperty(key, value);
         }
 
         // Sync button active states
