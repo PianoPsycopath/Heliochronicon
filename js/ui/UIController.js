@@ -184,32 +184,6 @@ export class UIController {
             },
         });
 
-        if (this.btnMobileToggle) {
-            this.btnMobileToggle.addEventListener('click', () => {
-                this.mobileUiState = (this.mobileUiState + 1) % 3;
-                document.body.classList.toggle('panels-open', this.mobileUiState !== 0);
-                if (this.mobileUiState === 0) {
-                    this.panelLeft.classList.remove('mobile-active');
-                    this.panelRight.classList.remove('mobile-active');
-                    this.btnMobileToggle.innerText = 'ACCESS TERMINAL';
-                    this.btnMobileToggle.style.color = '#ffcc00';
-                    this.btnMobileToggle.setAttribute('aria-expanded', 'false');
-                } else if (this.mobileUiState === 1) {
-                    this.panelLeft.classList.add('mobile-active');
-                    this.panelRight.classList.remove('mobile-active');
-                    this.btnMobileToggle.innerText = 'VIEW TELEMETRY';
-                    this.btnMobileToggle.style.color = '#00ffff';
-                    this.btnMobileToggle.setAttribute('aria-expanded', 'true');
-                } else {
-                    this.panelLeft.classList.remove('mobile-active');
-                    this.panelRight.classList.add('mobile-active');
-                    this.btnMobileToggle.innerText = 'CLOSE TERMINAL';
-                    this.btnMobileToggle.style.color = '#ff3333';
-                    this.btnMobileToggle.setAttribute('aria-expanded', 'true');
-                }
-            });
-        }
-
         if (this.btnMeasure) {
             const a11yMeasure = this.a11y.register({
                 element: this.btnMeasure,
@@ -254,34 +228,6 @@ export class UIController {
                 },
             });
         }
-
-        if (this.btnMeasure && (this.btnDaylightToggle || this.btnEclipticToggle)) {
-            const bottomDeck = document.getElementById('bottom-deck');
-            const iconToggleButtons = [this.btnDaylightToggle, this.btnEclipticToggle].filter(
-                Boolean
-            );
-            const syncToggleLayout = () => {
-                const measureRect = this.btnMeasure.getBoundingClientRect();
-                if (measureRect.height > 0) {
-                    iconToggleButtons.forEach((btn) => {
-                        btn.style.height = `${measureRect.height}px`;
-                        btn.style.width = `${measureRect.height}px`;
-                    });
-                }
-                if (bottomDeck) {
-                    const deckRect = bottomDeck.getBoundingClientRect();
-                    const gap = measureRect.left - deckRect.left;
-                    if (gap > 0) {
-                        iconToggleButtons.forEach((btn) => {
-                            btn.style.marginLeft = `${gap}px`;
-                        });
-                    }
-                }
-            };
-            syncToggleLayout();
-            window.addEventListener('resize', syncToggleLayout);
-        }
-
         document.getElementById('btn-clear-map').addEventListener('click', () => {
             if (this.onClearData) {
                 this.onClearData();
@@ -294,13 +240,16 @@ export class UIController {
 
         const btnTabSearch = document.getElementById('btn-tab-search');
         const btnTabVis = document.getElementById('btn-tab-vis');
+        const btnTabSettings = document.getElementById('btn-tab-settings'); // NEW
         const tabSearch = document.getElementById('tab-search');
         const tabVisibility = document.getElementById('tab-visibility');
+        const tabSettings = document.getElementById('tab-settings'); // NEW
 
-        if (btnTabSearch && btnTabVis) {
+        if (btnTabSearch && btnTabVis && btnTabSettings) {
             const tabs = [
                 { btn: btnTabSearch, panel: tabSearch },
                 { btn: btnTabVis, panel: tabVisibility },
+                { btn: btnTabSettings, panel: tabSettings },
             ];
 
             const activateTab = (index, moveFocus) => {

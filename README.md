@@ -34,7 +34,7 @@ Control time flow with a chronometer to observe orbital evolution.
 Group and label asteroid populations (e.g., TNOs, Apollo, Amor).
 - **Session Persistence** 
 Saves pinned asteroids and view settings in the browser.
-- **Telemetry Panel** 
+- **Sensorium** 
 Shows real-time information about selected targets.
 - **Custom Planetary Systems**
 Bring your own orbital elements via CSV and load them in place of the default dataset (see Custom Solar Systems below).
@@ -42,12 +42,13 @@ Bring your own orbital elements via CSV and load them in place of the default da
 <details>
 <summary><strong>What’s new</strong> (recent feature wave)</summary>
 
-- Planetary surface heightmaps (Earth, Moon, Jupiter)
-- Day/night shading and multi-body eclipse overlays
-- GPU star field with proper motion + star pinning
-- Spatial measurements and dynamic zoom ruler
-- Analytic orbits: VSOP87 (Earth) and Meeus (Moon)
-- Architecture docs and sequence diagrams under `docs/`
+- Cinematic MAGI-inspired boot sequence with coordinated camera + panel reveal
+- Theme system (Amber default + MAGI blue) with persistent preference and settings UI
+- Collapsible panels: **Ocularis** (left) and **Sensorium** (right/telemetry) + collapsible chronometer
+- Oort Cloud density-mesh visualization (~2 000–100 000 AU abstract shell)
+- Galactic-scale zoom (far deeper outward reach)
+- Starfield rendering fix (no longer culled at extreme distances)
+- Mobile / vertical-screen UI fixes for the new theme and panel layout
 
 See [CHANGELOG.md](CHANGELOG.md) for the full list.
 
@@ -106,7 +107,7 @@ See [CHANGELOG.md](CHANGELOG.md) for the full list.
   <tr>
     <td width="50%" align="center">
       <img src="https://github.com/user-attachments/assets/b254abdb-a0f9-4776-b6d8-f15f38d947a1" width="100%" alt="Solar Eclipse 1"><br>
-      <em>Earth Seasons marked on orbite</em>
+      <em>Earth Seasons marked on orbit line</em>
     </td>
     <td width="50%" align="center">
       <img src="https://github.com/user-attachments/assets/43f007c4-b2af-4771-908d-fa2f18c8c4e4"><br>
@@ -188,19 +189,14 @@ Two example CSVs (`atira.csv`, `kerbin_system.csv`) are provided in `raw/` as a 
 
 Orbital positions are propagated using two-body Keplerian mechanics from a
 single fixed-epoch element set per body (no continuous N-body integration
-at runtime). This is accurate to within roughly ±40 years around the 
-element epoch, and degrades noticeably outside that window.
+at runtime). Positions are accurate to roughly ±40 years around 
+the element epoch and degrade noticeably outside that window.
 
 ## Contributing
 See `CONTRIBUTING.md` for local setup, conventions, and where `ARCHITECTURE.md` fits into the workflow.
 See `docs/` for sequence and flow diagrams for a visual understanding.
 
 ## Roadmap
-
-### Phase 1: Immediate Tasks (UI Polish, Culling, & State Persistence)
-
-- Finalize CSS Flexbox/Grid layout architecture.
-- Add tactical hover previews with raycast tooltips.
 
 ### Phase 2: Next Big Features (Astrodynamics & Advanced Graphics)
 

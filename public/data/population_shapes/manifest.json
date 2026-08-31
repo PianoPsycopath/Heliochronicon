@@ -99,6 +99,14 @@
         "torus"
       ],
       "componentCount": 3
+    },
+    {
+      "id": "oort-cloud",
+      "file": "oort-cloud.json",
+      "inferredShapes": [
+        "shell"
+      ],
+      "componentCount": 1
     }
   ],
   "sourceManifest": "public\\data\\manifest.json",

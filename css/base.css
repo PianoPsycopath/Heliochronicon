@@ -5,10 +5,10 @@ body {
     margin: 0;
     overflow: hidden;
     background-color: #050505;
-    font-family: 'Helvetica Compressed', 'Helvetica Inserat', 'Teko', sans-serif;
+    font-family: var(--theme-font-primary);
     font-size: 1.15rem;
     letter-spacing: 1px;
-    color: #ffcc00;
+    color: var(--theme-text-primary);
     touch-action: none; /* Disables native pinch-to-zoom and panning */
     overscroll-behavior: none; /* Disables mobile pull-to-refresh */
 }
@@ -43,14 +43,14 @@ canvas {
    ACCESSIBILITY
 ========================================= */
 :focus-visible {
-    outline: 2px solid #00ffff;
+    outline: 2px solid var(--theme-accent);
     outline-offset: 2px;
     box-shadow: 0 0 8px rgba(0, 255, 255, 0.6);
 }
 
 .tactical-label { 
     position: absolute;
-    color: #ffcc00;
+    color: var(--theme-text-primary);
     font-weight: bold;
     font-size: 11px;
     text-shadow: 0 0 5px #ffcc00;

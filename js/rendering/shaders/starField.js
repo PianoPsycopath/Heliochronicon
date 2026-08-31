@@ -50,15 +50,8 @@ export class StarFieldShaders {
                     vec3 renderPos = globalPos - uOrigin;
 
                     vec4 mvPosition = viewMatrix * vec4(renderPos, 1.0);
-                    // Use the far-reaching projection, NOT the built-in
-                    // projectionMatrix (that's the camera's real, tight
-                    // far plane and is why stars were being clipped).
                     gl_Position = uStarProjectionMatrix * mvPosition;
-
-                    // Apparent brightness from magnitude (lower mag = brighter).
-                    // Stars are effectively at infinity for the purposes of this
-                    // sim, so size/brightness is driven by mag + zoom only, not
-                    // by camera distance to the star.
+                    gl_Position.z = gl_Position.w * 0.9999;
                     float brightness = pow(2.512, -mag + 4.0);
                     float basePx = clamp(sqrt(brightness) * 1.1, 0.6, 3.2);
                     gl_PointSize = clamp(basePx / max(uZoom, 0.05), 0.5, 6.0) * uPixelRatio;
@@ -147,7 +140,7 @@ export class StarFieldShaders {
 
                     vec4 mvPosition = viewMatrix * vec4(renderPos, 1.0);
                     gl_Position = uStarProjectionMatrix * mvPosition;
-
+                    gl_Position.z = gl_Position.w * 0.9999;
                     // Larger, zoom-independent floor than the visual dots so
                     // faint/small stars are still easy to hit with the mouse.
                     gl_PointSize = clamp(6.0 / max(uZoom, 0.05), 4.0, 10.0) * uPixelRatio;

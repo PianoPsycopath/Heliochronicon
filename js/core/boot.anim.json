@@ -1,0 +1,26 @@
+{
+    "version": 1,
+    "boot": {
+        "minDurationMs": 1200,
+        "maxWaitMs": 8000,
+        "waitStrategy": "race",
+        "_comment_waitStrategy": "race = reveal as soon as EITHER the dataset load OR minDurationMs finishes (matches 'dataloader complete and/or 1s'). Use 'both' to require dataset load AND the minimum duration to have both elapsed before revealing."
+    },
+    "flip": {
+        "durationMs": 1400,
+        "easing": "easeInOutCubic",
+        "_comment": "Matches the existing 1s CSS transition on #magi-boot-container's transform (rotate 180deg -> 0deg) -- bump the CSS transition to match if you change this."
+    },
+    "cameraZoom": {
+        "startZoom": 0.000000001,
+        "durationMs": 2600,
+        "easing": "easeOutCubic",
+        "_comment": "Interpolated in log-space (see animateZoomValue in CinematicManager.js) so it reads as a continuous fly-in rather than a jump -- the zoom value itself spans 9 orders of magnitude, so a *linear* blend (even eased) looks frozen for ~99% of the animation and then teleports. easeOutCubic gives a fast initial sweep that settles gently; easeOutExpo felt too abrupt layered on top of the already-exponential zoom."
+    },
+    "panelExtend": {
+        "durationMs": 1300,
+        "delayMs": 300,
+        "easing": "easeOutCubic",
+        "_comment": "Delay/duration for the MAGI triad sliding out to the docked edge positions before the boot overlay is dismissed."
+    }
+}

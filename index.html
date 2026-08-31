@@ -13,7 +13,7 @@
             rel="stylesheet"
         />
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/dseg@0.46.0/css/dseg.css" />
-
+        <link rel="stylesheet" href="css/themes.css" />
         <link rel="stylesheet" href="css/base.css" />
         <link rel="stylesheet" href="css/layout.css" />
         <link rel="stylesheet" href="css/controls.css" />
@@ -23,11 +23,28 @@
         <link rel="stylesheet" href="css/ruler.css" />
         <link rel="stylesheet" href="css/credits.css" />
     </head>
-    <body oncontextmenu="return false;">
+    <body class="boot-active" oncontextmenu="return false;">
         <div id="crt-overlay" aria-hidden="true"></div>
+        <div id="magi-boot-container" aria-hidden="true">
+            <div id="magi-boot-balthasar" class="magi-boot-panel">
+                <span class="magi-boot-label"
+                    >CHRONOMETER<small>BALTHASAR&nbsp;&middot;&nbsp;2</small></span
+                >
+            </div>
+            <div id="magi-boot-casper" class="magi-boot-panel">
+                <span class="magi-boot-label"
+                    >OCULARIS<small>CASPER&nbsp;&middot;&nbsp;3</small></span
+                >
+            </div>
+            <div id="magi-boot-melchor" class="magi-boot-panel">
+                <span class="magi-boot-label"
+                    >SENSORIUM<small>MELCHIOR&nbsp;&middot;&nbsp;1</small></span
+                >
+            </div>
+        </div>
         <div id="tactical-zoom-ruler">
             <div class="ruler-landmarks" aria-hidden="true">
-                <span class="landmark" data-val="0.00001" title="Galaxy (Deep Space)">
+                <span class="landmark" data-val="0.00000001" title="Galaxy (Deep Space)">
                     <svg viewBox="0 0 24 24">
                         <!-- spiral arms -->
                         <ellipse cx="12" cy="12" rx="10" ry="2.8" transform="rotate(15 12 12)" />
@@ -38,7 +55,7 @@
                     </svg>
                 </span>
 
-                <span class="landmark" data-val="0.01" title="Oort Cloud">
+                <span class="landmark" data-val="0.0001" title="Stars">
                     <svg viewBox="0 0 24 24">
                         <polygon
                             points="12,2 14.5,8.5 21.5,8.5 16,13 18,20 12,16 6,20 8,13 2.5,8.5 9.5,8.5"
@@ -115,17 +132,14 @@
                 />
             </div>
         </div>
-        <button id="btn-mobile-toggle" aria-label="Toggle terminal panels" aria-expanded="false">
-            ACCESS TERMINAL
-        </button>
         <div
             id="panel-left"
             class="panel"
             role="complementary"
             aria-labelledby="panel-left-heading"
         >
-            <h2 id="panel-left-heading">System Status</h2>
-            <p style="color: #ffcc00; font-weight: bold; margin-bottom: 5px">
+            <h2 id="panel-left-heading">Ocularis &middot; System Status</h2>
+            <p style="color: var(--theme-text-primary); font-weight: bold; margin-bottom: 5px">
                 TARGET: <span id="current-target" aria-live="polite" aria-atomic="true">NONE</span>
             </p>
             <div class="tab-nav flex-row" role="tablist" aria-label="System Status views">
@@ -148,6 +162,16 @@
                     tabindex="-1"
                 >
                     VISIBILITY
+                </button>
+                <button
+                    id="btn-tab-settings"
+                    class="tab-btn"
+                    role="tab"
+                    aria-selected="false"
+                    aria-controls="tab-settings"
+                    tabindex="-1"
+                >
+                    SETTINGS
                 </button>
             </div>
 
@@ -285,7 +309,7 @@
                 <div class="control-group">
                     <label id="moon-dist-label"
                         >MOON VIS (DIST AU)
-                        <span id="dist-val" style="float: right; color: #ffcc00"
+                        <span id="dist-val" style="float: right; color: var(--theme-text-primary)"
                             >0.000 - 0.300</span
                         ></label
                     >
@@ -314,7 +338,7 @@
 
                     <label id="moon-size-label" style="margin-top: 10px"
                         >MOON VIS (SIZE KM)
-                        <span id="size-val" style="float: right; color: #ffcc00"
+                        <span id="size-val" style="float: right; color: var(--theme-text-primary)"
                             >0 - 5000</span
                         ></label
                     >
@@ -342,6 +366,20 @@
                     </div>
                 </div>
             </div>
+            <div
+                id="tab-settings"
+                class="tab-content"
+                role="tabpanel"
+                aria-labelledby="btn-tab-settings"
+                tabindex="0"
+                hidden
+                style="padding: 10px 5px"
+            >
+                <div class="control-group">
+                    <label>UI COLOR THEME</label>
+                    <div id="theme-grid" class="theme-grid"></div>
+                </div>
+            </div>
         </div>
 
         <div
@@ -350,7 +388,7 @@
             role="complementary"
             aria-labelledby="panel-right-heading"
         >
-            <h2 id="panel-right-heading">Telemetry</h2>
+            <h2 id="panel-right-heading">Sensorium &middot; Telemetry</h2>
             <div id="telemetry-data" aria-live="polite" aria-atomic="true">
                 <p>AWAITING DATA INPUT...</p>
             </div>
@@ -407,67 +445,83 @@
                     </svg>
                 </button>
             </div>
-            <div id="hud-credits" aria-hidden="true"></div>
-            <div class="chrono-header">
-                <button
-                    id="btn-live"
-                    class="active"
-                    aria-pressed="true"
-                    aria-label="Jump to live time"
-                >
-                    LIVE
-                </button>
-                <textarea
-                    id="time-input-bottom"
-                    aria-label="Simulation date and time, UTC. Edit and press Enter to apply."
-                ></textarea>
-                <button
-                    id="btn-scan"
-                    class="radar-btn"
-                    aria-label="Scan for nearby asteroids"
-                    aria-pressed="false"
-                >
-                    <div class="ring outer"></div>
-                    <div class="ring inner"></div>
-                    <div class="sweep"></div>
-                </button>
-            </div>
 
-            <div class="throttle-container">
-                <button id="btn-time-rev" class="throttle-btn" aria-label="Decrease time scale">
-                    ◀◀
-                </button>
-                <button id="btn-time-pause" class="throttle-btn" aria-label="Pause simulation time">
-                    ▐▐
-                </button>
-
-                <div id="chrono-slider-wrapper">
-                    <canvas id="chrono-canvas" aria-hidden="true"></canvas>
-                    <input
-                        type="range"
-                        id="time-slider"
-                        min="0"
-                        max="20"
-                        step="1"
-                        value="11"
-                        aria-label="Time scale"
-                        aria-describedby="throttle-label"
-                        aria-valuetext="1 SEC / SEC"
-                    />
+            <div id="chronometer-shape">
+                <div id="hud-credits" aria-hidden="true"></div>
+                <div class="chrono-header">
+                    <button
+                        id="btn-live"
+                        class="active"
+                        aria-pressed="true"
+                        aria-label="Jump to live time"
+                    >
+                        LIVE
+                    </button>
+                    <textarea
+                        id="time-input-bottom"
+                        aria-label="Simulation date and time, UTC. Edit and press Enter to apply."
+                    ></textarea>
+                    <button
+                        id="btn-scan"
+                        class="radar-btn"
+                        aria-label="Scan for nearby asteroids"
+                        aria-pressed="false"
+                    >
+                        <div class="ring outer"></div>
+                        <div class="ring inner"></div>
+                        <div class="sweep"></div>
+                    </button>
                 </div>
 
-                <button id="btn-time-fwd" class="throttle-btn" aria-label="Increase time scale">
-                    ▶▶
-                </button>
-                <button
-                    id="btn-time-1x"
-                    class="throttle-btn"
-                    aria-label="Set time scale to 1x real-time"
-                >
-                    1X
-                </button>
+                <div class="throttle-container">
+                    <button id="btn-time-rev" class="throttle-btn" aria-label="Decrease time scale">
+                        <svg viewBox="0 0 24 24" aria-hidden="true">
+                            <polygon points="11,19 11,5 2,12" />
+                            <polygon points="22,19 22,5 13,12" />
+                        </svg>
+                    </button>
+                    <button
+                        id="btn-time-pause"
+                        class="throttle-btn"
+                        aria-label="Pause simulation time"
+                    >
+                        <svg viewBox="0 0 24 24" aria-hidden="true">
+                            <rect x="6" y="4" width="4" height="16" />
+                            <rect x="14" y="4" width="4" height="16" />
+                        </svg>
+                    </button>
+
+                    <div id="chrono-slider-wrapper">
+                        <canvas id="chrono-canvas" aria-hidden="true"></canvas>
+                        <input
+                            type="range"
+                            id="time-slider"
+                            min="0"
+                            max="20"
+                            step="1"
+                            value="11"
+                            aria-label="Time scale"
+                            aria-describedby="throttle-label"
+                            aria-valuetext="1 SEC / SEC"
+                        />
+                    </div>
+
+                    <button id="btn-time-fwd" class="throttle-btn" aria-label="Increase time scale">
+                        <svg viewBox="0 0 24 24" aria-hidden="true">
+                            <polygon points="13,19 13,5 22,12" />
+                            <polygon points="2,19 2,5 11,12" />
+                        </svg>
+                    </button>
+                    <button
+                        id="btn-time-1x"
+                        class="throttle-btn"
+                        aria-label="Set time scale to 1x real-time"
+                    >
+                        1X
+                    </button>
+                </div>
+                <div id="throttle-label">1 SEC / SEC</div>
             </div>
-            <div id="throttle-label">1 SEC / SEC</div>
         </div>
         <div id="canvas-container"></div>
 

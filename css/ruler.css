@@ -2,21 +2,36 @@
 #tactical-zoom-ruler {
     position: absolute;
     top: 15px;
-    left: 360px; /* Safely clears the 340px Left Panel */
-    right: 360px; /* Safely clears the 340px Right Panel */
+    left: 55px;  
+    right: 55px; 
     height: 70px;
     z-index: 1000;
-    pointer-events: none; /* Let empty space pass clicks to the 3D map */
+    pointer-events: none;
+    transition: left 0.6s ease-in-out, right 0.6s ease-in-out;
+}
+body.panel-left-open #tactical-zoom-ruler {
+    left: 350px; /* Safely clears the 340px expanded panel */
+}
+
+body.panel-right-open #tactical-zoom-ruler {
+    right: 350px;
 }
 
 @media (max-width: 768px) {
-    #tactical-zoom-ruler {
-        left: 5%;
-        right: 5%;
-        top: 65px; /* Safely clears the mobile terminal toggle */
+    #bottom-deck {
+        left: 0;
+        right: 0;
+    }
+    
+    #time-input-bottom {
+        font-size: 0.95rem;      
+        white-space: normal;     
+        word-spacing: normal;    
+        line-height: 1.2;        
+        padding-top: 6px;        
+        height: 48px;
     }
 }
-
 .ruler-landmarks {
     position: relative;
     width: 100%;
@@ -31,7 +46,7 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    color: #ffcc00; 
+    color: var(--theme-text-primary); 
     user-select: none;
     pointer-events: auto;
     cursor: pointer;
@@ -76,29 +91,39 @@
     cursor: ew-resize; /* Left/Right radar drag cursor */
 }
 #ruler-interactive-zone:focus-within {
-    outline: 2px solid #00ffff;
+    outline: 2px solid var(--theme-accent);
     outline-offset: 2px;
 }
 
 /* Container anchored to the top-left of the Chronometer */
 #tactical-tools {
     position: absolute;
-    top: -40px; /* Dynamically hovers exactly 40px above the chronometer */
+    top: -40px; 
     left: 0;
     z-index: 100;
+    
+    /* New Layout Rules */
+    display: flex;
+    align-items: center;
+    gap: 8px; 
+}
+.icon-toggle-btn {
+    width: 32px;
+    height: 32px;
+    flex-shrink: 0;
 }
 
 /* Base Button Styling */
 .tactical-tool-btn {
     background: #000000;
-    border: 1px solid #ffcc00;
-    color: #ffcc00;
+    border: 1px solid var(--theme-border);
+    color: var(--theme-text-primary);
     font-family: 'Teko', sans-serif;
     font-size: 1.2rem;
     letter-spacing: 1px;
     padding: 0;
     height: 32px;
-    width: 180px; /* Fixed width hides the overflowing marquee text */
+    width: 180px; 
     cursor: pointer;
     border-radius: 2px;
     box-shadow: inset 0 0 10px rgba(255, 204, 0, 0.1), 0 0 5px rgba(0,0,0,0.5);

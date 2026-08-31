@@ -5,7 +5,7 @@
     margin-top: 0;
     font-size: 1.2rem;
     text-transform: uppercase;
-    border-bottom: 2px solid #ffcc00;
+    border-bottom: 2px solid var(--theme-border);
     padding-bottom: 5px;
     letter-spacing: 2px;
 }
@@ -13,11 +13,11 @@
     margin: 10px 0;
     font-size: 0.9rem;
     line-height: 1.4;
-    color: #ff8c00;
+    color: var(--theme-text-secondary);
 }
 .control-group { 
     margin-top: 20px;
-    border: 1px solid rgba(255, 204, 0, 0.3);
+    border: 1px solid var(--theme-border-soft);
     padding: 10px;
     background: rgba(0, 0, 0, 0.5);
 }
@@ -33,9 +33,9 @@
 input[type="text"] { 
     width: 100%;
     background: #110800;
-    border: 1px solid #ffcc00;
-    color: #ffcc00;
-    font-family: 'Helvetica Compressed', 'Helvetica Inserat', 'Teko', sans-serif;
+    border: 1px solid var(--theme-instrument-border);
+    color: var(--theme-instrument-text);
+    font-family: var(--theme-font-primary);
     padding: 8px;
     box-sizing: border-box;
     outline: none;
@@ -44,23 +44,23 @@ input[type="text"] {
     letter-spacing: 1px;
 }
 input[type="text"]:focus-visible {
-    outline: 2px solid #00ffff;
+    outline: 2px solid var(--theme-accent);
     outline-offset: 2px;
 }
 input[type="range"] { 
    width: 48%;
-   accent-color: #ffcc00;
+   accent-color: var(--theme-instrument-text);
    cursor: pointer;
 }
 button { 
     background: #110800;
-    border: 1px solid #ffcc00;
-    color: #ffcc00;
+    border: 1px solid var(--theme-instrument-border);
+    color: var(--theme-instrument-text);
     padding: 5px 0;
     cursor: pointer;
     transition: all 0.2s;
     margin-bottom: 5px;
-    font-family: 'Helvetica Compressed', 'Helvetica Inserat', 'Teko', sans-serif;
+    font-family: var(--theme-font-primary);
     font-size: 1.1rem;
     letter-spacing: 2px;
     text-transform: uppercase;
@@ -75,14 +75,14 @@ button:hover, button.active {
     gap: 5px;
 }
 .danger-btn { 
-    border-color: #ff3333;
-    color: #ff3333;
+    border-color: var(--theme-danger);
+    color: var(--theme-danger);
     width: 100%;
     margin-bottom: 15px;
     font-weight: bold;
 }
 .danger-btn:hover { 
-    background: #ff3333;
+    background: var(--theme-danger);
     color: #000;
 }
 .full-btn { 
@@ -127,12 +127,12 @@ button:hover, button.active {
 }
 .icon-toggle-btn.active {
     background: #110800;
-    border-color: #ffcc00;
-    color: #ffcc00;
+    border-color: var(--theme-instrument-border);
+    color: var(--theme-instrument-text);
 }
 .icon-toggle-btn.active:hover {
     background: #110800;
-    color: #ffcc00;
+    color: var(--theme-instrument-text);
     filter: brightness(1.2);
 }
 .icon-toggle-btn.mode-both {
@@ -168,11 +168,11 @@ button:hover, button.active {
 .scrollable-list { 
     max-height: 150px;
     overflow-y: auto;
-    border: 1px solid rgba(255, 204, 0, 0.3);
+    border: 1px solid var(--theme-border-soft);
     background: rgba(0, 0, 0, 0.5);
     margin-top: 5px;
     scrollbar-width: thin;
-    scrollbar-color: #ffcc00 #110800;
+    scrollbar-color: var(--theme-instrument-text) #110800;
 }
 .list-item {
     all: unset;
@@ -184,7 +184,7 @@ button:hover, button.active {
     font-family: inherit;
     letter-spacing: normal;
     text-transform: none;
-    color: #ffcc00;
+    color: var(--theme-instrument-text);
     border-bottom: 1px solid rgba(255, 204, 0, 0.1);
     display: flex;
     justify-content: space-between;
@@ -195,35 +195,35 @@ button:hover, button.active {
     color: #fff;
 }
 .list-item:focus-visible {
-    outline: 2px solid #00ffff;
+    outline: 2px solid var(--theme-accent);
     outline-offset: -2px;
     background: rgba(255, 204, 0, 0.3);
     color: #fff;
 }
 .tab-nav {
     margin-top: 10px;
-    border-bottom: 2px solid #ffcc00;
+    border-bottom: 2px solid var(--theme-border);
     gap: 0;
 }
 .tab-btn {
     flex-grow: 1;
     background: rgba(0, 0, 0, 0.5);
-    border: 1px solid rgba(255, 204, 0, 0.3);
+    border: 1px solid var(--theme-border-soft);
     border-bottom: none;
-    color: #aa8800;
+    color: var(--theme-instrument-muted);
     margin-bottom: 0;
     opacity: 0.7;
     transition: all 0.2s ease;
 }
 .tab-btn:hover {
     background: rgba(255, 204, 0, 0.2);
-    color: #ffcc00;
+    color: var(--theme-instrument-text);
 }
 .tab-btn.active {
     background: rgba(255, 204, 0, 0.15);
-    border: 1px solid #ffcc00;
+    border: 1px solid var(--theme-instrument-border);
     border-bottom: none;
-    color: #ffcc00;
+    color: var(--theme-instrument-text);
     opacity: 1;
     font-weight: bold;
     text-shadow: 0 0 5px rgba(255, 204, 0, 0.5);
@@ -244,8 +244,8 @@ button:hover, button.active {
     z-index: 9999;
     padding: 6px 10px;
     background: rgba(0, 0, 0, 0.85);
-    border: 1px solid #ffcc00;
-    color: #ffcc00;
+    border: 1px solid var(--theme-instrument-border);
+    color: var(--theme-instrument-text);
     font-family: monospace, 'Courier New', Courier;
     font-size: 12px;
     line-height: 1.5;
@@ -257,7 +257,7 @@ button:hover, button.active {
 }
 .hc-tooltip-title {
     font-weight: bold;
-    color: #ffcc00;
+    color: var(--theme-instrument-text);
 }
 .hc-tooltip-sub {
     color: #aaa;
@@ -265,8 +265,8 @@ button:hover, button.active {
 }
 /* Background-star hover (InteractionController). */
 .hc-tooltip--star {
-    border-color: #ffcc00;
-    color: #ffcc00;
+    border-color: var(--theme-instrument-border);
+    color: var(--theme-instrument-text);
     font-weight: bold;
 }
 /* Tactical scan hover: radar contacts + promoted/plain asteroids picked
@@ -290,4 +290,52 @@ button:hover, button.active {
     color: #ffcc66;
     font-weight: normal;
     text-shadow: none;
+}
+/* =========================================
+   DYNAMIC THEME GRID
+========================================= */
+.theme-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 5px;
+    width: 100%;
+}
+
+.theme-btn {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 8px;
+    padding: 6px 8px;
+    font-family: var(--theme-font-primary);
+    font-size: 0.9rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis; /* Enforces character limits visually */
+    width: 100%;
+    cursor: pointer;
+    background: #110800;
+    border: 1px solid var(--theme-instrument-border);
+    color: var(--theme-instrument-text);
+    transition: all 0.2s;
+}
+
+.theme-btn:hover, .theme-btn.active {
+    background: var(--theme-instrument-text);
+    color: #000;
+}
+
+/* Revert inner swatch color on hover so it remains visible against the active background */
+.theme-btn:hover .swatch, .theme-btn.active .swatch {
+    border-color: #000;
+}
+
+.theme-btn .swatch {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    display: inline-block;
+    border: 1px solid var(--theme-bg-panel);
+    box-shadow: 0 0 4px currentColor;
+    flex-shrink: 0;
 }

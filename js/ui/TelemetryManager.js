@@ -26,7 +26,7 @@ export class TelemetryManager {
 
     setManualOverride(name) {
         if (!name) return;
-        this.currentTargetEl.innerHTML = `${name.toUpperCase()} <span style="color: #ff5555;">[MANUAL OVERRIDE]</span>`;
+        this.currentTargetEl.innerHTML = `${name.toUpperCase()} <span style="color: var(--theme-danger-bright);">[MANUAL OVERRIDE]</span>`;
     }
 
     triggerCRTFlash() {
@@ -49,11 +49,11 @@ export class TelemetryManager {
             const pinLabel = data.isPinned
                 ? `Unpin ${data.name} from CPU`
                 : `Pin ${data.name} to CPU`;
-            const pinColor = data.isPinned ? '#00ff00' : '#ffcc00';
+            const pinColor = data.isPinned ? 'var(--theme-live)' : 'var(--theme-text-primary)';
             actionButtons = `
             <div style="display:flex; gap:5px; margin-top:15px;">
                 <button id="btn-pin" class="full-btn" style="border-color: ${pinColor}; color: ${pinColor};" aria-pressed="${data.isPinned ? 'true' : 'false'}" aria-label="${this._escapeHtml(pinLabel)}">${pinText}</button>
-                <button id="btn-purge" class="full-btn" style="border-color: #ff3333; color: #ff3333;" aria-label="Purge clone of ${this._escapeHtml(data.name)}">PURGE CLONE</button>
+                <button id="btn-purge" class="full-btn" style="border-color: var(--theme-danger); color: var(--theme-danger);" aria-label="Purge clone of ${this._escapeHtml(data.name)}">PURGE CLONE</button>
             </div>
         `;
         }
@@ -70,10 +70,10 @@ export class TelemetryManager {
             : '';
 
         this.telemetryDataEl.innerHTML = `
-        <p style="color: #ffcc00; font-weight: bold;">TARGET: ${data.name.toUpperCase()}</p>
+        <p style="color: var(--theme-text-primary); font-weight: bold;">TARGET: ${data.name.toUpperCase()}</p>
         <p>PARENT: ${data.parent}</p>
         ${data.a > 0 ? `<p>DIST: ${data.a.toFixed(4)} AU</p><p>PERIOD: ${data.period.toFixed(2)} D</p><p>RADIUS: ${(data.radius_km || 0).toFixed(1)} KM</p>` : `<p>CLASS: ANCHOR STAR</p>`}
-        <p style="color:#00aaff; margin-top: 15px;">J2000 ROTATION TRACKING</p>
+        <p style="color:var(--theme-accent); margin-top: 15px;">J2000 ROTATION TRACKING</p>
         <p>POLE RA/DEC: <span id="tel-ra" style="color: #fff">${data.pole_ra.toFixed(2)}</span>° / <span id="tel-dec" style="color: #fff">${data.pole_dec.toFixed(2)}</span>°</p>
         <p>CURRENT ROT (W): <span id="tel-rot" style="color: #fff">0.00</span>°</p>
         <p>ROTATION RATE: ${data.pm_w_rate.toFixed(2)}° / DAY</p>
@@ -105,12 +105,12 @@ export class TelemetryManager {
         const box = document.getElementById('eclipse-result');
         if (!box) return;
         if (!event) {
-            box.innerHTML = `<p style="color:#ff3333;">NO EVENT FOUND IN RANGE</p>`;
+            box.innerHTML = `<p style="color:var(--theme-danger);">NO EVENT FOUND IN RANGE</p>`;
             return;
         }
         const date = new Date(Date.UTC(2000, 0, 1, 12, 0, 0) + event.days * 86400000);
         box.innerHTML = `
-            <p style="color:#00ffff;">${event.type} ECLIPSE</p>
+            <p style="color:var(--theme-accent);">${event.type} ECLIPSE</p>
             <p>${event.occulter.name} occults ${event.shadowed.name}</p>
             <p>${date.toISOString().replace('T', ' ').substring(0, 19)}</p>
         `;
@@ -155,11 +155,11 @@ export class TelemetryManager {
 
         const pinText = data.isPinned ? 'UNPIN STAR' : 'PIN STAR';
         const pinLabel = data.isPinned ? `Unpin star ${displayName}` : `Pin star ${displayName}`;
-        const pinColor = data.isPinned ? '#00ff00' : '#ffcc00';
+        const pinColor = data.isPinned ? 'var(--theme-live)' : 'var(--theme-text-primary)';
 
         this.telemetryDataEl.innerHTML = `
-            <p style="color: #ffcc00; font-weight: bold;">STAR: ${this._escapeHtml(displayName.toUpperCase())}</p>
-            <p style="color:#00aaff;">BACKGROUND STAR FIELD</p>
+            <p style="color: var(--theme-text-primary); font-weight: bold;">STAR: ${this._escapeHtml(displayName.toUpperCase())}</p>
+            <p style="color:var(--theme-accent);">BACKGROUND STAR FIELD</p>
             <p>SPECTRAL CLASS: <span style="color:#fff">${starClass}</span></p>
             <p>B−V COLOR INDEX: <span style="color:#fff">${ci}</span></p>
             <p>DISTANCE: <span style="color:#fff">${distStr}</span></p>
@@ -189,7 +189,7 @@ export class TelemetryManager {
     }
 
     renderScanResults(results, referenceName) {
-        let html = `<p style="color: #00ffff; font-weight: bold; border-bottom: 1px solid #00ffff; padding-bottom:5px;">
+        let html = `<p style="color: var(--theme-accent); font-weight: bold; border-bottom: 1px solid var(--theme-accent); padding-bottom:5px;">
             RADAR PING: CLOSEST TO ${referenceName}
         </p>`;
 
@@ -217,7 +217,7 @@ export class TelemetryManager {
             btn.setAttribute('aria-label', `${hit.data.name}, ${distAU.toFixed(5)} AU`);
 
             btn.innerHTML = `
-                <span style="color:#00ffff">[${i + 1}] ${hit.data.name}</span>
+                <span style="color:var(--theme-accent)">[${i + 1}] ${hit.data.name}</span>
                 <span style="color:#aaa;">${distAU.toFixed(5)} AU</span>
             `;
 
@@ -245,19 +245,19 @@ export class TelemetryManager {
     showLookupPending(query) {
         const safe = this._escapeHtml(query.toUpperCase());
         this.telemetryDataEl.innerHTML = `
-            <p style="color: #00ffff; font-weight: bold; animation: flicker 0.5s infinite;">
+            <p style="color: var(--theme-accent); font-weight: bold; animation: flicker 0.5s infinite;">
                 SEARCHING DATABASE FOR "${safe}"...
             </p>`;
     }
 
     showScanningStatus() {
-        this.telemetryDataEl.innerHTML = `<p style="color:#00ffff; font-weight:bold; animation: flicker 0.5s infinite;">INITIATING RADAR PING...</p>`;
+        this.telemetryDataEl.innerHTML = `<p style="color:var(--theme-accent); font-weight:bold; animation: flicker 0.5s infinite;">INITIATING RADAR PING...</p>`;
     }
 
     showLookupNotFound(query) {
         const safe = this._escapeHtml(query.toUpperCase());
         this.telemetryDataEl.innerHTML = `
-            <p style="color: #ff3333; font-weight: bold;">NO RECORD FOUND FOR "${safe}"</p>
+            <p style="color: var(--theme-danger); font-weight: bold;">NO RECORD FOUND FOR "${safe}"</p>
             <p style="font-size: 0.75rem;">Checked loaded datasets and all on-disk chunks.</p>`;
     }
 

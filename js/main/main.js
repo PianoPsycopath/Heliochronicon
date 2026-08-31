@@ -34,6 +34,9 @@ import { AsteroidPromotionService } from '@core/AsteroidPromotionService.js';
 import { DatasetCoordinator } from '@main/DatasetCoordinator.js';
 import { AsteroidController } from '@main/AsteroidController.js';
 import { RenderingLoop } from '@main/RenderingLoop.js';
+import { CinematicManager } from '@core/CinematicManager.js';
+import { PanelExtensionController } from '@ui/PanelExtensionController.js';
+import { ThemeManager } from '@ui/ThemeManager.js';
 
 inject();
 injectSpeedInsights();
@@ -54,6 +57,11 @@ const camera = sceneManager.camera;
 const renderer = sceneManager.renderer;
 const controls = sceneManager.controls;
 const frustumSize = sceneManager.frustumSize;
+
+const cinematicManager = new CinematicManager({ camera, controls, appState });
+
+new PanelExtensionController();
+new ThemeManager();
 
 const dotTexture = Shaders.createDotTexture();
 const gridMaterial = Shaders.getGridMaterial(MAX_WELLS);
@@ -483,11 +491,13 @@ datasetCoordinator.configureGlobalDataSourceControls();
 logger.info(`[Heliochronicon] Data source: ${datasetCoordinator.dataSourcePath}`);
 
 async function startApplication() {
-    creditsManager.setAssetManifest(
-        await datasetCoordinator.initialize().then(() => datasetCoordinator.manifest)
-    );
-    updateCredits();
     renderingLoop.start();
+
+    const dataLoadPromise = datasetCoordinator.initialize().then(() => {
+        creditsManager.setAssetManifest(datasetCoordinator.manifest);
+        updateCredits();
+    });
+    await cinematicManager.run(dataLoadPromise);
 }
 
 startApplication();

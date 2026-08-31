@@ -1,0 +1,24 @@
+[
+  {
+    "name": "",
+    "parent": "SUN",
+    "category": "ASTEROID",
+    "a_au": null,
+    "a_km": null,
+    "e": null,
+    "i_deg": null,
+    "w_deg": null,
+    "node_deg": null,
+    "m_deg": null,
+    "period_days": null,
+    "mass_10_24_kg": null,
+    "radius_km": null,
+    "pole_ra_deg": null,
+    "pole_dec_deg": null,
+    "pole_ra_rate_deg_per_cy": null,
+    "pole_dec_rate_deg_per_cy": null,
+    "pm_w_deg": null,
+    "pm_w_rate_deg_per_day": null,
+    "symbol": "\u2022"
+  }
+]

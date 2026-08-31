@@ -2,6 +2,7 @@
 import * as THREE from 'three';
 
 const VALID_ASTEROID_DISPLAY_MODES = new Set(['particles', 'shapes', 'both']);
+const VALID_BOOT_PHASES = new Set(['booting', 'flipping', 'complete']);
 
 export class AppState {
     constructor() {
@@ -14,6 +15,7 @@ export class AppState {
         this._currentOrigin = new THREE.Vector3(0, 0, 0);
         this._lookupInFlight = false;
         this._asteroidDisplayMode = 'shapes';
+        this._bootPhase = 'booting';
     }
 
     // -------------------------------------------------------------------------
@@ -150,5 +152,28 @@ export class AppState {
         }
 
         this._asteroidDisplayMode = mode;
+    }
+
+    // -------------------------------------------------------------------------
+    // Boot Sequence State
+    // -------------------------------------------------------------------------
+    // 'booting'  -> UI hidden, MAGI triad shown upside down, camera pinned to
+    //               deep-space zoom, waiting on the dataset loader.
+    // 'flipping' -> triad flipping upright, camera zooming in, panels extending.
+    // 'complete' -> boot overlay dismissed, app fully interactive.
+    get bootPhase() {
+        return this._bootPhase;
+    }
+
+    set bootPhase(phase) {
+        if (!VALID_BOOT_PHASES.has(phase)) {
+            throw new TypeError(`Invalid boot phase: ${phase}`);
+        }
+
+        this._bootPhase = phase;
+    }
+
+    get isBooting() {
+        return this._bootPhase !== 'complete';
     }
 }

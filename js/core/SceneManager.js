@@ -34,7 +34,7 @@ export class SceneManager {
         this.controls = new OrbitControls(this.camera, this.renderer.domElement);
         this.controls.enableDamping = true;
         this.controls.dampingFactor = 0.05;
-        this.controls.minZoom = 0.00001; // Unlocked for deep space
+        this.controls.minZoom = 0.000000001; // Unlocked for deep space
         this.controls.maxZoom = 150000000; // Unlocked for planetary zoom
         this.controls.mouseButtons = {
             LEFT: THREE.MOUSE.ROTATE,
