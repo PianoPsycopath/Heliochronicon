@@ -1,28 +1,44 @@
 /* =========================================
    BOTTOM DECK CHRONOMETER
 ========================================= */
+
 #bottom-deck {
     position: absolute;
     bottom: 0px;
-    left: 340px;
-    right: 340px;
-    height: 120px;
-    background: #000000;
-    border-top: 1px solid #ffcc00;
-    border-left: 1px solid #ffcc00;
-    border-right: 1px solid #ffcc00;
-    border-bottom: none;
-    box-shadow: 0 0 10px rgba(255, 204, 0, 0.3), inset 0 0 15px rgba(255, 204, 0, 0.1);
-    border-radius: 0;
+    left: 45px;  
+    height: 145px; 
+    transition: left 0.6s ease-in-out, right 0.6s ease-in-out, transform 0.6s ease-in-out, opacity 0.4s;
+}
+
+/* Dynamically dodge the side panels when they open on desktop */
+@media (min-width: 769px) {
+    body.panel-left-open #bottom-deck { left: 340px; }
+    body.panel-right-open #bottom-deck { right: 340px; }
+}
+
+#chronometer-shape {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    background: var(--theme-bg);
+    border-top: 2px solid var(--theme-border);
+    box-shadow: 0 0 15px var(--theme-shadow), inset 0 0 18px var(--theme-shadow-inset);
     display: flex;
     flex-direction: column;
-    padding: 15px 20px;
+    padding: 35px 20px 15px 20px;
     box-sizing: border-box;
-    display: flex;
     justify-content: center;
     align-items: center;
-    transition: opacity 0.3s ease;
 }
+
+/* Dynamically squeeze the chronometer when side panels are fully open */
+body.panel-left-open #bottom-deck {
+    left: 340px;
+}
+body.panel-right-open #bottom-deck {
+    right: 340px;
+}
+
 .chrono-header { 
     width: 100%;
     display: flex;
@@ -31,7 +47,7 @@
     justify-content: center;
 }
 #btn-live {
-    background: #222;
+    background: var(--theme-live-bg, #222);
     border: 1px solid #555;
     color: #555;
     font-weight: bold;
@@ -42,19 +58,19 @@
     letter-spacing: 2px;
 }
 #btn-live.active {
-    background: rgba(0, 255, 0, 0.15);
-    border-color: #00ff00;
-    color: #00ff00;
-    text-shadow: 0 0 8px #00ff00;
-    box-shadow: inset 0 0 10px rgba(0, 255, 0, 0.3);
+    background: var(--theme-live-glow);
+    border-color: var(--theme-live);
+    color: var(--theme-live);
+    text-shadow: 0 0 8px var(--theme-live);
+    box-shadow: inset 0 0 10px var(--theme-live-glow);
 }
 /* Hardware Segment Display */
 #time-input-bottom {
     flex-grow: 1;
     min-width: 0;
     background: #0b0500;
-    border: 1px solid #ffcc00;
-    color: #ffcc00;
+    border: 1px solid var(--theme-instrument-border);
+    color: var(--theme-instrument-text);
     font-size: 1.3rem; 
     text-align: center;
     padding: 12px 5px 5px 5px;
@@ -71,7 +87,7 @@
     line-height: 1;
 }
 #time-input-bottom:focus-visible {
-    outline: 2px solid #00ffff;
+    outline: 2px solid var(--theme-accent);
     outline-offset: 2px;
 }
 /* Time Controls */
@@ -85,8 +101,8 @@
 }
 .throttle-btn {
     background: #110800;
-    border: 1px solid #ffcc00;
-    color: #ffcc00;
+    border: 1px solid var(--theme-instrument-border);
+    color: var(--theme-instrument-text);
     padding: 8px 15px;
     cursor: pointer;
     font-weight: bold;
@@ -102,7 +118,7 @@
     height: 50px;
     min-width: 250px;
     background: #050505; /* Deep CRT Black */
-    border: 1px solid var(--chrono-color, #ffcc00);
+    border: 1px solid var(--chrono-color, var(--theme-instrument-border));
     overflow: hidden;
     box-shadow: inset 0 0 15px rgba(0,0,0,0.8);
     transition: border-color 0.2s;
@@ -131,7 +147,7 @@
     margin: 0;
     cursor: crosshair;
     z-index: 2;
-    --chrono-color: #ffcc00; 
+    --chrono-color: var(--theme-instrument-text); 
 }
 #time-slider.reversed {
     --chrono-color: #ff3333; 
@@ -140,7 +156,7 @@
     outline: none;
 }
 #time-slider:focus-visible {
-    outline: 2px solid #00ffff;
+    outline: 2px solid var(--theme-accent);
     outline-offset: 2px;
     box-shadow: 0 0 8px rgba(0, 255, 255, 0.6);
 }
@@ -192,7 +208,7 @@
 }
 #throttle-label {
     text-align: center;
-    color: #ff8c00;
+    color: var(--theme-text-secondary);
     font-size: 0.85rem;
     font-weight: bold;
     letter-spacing: 1px;
@@ -220,7 +236,7 @@
     flex-shrink: 0;
 }
 .radar-btn:focus-visible {
-    outline: 2px solid #00ffff;
+    outline: 2px solid var(--theme-accent);
     outline-offset: 3px;
 }
 .radar-btn:hover {
@@ -274,19 +290,20 @@
         padding-top: 5px;
     }
     #bottom-deck {
-            left: 0;
-            right: 0;
-            border-left: none;
-            border-right: none;
-            display: flex;
-            align-items: center;
-            justify-content: space-between; 
-            gap: 20px;
-        }
+        left: 0;
+        right: 0;
+    }
 }
 .controls-wrapper, .control-btn { 
     flex-shrink: 0; 
 }
 .control-btn, #btn-live { 
     flex-shrink: 0; 
+}
+#chronometer-shape > * {
+    transition: opacity 0.3s ease;
+}
+#bottom-deck.magi-collapsed #chronometer-shape > * {
+    opacity: 0;
+    pointer-events: none;
 }
