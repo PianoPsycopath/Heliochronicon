@@ -89,4 +89,34 @@ export class OrbitalMath {
         //Right-Handed System
         return { x: ast_x, y: ast_z, z: -ast_y };
     }
+    static getTrueAnomaly(M, e) {
+        const E = this.solveKepler(M, e);
+        return 2 * Math.atan2(
+            Math.sqrt(1 + e) * Math.sin(E / 2),
+            Math.sqrt(1 - e) * Math.cos(E / 2)
+        );
+    }
+
+    static calcPosFromTrueAnomaly(scaledA, e, i_deg, w_deg, Node_deg, f) {
+        const r = (scaledA * (1 - e * e)) / (1 + e * Math.cos(f));
+        const xv = r * Math.cos(f);
+        const yv = r * Math.sin(f);
+
+        // True Astronomical Ecliptic Coordinates
+        const ast_x =
+            (Math.cos(w_deg) * Math.cos(Node_deg) -
+                Math.sin(w_deg) * Math.sin(Node_deg) * Math.cos(i_deg)) * xv +
+            (-Math.sin(w_deg) * Math.cos(Node_deg) -
+                Math.cos(w_deg) * Math.sin(Node_deg) * Math.cos(i_deg)) * yv;
+        const ast_y =
+            (Math.cos(w_deg) * Math.sin(Node_deg) +
+                Math.sin(w_deg) * Math.cos(Node_deg) * Math.cos(i_deg)) * xv +
+            (-Math.sin(w_deg) * Math.sin(Node_deg) +
+                Math.cos(w_deg) * Math.cos(Node_deg) * Math.cos(i_deg)) * yv;
+        const ast_z =
+            Math.sin(w_deg) * Math.sin(i_deg) * xv + Math.cos(w_deg) * Math.sin(i_deg) * yv;
+
+        //Right-Handed System
+        return { x: ast_x, y: ast_z, z: -ast_y };
+    }
 }

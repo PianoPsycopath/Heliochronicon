@@ -1,5 +1,6 @@
-// js/RenderPipeline.js
+// js/rendering/RenderPipeline.js
 import { OrbitalMath } from '@physics/OrbitalMath.js';
+import { OrbitFactory } from '@core/OrbitFactory.js';
 import * as THREE from 'three';
 
 // --- Constants ---
@@ -384,6 +385,11 @@ export class RenderPipeline {
                     bodyData.orbit_model === ORBIT_MODEL_MEEUS ||
                     bodyData.orbit_model === ORBIT_MODEL_VSOP87;
 
+                const needsOrbitUpdate = !celestialBody._orbitGenerated || isTarget || isAnalytical || celestialBody.orbitLine.visible;
+
+                if (needsOrbitUpdate) {
+                    this._updateOrbitLineGeometry(celestialBody, bodyData, daysSinceJ2000);}
+                        
                 const parentBody = this.bodyRegistry
                     ? this.bodyRegistry.getByName(bodyData.parent)
                     : celestialBodies.find((b) => b.data.name === bodyData.parent);
@@ -562,12 +568,15 @@ export class RenderPipeline {
 
     _updateOrbitLineGeometry(celestialBody, bodyData, daysSinceJ2000) {
         const orbitPoints = [];
+        let phaseOffset = 0;
 
         if (
             bodyData.orbit_model === ORBIT_MODEL_MEEUS ||
             bodyData.orbit_model === ORBIT_MODEL_VSOP87
         ) {
             const orbitalPeriod = bodyData.period;
+            phaseOffset = daysSinceJ2000 / orbitalPeriod;
+
             for (let index = 0; index <= ORBIT_LINE_RESOLUTION; index++) {
                 const timeInDays =
                     daysSinceJ2000 -
@@ -580,24 +589,26 @@ export class RenderPipeline {
             }
         } else {
             const currentMeanAnomaly = bodyData.M0 + bodyData.n * daysSinceJ2000;
+            const f_current = OrbitalMath.getTrueAnomaly(currentMeanAnomaly, bodyData.e);
+            phaseOffset = f_current / (2 * Math.PI);
+
             for (let index = 0; index <= ORBIT_LINE_RESOLUTION; index++) {
-                const meanAnomaly =
-                    currentMeanAnomaly -
-                    2 * Math.PI +
-                    (index / ORBIT_LINE_RESOLUTION) * 2 * Math.PI;
-                const rawPosition = OrbitalMath.calcPosFromM(
+                const f = f_current - 2 * Math.PI + (index / ORBIT_LINE_RESOLUTION) * 2 * Math.PI;
+                const rawPosition = OrbitalMath.calcPosFromTrueAnomaly(
                     celestialBody.scaledA,
                     bodyData.e,
                     bodyData.i,
                     bodyData.w,
                     bodyData.Node,
-                    meanAnomaly
+                    f
                 );
                 orbitPoints.push(new THREE.Vector3(rawPosition.x, rawPosition.y, rawPosition.z));
             }
         }
 
         celestialBody.orbitLine.geometry.setFromPoints(orbitPoints);
+        celestialBody.orbitLine.computeLineDistances();
+        OrbitFactory.applyTrailDashSizing(celestialBody.orbitLine, phaseOffset);
     }
 
     _updateOrbitCurtainGeometry(
@@ -652,18 +663,17 @@ export class RenderPipeline {
             }
         } else {
             const currentMeanAnomaly = bodyData.M0 + bodyData.n * daysSinceJ2000;
+            const f_current = OrbitalMath.getTrueAnomaly(currentMeanAnomaly, bodyData.e);
+
             for (let index = 0; index <= ORBIT_LINE_RESOLUTION; index++) {
-                const meanAnomaly =
-                    currentMeanAnomaly -
-                    2 * Math.PI +
-                    (index / ORBIT_LINE_RESOLUTION) * 2 * Math.PI;
-                const rawPosition = OrbitalMath.calcPosFromM(
+                const f = f_current - 2 * Math.PI + (index / ORBIT_LINE_RESOLUTION) * 2 * Math.PI;
+                const rawPosition = OrbitalMath.calcPosFromTrueAnomaly(
                     celestialBody.scaledA,
                     bodyData.e,
                     bodyData.i,
                     bodyData.w,
                     bodyData.Node,
-                    meanAnomaly
+                    f
                 );
                 const p = new THREE.Vector3(rawPosition.x, rawPosition.y, rawPosition.z);
                 emit(p);
