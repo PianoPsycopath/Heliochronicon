@@ -304,12 +304,10 @@ export class RenderPipeline {
                 ) {
                     this.activationQueue.add(celestialBody);
                 } else if (celestialBody._isMeshControllersActive) {
-                    if (isMeshDetailed) {
-                        if (this.daylightController)
-                            this.daylightController.updateForBody(celestialBody);
-                        if (this.eclipseShadowController)
-                            this.eclipseShadowController.updateForBody(celestialBody);
-                    }
+                    if (this.daylightController)
+                        this.daylightController.updateForBody(celestialBody);
+                    if (this.eclipseShadowController)
+                        this.eclipseShadowController.updateForBody(celestialBody);
                 }
             } else {
                 if (this.activationQueue.has(celestialBody)) {
