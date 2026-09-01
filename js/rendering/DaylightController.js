@@ -90,6 +90,13 @@ export class DaylightController {
             this.overlays.forEach(({ mesh }) => {
                 mesh.visible = false;
             });
+        } else {
+            this.celestialBodies.forEach((bodyObj) => {
+                if (bodyObj._isMeshControllersActive) {
+                    this._ensureOverlay(bodyObj).mesh.visible = true;
+                    this.updateForBody(bodyObj);
+                }
+            });
         }
     }
 
