@@ -25,6 +25,7 @@ import { StarFieldShaders } from './starField.js';
 import { EclipseShaders } from './eclipse.js';
 import { NightSideShaders } from './nightSide.js';
 import { TerrainShaders } from './terrain.js';
+import { OrbitTrailShaders } from './orbitTrail.js';
 
 export class Shaders {
     // grid.js
@@ -80,6 +81,9 @@ export class Shaders {
     static createTerrainContourMat(heightmapTexture, elevMin = -450, elevMax = 6800) {
         return TerrainShaders.createTerrainContourMat(heightmapTexture, elevMin, elevMax);
     }
+    static createOrbitTrailMaterial(options) {
+        return OrbitTrailShaders.createOrbitTrailMaterial(options);
+    }
 }
 
 // Re-export the feature modules too, for call sites that want to import a
@@ -91,4 +95,5 @@ export {
     EclipseShaders,
     NightSideShaders,
     TerrainShaders,
+    OrbitTrailShaders
 };
