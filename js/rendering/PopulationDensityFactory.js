@@ -47,7 +47,10 @@ export class PopulationDensityFactory {
         };
 
         const meanDensity = shapeDescriptor.stats?.meanOccupiedDensity || 1.0;
-        const baseOpacity = Math.max(0.05, Math.min(meanDensity * 0.025, 0.95));
+
+        const normalizedDensity = Math.min(meanDensity / 50.0, 1.0);
+        const baseOpacity = Math.max(0.012, normalizedDensity * 0.20);
+
         const totalParticles = shapeDescriptor.stats?.totalParticlesConsidered || 1;
 
         shapeDescriptor.components.forEach((component) => {
@@ -55,8 +58,8 @@ export class PopulationDensityFactory {
 
             if (component.isSubComponent) {
                 const concentrationRatio = component.particleCountInComponent / totalParticles;
-                const densityBoost = 1.0 + (concentrationRatio * 4.0); 
-                finalOpacity = Math.min(baseOpacity * densityBoost, 0.95);
+                const densityBoost = 1.0 + (concentrationRatio * 2.0); 
+                finalOpacity = Math.min(baseOpacity * densityBoost, 0.40);
             }
 
             const mesh = PopulationDensityFactory._buildComponent(component, colorHex, finalOpacity);

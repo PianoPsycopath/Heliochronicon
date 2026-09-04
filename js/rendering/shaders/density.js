@@ -9,34 +9,23 @@ export class DensityShaders {
                 uOpacity: { value: baseOpacity },
             },
             vertexShader: `
-                varying vec3 vNormal;
-                varying vec3 vViewDir;
                 void main() {
-                    vNormal = normalize(normalMatrix * normal);
-                    vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
-                    vViewDir = normalize(-mvPosition.xyz);
-                    gl_Position = projectionMatrix * mvPosition;
+                    gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
                 }
             `,
             fragmentShader: `
                 uniform vec3 uColor;
                 uniform float uOpacity;
-                varying vec3 vNormal;
-                varying vec3 vViewDir;
+                
                 void main() {
-                    // Fresnel rim: glancing faces read brighter/denser, faces
-                    // viewed head-on fall away -- gives a soft volumetric edge
-                    // instead of a hard flat-shaded surface.
-                    float rim = 1.0 - abs(dot(normalize(vNormal), normalize(vViewDir)));
-                    float density = pow(rim, 1.6) * 0.85 + 0.15;
-                    gl_FragColor = vec4(uColor * density, uOpacity * density);
+                    gl_FragColor = vec4(uColor, uOpacity);
                 }
             `,
             transparent: true,
             depthWrite: false,
             depthTest: true,
             side: THREE.DoubleSide,
-            blending: THREE.AdditiveBlending,
+            blending: THREE.NormalBlending, // Changed from AdditiveBlending to prevent glowing overlaps
         });
     }
 
