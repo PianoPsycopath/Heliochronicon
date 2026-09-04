@@ -3,8 +3,7 @@
   "datasetName": "martian",
   "type": "density-mesh",
   "inferredShapes": [
-    "bubble",
-    "shell"
+    "torus"
   ],
   "epoch": {
     "daysSinceJ2000": 0.0,
@@ -12,23 +11,15 @@
   },
   "components": [
     {
-      "type": "bubble",
+      "type": "torus",
       "isBase": true,
       "isSubComponent": false,
-      "center_au": [
-        -0.44133,
-        0.05464,
-        0.00116
-      ],
-      "semiAxes_au": [
-        3.39116,
-        3.36816,
-        1.04557
-      ],
-      "meanRadius_au": 2.34002,
-      "radialSpread_au": 0.65818,
-      "innerRadius_au": 0.7783,
-      "outerRadius_au": 4.96167,
+      "meanA_au": 2.34002,
+      "innerRadius_au": 1.41453,
+      "outerRadius_au": 3.88952,
+      "width_au": 2.47499,
+      "thickness_au": 2.45916,
+      "zCenter_au": -0.00747,
       "particleCountInComponent": 29700,
       "meanOrbit": {
         "a_au": 2.26935,
@@ -41,15 +32,15 @@
       }
     },
     {
-      "type": "shell",
+      "type": "torus",
       "isBase": false,
       "isSubComponent": true,
       "meanA_au": 2.23452,
-      "innerRadius_au": 1.19414,
-      "outerRadius_au": 4.01454,
-      "width_au": 2.8204,
-      "thickness_au": 3.70508,
-      "zCenter_au": 0.05194,
+      "innerRadius_au": 1.4267,
+      "outerRadius_au": 3.5105,
+      "width_au": 2.08379,
+      "thickness_au": 1.67545,
+      "zCenter_au": -0.0055,
       "particleCountInComponent": 26214,
       "meanOrbit": {
         "a_au": 2.22668,
@@ -78,7 +69,7 @@
       "martian_chunk_4.json",
       "martian_chunk_5.json"
     ],
-    "generatedAt": "2026-08-25T22:47:03.105650+00:00",
+    "generatedAt": "2026-09-04T07:12:30.549314+00:00",
     "generator": "generate_population_shapes.py"
   }
 }

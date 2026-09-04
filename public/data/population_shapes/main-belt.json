@@ -15,11 +15,11 @@
       "isBase": true,
       "isSubComponent": false,
       "meanA_au": 2.71681,
-      "innerRadius_au": 1.09004,
-      "outerRadius_au": 4.69619,
-      "width_au": 3.60615,
-      "thickness_au": 5.19101,
-      "zCenter_au": 0.03911,
+      "innerRadius_au": 1.907,
+      "outerRadius_au": 3.62759,
+      "width_au": 1.7206,
+      "thickness_au": 1.61923,
+      "zCenter_au": -0.00089,
       "particleCountInComponent": 1374548,
       "meanOrbit": {
         "a_au": 2.70253,
@@ -317,7 +317,7 @@
       "main-belt_chunk_273.json",
       "main-belt_chunk_274.json"
     ],
-    "generatedAt": "2026-08-25T22:47:02.142955+00:00",
+    "generatedAt": "2026-09-04T07:12:29.389944+00:00",
     "generator": "generate_population_shapes.py"
   }
 }

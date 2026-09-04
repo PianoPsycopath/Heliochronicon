@@ -9,7 +9,6 @@ const SHELL_HEIGHT_SEGMENTS = 32;
 const BUBBLE_WIDTH_SEGMENTS = 32;
 const BUBBLE_HEIGHT_SEGMENTS = 24;
 
-const DEFAULT_OPACITY = 0.16;
 const DEFAULT_RESONANT_ARC_WIDTH_DEG = 50; // only used if a resonanceLock omits arcWidth_deg
 
 function eclipticVectorToWorld([x, y, z]) {
@@ -43,33 +42,57 @@ export class PopulationDensityFactory {
         group.userData = {
             datasetName,
             kind: 'densityObject',
-            datasetVisible: false, // hidden by default; particle system stays primary
+            datasetVisible: false,
             basePosition: new THREE.Vector3(0, 0, 0),
         };
 
+        const meanDensity = shapeDescriptor.stats?.meanOccupiedDensity || 1.0;
+        const baseOpacity = Math.max(0.05, Math.min(meanDensity * 0.025, 0.95));
+        const totalParticles = shapeDescriptor.stats?.totalParticlesConsidered || 1;
+
         shapeDescriptor.components.forEach((component) => {
-            const mesh = PopulationDensityFactory._buildComponent(component, colorHex);
+            let finalOpacity = baseOpacity;
+
+            if (component.isSubComponent) {
+                const concentrationRatio = component.particleCountInComponent / totalParticles;
+                const densityBoost = 1.0 + (concentrationRatio * 4.0); 
+                finalOpacity = Math.min(baseOpacity * densityBoost, 0.95);
+            }
+
+            const mesh = PopulationDensityFactory._buildComponent(component, colorHex, finalOpacity);
             if (mesh) group.add(mesh);
         });
 
         return group;
     }
 
-    static _buildComponent(component, colorHex) {
+    static _buildComponent(component, colorHex, opacity) {
+        let mesh = null;
+        
         switch (component.type) {
             case 'torus':
-                return component.resonanceLock
-                    ? PopulationDensityFactory._buildResonantArc(component, colorHex)
-                    : PopulationDensityFactory._buildRing(component, colorHex);
+                mesh = component.resonanceLock
+                    ? PopulationDensityFactory._buildResonantArc(component, colorHex, opacity)
+                    : PopulationDensityFactory._buildRing(component, colorHex, opacity);
+                break;
+            case 'scattered-disk': 
+                mesh = PopulationDensityFactory._buildRing(component, colorHex, opacity * 0.5);
+                break;
             case 'bubble':
-                return PopulationDensityFactory._buildBubble(component, colorHex);
+                mesh = PopulationDensityFactory._buildBubble(component, colorHex, opacity);
+                break;
             case 'shell':
-                return PopulationDensityFactory._buildShell(component, colorHex);
-            default:
-                return null;
+                mesh = PopulationDensityFactory._buildShell(component, colorHex, opacity);
+                break;
         }
+
+        if (mesh && mesh.userData) {
+            mesh.userData.shapeType = component.type;
+        }
+        
+        return mesh;
     }
-    static _buildRing(component, colorHex) {
+    static _buildRing(component, colorHex, opacity) {
         const tubeRadius = component.width_au / 2;
         const geometry = new THREE.TorusGeometry(
             component.meanA_au,
@@ -77,12 +100,12 @@ export class PopulationDensityFactory {
             RING_RADIAL_SEGMENTS,
             RING_TUBULAR_SEGMENTS
         );
-        geometry.rotateX(Math.PI / 2); // lie flat in the XZ (ecliptic) plane
+        geometry.rotateX(Math.PI / 2); 
 
         const verticalScale = component.thickness_au / component.width_au;
         geometry.scale(1, verticalScale, 1);
 
-        const material = DensityShaders.getDensitySurfaceMaterial(colorHex, DEFAULT_OPACITY);
+        const material = DensityShaders.getDensitySurfaceMaterial(colorHex, opacity);
         const mesh = new THREE.Mesh(geometry, material);
         PopulationDensityFactory._applyOrbitMotion(
             mesh,
@@ -91,7 +114,7 @@ export class PopulationDensityFactory {
         );
         return mesh;
     }
-    static _buildResonantArc(component, colorHex) {
+    static _buildResonantArc(component, colorHex, opacity) {
         const {
             lockToBody,
             angularOffset_deg = 0,
@@ -114,7 +137,7 @@ export class PopulationDensityFactory {
         const verticalScale = component.thickness_au / component.width_au;
         geometry.scale(1, verticalScale, 1);
 
-        const material = DensityShaders.getDensitySurfaceMaterial(colorHex, DEFAULT_OPACITY * 1.5);
+        const material = DensityShaders.getDensitySurfaceMaterial(colorHex, opacity * 1.5);
         const mesh = new THREE.Mesh(geometry, material);
         mesh.position.y = component.zCenter_au || 0;
         mesh.userData.isResonanceLocked = true;
@@ -130,27 +153,34 @@ export class PopulationDensityFactory {
 
         return mesh;
     }
-    static _buildBubble(component, colorHex) {
+    static _buildBubble(component, colorHex, opacity) {
         const geometry = new THREE.SphereGeometry(1, BUBBLE_WIDTH_SEGMENTS, BUBBLE_HEIGHT_SEGMENTS);
         const [sx, sy, sz] = component.semiAxes_au;
         geometry.scale(sx, sz, sy);
 
-        const material = DensityShaders.getDensitySurfaceMaterial(colorHex, DEFAULT_OPACITY);
+        const centerWorld = eclipticVectorToWorld(component.center_au);
+        geometry.translate(centerWorld.x, centerWorld.y, centerWorld.z);
+
+        const material = DensityShaders.getDensitySurfaceMaterial(colorHex, opacity);
         const mesh = new THREE.Mesh(geometry, material);
-        PopulationDensityFactory._applyOrbitMotion(
-            mesh,
-            component,
-            eclipticVectorToWorld(component.center_au)
-        );
+        
+        mesh.position.set(0, 0, 0);
+
+        const orbitElements = buildOrbitElements(component.meanOrbit);
+        if (orbitElements) {
+            mesh.userData.orbitsSun = true;
+            mesh.userData.orbitElements = orbitElements;
+        }
+        
         return mesh;
     }
-    static _buildShell(component, colorHex) {
+    static _buildShell(component, colorHex, opacity) {
         const geometry = new THREE.SphereGeometry(
             component.meanA_au,
             SHELL_WIDTH_SEGMENTS,
             SHELL_HEIGHT_SEGMENTS
         );
-        const material = DensityShaders.getDensitySurfaceMaterial(colorHex, DEFAULT_OPACITY * 1.2);
+        const material = DensityShaders.getDensitySurfaceMaterial(colorHex, opacity * 1.2);
         const mesh = new THREE.Mesh(geometry, material);
         PopulationDensityFactory._applyOrbitMotion(
             mesh,

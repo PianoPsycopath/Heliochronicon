@@ -3,7 +3,7 @@
   "datasetName": "outer-belt",
   "type": "density-mesh",
   "inferredShapes": [
-    "shell"
+    "torus"
   ],
   "epoch": {
     "daysSinceJ2000": 0.0,
@@ -11,15 +11,15 @@
   },
   "components": [
     {
-      "type": "shell",
+      "type": "torus",
       "isBase": true,
       "isSubComponent": false,
       "meanA_au": 3.38776,
-      "innerRadius_au": 1.24232,
-      "outerRadius_au": 7.49942,
-      "width_au": 6.25711,
-      "thickness_au": 9.25903,
-      "zCenter_au": 0.16048,
+      "innerRadius_au": 2.52382,
+      "outerRadius_au": 4.78448,
+      "width_au": 2.26066,
+      "thickness_au": 2.32751,
+      "zCenter_au": 0.01421,
       "particleCountInComponent": 49935,
       "meanOrbit": {
         "a_au": 3.37666,
@@ -52,7 +52,7 @@
       "outer-belt_chunk_8.json",
       "outer-belt_chunk_9.json"
     ],
-    "generatedAt": "2026-08-25T22:47:03.689874+00:00",
+    "generatedAt": "2026-09-04T07:12:31.220262+00:00",
     "generator": "generate_population_shapes.py"
   }
 }

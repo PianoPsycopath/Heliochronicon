@@ -12,23 +12,15 @@
   },
   "components": [
     {
-      "type": "bubble",
+      "type": "torus",
       "isBase": true,
       "isSubComponent": false,
-      "center_au": [
-        0.044,
-        0.02574,
-        0.00753
-      ],
-      "semiAxes_au": [
-        1.35054,
-        1.32354,
-        0.34464
-      ],
-      "meanRadius_au": 0.92272,
-      "radialSpread_au": 0.21238,
-      "innerRadius_au": 0.17922,
-      "outerRadius_au": 1.69289,
+      "meanA_au": 0.92272,
+      "innerRadius_au": 0.45972,
+      "outerRadius_au": 1.3401,
+      "width_au": 0.88038,
+      "thickness_au": 0.78838,
+      "zCenter_au": 0.00669,
       "particleCountInComponent": 3421,
       "meanOrbit": {
         "a_au": 0.88901,
@@ -41,15 +33,23 @@
       }
     },
     {
-      "type": "torus",
+      "type": "bubble",
       "isBase": false,
       "isSubComponent": true,
-      "meanA_au": 0.98273,
+      "center_au": [
+        -0.08144,
+        0.62525,
+        0.00844
+      ],
+      "semiAxes_au": [
+        1.33927,
+        0.70905,
+        0.12379
+      ],
+      "meanRadius_au": 0.98273,
+      "radialSpread_au": 0.07689,
       "innerRadius_au": 0.7373,
       "outerRadius_au": 1.18443,
-      "width_au": 0.44713,
-      "thickness_au": 0.44093,
-      "zCenter_au": 0.03036,
       "particleCountInComponent": 515,
       "meanOrbit": {
         "a_au": 0.87968,
@@ -62,15 +62,23 @@
       }
     },
     {
-      "type": "torus",
+      "type": "bubble",
       "isBase": false,
       "isSubComponent": true,
-      "meanA_au": 0.98628,
+      "center_au": [
+        0.91734,
+        -0.0765,
+        -0.00154
+      ],
+      "semiAxes_au": [
+        0.20762,
+        0.69633,
+        0.13025
+      ],
+      "meanRadius_au": 0.98628,
+      "radialSpread_au": 0.08128,
       "innerRadius_au": 0.79477,
       "outerRadius_au": 1.14177,
-      "width_au": 0.347,
-      "thickness_au": 0.38323,
-      "zCenter_au": -0.01309,
       "particleCountInComponent": 277,
       "meanOrbit": {
         "a_au": 0.90204,
@@ -94,7 +102,7 @@
     "chunks": [
       "aten_chunk_0.json"
     ],
-    "generatedAt": "2026-08-25T22:46:45.699907+00:00",
+    "generatedAt": "2026-09-04T07:12:09.544504+00:00",
     "generator": "generate_population_shapes.py"
   }
 }

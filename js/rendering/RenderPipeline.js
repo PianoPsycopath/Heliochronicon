@@ -844,7 +844,11 @@ export class RenderPipeline {
                 const orbitElements = child.userData?.orbitsSun && child.userData.orbitElements;
                 if (!orbitElements) return;
 
-                child.rotation.y = orbitElements.m0 + orbitElements.n * daysSinceJ2000;
+                if (child.userData.shapeType === 'bubble') {
+                    child.rotation.y = orbitElements.n * daysSinceJ2000;
+                } else {
+                    child.rotation.y = orbitElements.m0 + orbitElements.n * daysSinceJ2000;
+                }
             });
         });
     }
