@@ -10,7 +10,35 @@ vi.mock('@rendering/Shaders.js', () => ({
         getAsteroidParticleMaterial: vi.fn((color) => new THREE.PointsMaterial({ color })),
         createStarSpriteMat: vi.fn(() => new THREE.SpriteMaterial()),
         createDiamondSpriteMat: vi.fn((symbol) => new THREE.SpriteMaterial()),
-        createGroupLabelMat: vi.fn((text, colorHex, meanA) => new THREE.MeshBasicMaterial())
+        createGroupLabelMat: vi.fn((text, colorHex, meanA) => new THREE.MeshBasicMaterial()),
+        createOrbitTrailMaterial: vi.fn((opts = {}) => {
+            // Use ShaderMaterial to match the real OrbitTrailShaders implementation.
+            // This prevents Three.js from silently stripping the linewidth property
+            // (which happens with LineBasicMaterial in newer versions).
+            const material = new THREE.ShaderMaterial({
+                uniforms: {
+                    uColor: { value: new THREE.Color(opts.color || 0xff1111) },
+                    uOpacity: { value: opts.opacity !== undefined ? opts.opacity : 0.5 },
+                },
+                transparent: true
+            });
+            
+            // Replicate the real getters/setters found in orbitTrail.js
+            Object.defineProperty(material, 'color', {
+                get() { return this.uniforms.uColor.value; },
+            });
+            Object.defineProperty(material, 'opacity', {
+                get() { return this.uniforms.uOpacity.value; },
+                set(v) { this.uniforms.uOpacity.value = v; },
+            });
+
+            // Capture inline parameter if passed
+            if (opts.linewidth !== undefined) {
+                material.linewidth = opts.linewidth;
+            }
+
+            return material;
+        })
     }
 }));
 
@@ -24,6 +52,7 @@ beforeEach(() => {
     Shaders.createStarSpriteMat.mockClear();
     Shaders.createDiamondSpriteMat.mockClear();
     Shaders.createGroupLabelMat.mockClear();
+    Shaders.createOrbitTrailMaterial.mockClear();
 });
 
 function makeCtx(overrides = {}) {

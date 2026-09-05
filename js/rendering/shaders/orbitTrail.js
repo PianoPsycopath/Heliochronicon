@@ -9,6 +9,7 @@ export class OrbitTrailShaders {
         dashCycles = 28,
         dashRatio = 0.55,
         depthTest = false,
+        linewidth = 1, // Add parameter here
     } = {}) {
         const material = new THREE.ShaderMaterial({
             uniforms: {
@@ -58,7 +59,9 @@ export class OrbitTrailShaders {
             transparent: true,
             depthTest,
         });
-
+        
+        material.linewidth = linewidth;
+        
         Object.defineProperty(material, 'color', {
             get() { return this.uniforms.uColor.value; },
         });

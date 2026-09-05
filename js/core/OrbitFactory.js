@@ -36,12 +36,20 @@ export class OrbitFactory {
         const geometry = new THREE.BufferGeometry().setFromPoints(points);
         OrbitFactory.attachProgressAttribute(geometry);
 
+        let computedLinewidth = 1;
+        if (data.category === 'PLANET') {
+            computedLinewidth = 3;
+        } else if (data.category === 'MOON') {
+            computedLinewidth = 2;
+        }
+
         const mat = Shaders.createOrbitTrailMaterial({
             color: 0xff1111,
             opacity: 0.5,
             solidFraction: ORBIT_TRAIL_SOLID_FRACTION,
             dashCycles: ORBIT_TRAIL_DASH_CYCLES,
             dashRatio: ORBIT_TRAIL_DASH_RATIO,
+            linewidth: computedLinewidth
         });
 
         const line = new THREE.Line(geometry, mat);

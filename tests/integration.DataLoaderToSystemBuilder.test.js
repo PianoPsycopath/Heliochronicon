@@ -9,7 +9,8 @@ vi.mock('@rendering/Shaders.js', () => ({
         getAsteroidParticleMaterial: vi.fn(() => ({})),
         createStarSpriteMat: vi.fn(() => ({})),
         createDiamondSpriteMat: vi.fn(() => ({})),
-        createGroupLabelMat: vi.fn(() => ({}))
+        createGroupLabelMat: vi.fn(() => ({})),
+        createOrbitTrailMaterial: vi.fn(() => ({})) // Added
     }
 }));
 
