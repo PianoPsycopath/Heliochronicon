@@ -127,6 +127,16 @@ export class BodyRegistry {
             const obj = this.densityObjects[i];
             if (obj.userData && obj.userData.datasetName === datasetName) {
                 this.scene.remove(obj);
+                
+                if (obj.userData.groupLabel) {
+                    this.scene.remove(obj.userData.groupLabel);
+                    if (obj.userData.groupLabel.material.map) {
+                        obj.userData.groupLabel.material.map.dispose();
+                    }
+                    obj.userData.groupLabel.material.dispose();
+                    obj.userData.groupLabel.geometry.dispose();
+                }
+
                 PopulationDensityFactory.disposeDensityObject(obj);
                 this.densityObjects.splice(i, 1);
             }
@@ -209,6 +219,11 @@ export class BodyRegistry {
 
     registerDensityObject(object) {
         this.densityObjects.push(object);
+        this.scene.add(object);
+        
+        if (object.userData && object.userData.groupLabel) {
+            this.scene.add(object.userData.groupLabel);
+        }
         return object;
     }
 

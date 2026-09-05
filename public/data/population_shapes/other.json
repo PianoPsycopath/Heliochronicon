@@ -3,7 +3,7 @@
   "datasetName": "other",
   "type": "density-mesh",
   "inferredShapes": [
-    "bubble"
+    "torus"
   ],
   "epoch": {
     "daysSinceJ2000": 0.0,
@@ -11,23 +11,15 @@
   },
   "components": [
     {
-      "type": "bubble",
+      "type": "torus",
       "isBase": true,
       "isSubComponent": false,
-      "center_au": [
-        -0.64449,
-        -0.72032,
-        0.18163
-      ],
-      "semiAxes_au": [
-        7.9489,
-        8.26538,
-        2.61966
-      ],
-      "meanRadius_au": 5.51622,
-      "radialSpread_au": 1.83873,
-      "innerRadius_au": 1.67713,
-      "outerRadius_au": 9.11053,
+      "meanA_au": 5.51622,
+      "innerRadius_au": 2.24864,
+      "outerRadius_au": 8.31407,
+      "width_au": 6.06543,
+      "thickness_au": 5.38462,
+      "zCenter_au": 0.29909,
       "particleCountInComponent": 152,
       "meanOrbit": {
         "a_au": 5.04353,
@@ -51,7 +43,7 @@
     "chunks": [
       "other_chunk_0.json"
     ],
-    "generatedAt": "2026-08-25T22:47:03.140781+00:00",
+    "generatedAt": "2026-09-04T07:12:30.591203+00:00",
     "generator": "generate_population_shapes.py"
   }
 }

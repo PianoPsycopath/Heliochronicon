@@ -1,4 +1,4 @@
-// js/SeasonMarkerEngine.js
+// js/physics/SeasonMarkerEngine.js
 import { OrbitalMath } from '@physics/OrbitalMath.js';
 import {
     JULIAN_CENTURY_DAYS,
@@ -113,8 +113,8 @@ export class SeasonMarkerEngine {
         for (const s of samples) {
             s.trueAnomaly = normalizeAngle(Math.atan2(dot(s.pos, v), dot(s.pos, u)));
         }
-        periSample.trueAnomaly = 0;
-        apoSample.trueAnomaly = Math.PI;
+        const periTrueAnomaly = 0;
+        const apoTrueAnomaly = Math.PI;
 
         const structuralMarkers = [
             this._assembleMarker(
@@ -123,7 +123,7 @@ export class SeasonMarkerEngine {
                 'Perihelion',
                 periSample.pos,
                 periSample.t,
-                periSample.trueAnomaly,
+                periTrueAnomaly,
                 systemDate
             ),
             this._assembleMarker(
@@ -132,7 +132,7 @@ export class SeasonMarkerEngine {
                 'Aphelion',
                 apoSample.pos,
                 apoSample.t,
-                apoSample.trueAnomaly,
+                apoTrueAnomaly,
                 systemDate
             ),
         ];
@@ -151,7 +151,7 @@ export class SeasonMarkerEngine {
                     'Perihelion (Thermal Max)',
                     periSample.pos,
                     periSample.t,
-                    periSample.trueAnomaly,
+                    periTrueAnomaly,
                     systemDate
                 ),
                 this._assembleMarker(
@@ -160,7 +160,7 @@ export class SeasonMarkerEngine {
                     'Aphelion (Thermal Min)',
                     apoSample.pos,
                     apoSample.t,
-                    apoSample.trueAnomaly,
+                    apoTrueAnomaly,
                     systemDate
                 ),
             ];
@@ -236,7 +236,7 @@ export class SeasonMarkerEngine {
                 'Perihelion',
                 periSample.pos,
                 periSample.t,
-                periSample.trueAnomaly,
+                periTrueAnomaly,
                 systemDate
             ),
             this._assembleMarker(
@@ -245,7 +245,7 @@ export class SeasonMarkerEngine {
                 'Aphelion',
                 apoSample.pos,
                 apoSample.t,
-                apoSample.trueAnomaly,
+                apoTrueAnomaly,
                 systemDate
             )
         );

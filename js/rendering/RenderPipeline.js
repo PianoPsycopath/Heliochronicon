@@ -1,4 +1,4 @@
-// js/RenderPipeline.js
+// js/rendering/RenderPipeline.js
 import { OrbitalMath } from '@physics/OrbitalMath.js';
 import * as THREE from 'three';
 
@@ -87,6 +87,9 @@ export class RenderPipeline {
 
         this._projectionVector = new THREE.Vector3();
         this.curtainMode = 0;
+
+        this._frameCounter = 0;
+        this.ANALYTICAL_REBUILD_FRAME_INTERVAL = 15; 
     }
     setCurtainMode(mode) {
         this.curtainMode = mode;
@@ -159,6 +162,8 @@ export class RenderPipeline {
         previewTargetData = null,
         daysSinceJ2000 = 0
     ) {
+        this._frameCounter++;
+
         const moonFilters = this.uiController.getMoonFilters();
         const activeSystemName = getActiveSystemName(currentTargetData);
 
@@ -292,7 +297,6 @@ export class RenderPipeline {
 
             const meshVisibleSize = celestialBody.physicalRadius * 2 * this.camera.zoom;
             const isMeshBigger = meshVisibleSize >= baseSpriteSize;
-            const isMeshDetailed = meshVisibleSize >= 25.0;
 
             celestialBody.mesh.visible = isMeshBigger;
             celestialBody.sprite.visible = !isOccluded && !isMeshBigger;
@@ -304,12 +308,10 @@ export class RenderPipeline {
                 ) {
                     this.activationQueue.add(celestialBody);
                 } else if (celestialBody._isMeshControllersActive) {
-                    if (isMeshDetailed) {
-                        if (this.daylightController)
-                            this.daylightController.updateForBody(celestialBody);
-                        if (this.eclipseShadowController)
-                            this.eclipseShadowController.updateForBody(celestialBody);
-                    }
+                    if (this.daylightController)
+                        this.daylightController.updateForBody(celestialBody);
+                    if (this.eclipseShadowController)
+                        this.eclipseShadowController.updateForBody(celestialBody);
                 }
             } else {
                 if (this.activationQueue.has(celestialBody)) {
@@ -386,6 +388,10 @@ export class RenderPipeline {
                     bodyData.orbit_model === ORBIT_MODEL_MEEUS ||
                     bodyData.orbit_model === ORBIT_MODEL_VSOP87;
 
+                const needsGeometryRebuild =
+                    !celestialBody._orbitGenerated ||
+                    (isAnalytical && (isTarget || this._analyticalRebuildDue(celestialBody)));
+
                 const parentBody = this.bodyRegistry
                     ? this.bodyRegistry.getByName(bodyData.parent)
                     : celestialBodies.find((b) => b.data.name === bodyData.parent);
@@ -396,8 +402,8 @@ export class RenderPipeline {
                     celestialBody.isMoon &&
                     (!bodyData.orbit_model || bodyData.orbit_model === ORBIT_MODEL_KEPLER);
 
-                if (!celestialBody._orbitGenerated || isTarget || isAnalytical) {
-                    this._updateOrbitLineGeometry(celestialBody, bodyData, daysSinceJ2000);
+                if (needsGeometryRebuild) {
+                    this._rebuildOrbitLineGeometry(celestialBody, bodyData, daysSinceJ2000);
                     if (celestialBody.orbitCurtain) {
                         this._updateOrbitCurtainGeometry(
                             celestialBody,
@@ -418,7 +424,10 @@ export class RenderPipeline {
                         );
                     }
                     celestialBody._orbitGenerated = true;
+                    celestialBody._lastOrbitRebuildFrame = this._frameCounter;
                 }
+
+                this._updateOrbitPhase(celestialBody, bodyData, daysSinceJ2000);
 
                 if (parentBody && bodyData.parent !== bodyData.name) {
                     celestialBody.orbitLine.position.copy(parentBody.renderPos);
@@ -562,44 +571,61 @@ export class RenderPipeline {
         return activeWellIndex + 1;
     }
 
-    _updateOrbitLineGeometry(celestialBody, bodyData, daysSinceJ2000) {
+    _rebuildOrbitLineGeometry(celestialBody, bodyData, daysSinceJ2000) {
         const orbitPoints = [];
+        const isAnalytical =
+            bodyData.orbit_model === ORBIT_MODEL_MEEUS || bodyData.orbit_model === ORBIT_MODEL_VSOP87;
 
-        if (
-            bodyData.orbit_model === ORBIT_MODEL_MEEUS ||
-            bodyData.orbit_model === ORBIT_MODEL_VSOP87
-        ) {
+        if (isAnalytical) {
             const orbitalPeriod = bodyData.period;
+            const progress = new Float32Array(ORBIT_LINE_RESOLUTION + 1);
+
             for (let index = 0; index <= ORBIT_LINE_RESOLUTION; index++) {
                 const timeInDays =
-                    daysSinceJ2000 -
-                    orbitalPeriod +
-                    (index / ORBIT_LINE_RESOLUTION) * orbitalPeriod;
+                    daysSinceJ2000 - orbitalPeriod + (index / ORBIT_LINE_RESOLUTION) * orbitalPeriod;
                 const positionVector = OrbitalMath.calculatePosition(bodyData, timeInDays);
-                orbitPoints.push(
-                    new THREE.Vector3(positionVector.x, positionVector.y, positionVector.z)
+                orbitPoints.push(new THREE.Vector3(positionVector.x, positionVector.y, positionVector.z));
+                const phaseAtVertex = timeInDays / orbitalPeriod;
+                progress[index] = phaseAtVertex - Math.floor(phaseAtVertex);
+            }
+
+            celestialBody.orbitLine.geometry.setFromPoints(orbitPoints);
+
+            let progressAttr = celestialBody.orbitLine.geometry.getAttribute('aProgress');
+            if (!progressAttr || progressAttr.count !== progress.length) {
+                celestialBody.orbitLine.geometry.setAttribute(
+                    'aProgress', new THREE.BufferAttribute(progress, 1)
                 );
+            } else {
+                progressAttr.set(progress);
+                progressAttr.needsUpdate = true;
             }
         } else {
-            const currentMeanAnomaly = bodyData.M0 + bodyData.n * daysSinceJ2000;
             for (let index = 0; index <= ORBIT_LINE_RESOLUTION; index++) {
-                const meanAnomaly =
-                    currentMeanAnomaly -
-                    2 * Math.PI +
-                    (index / ORBIT_LINE_RESOLUTION) * 2 * Math.PI;
-                const rawPosition = OrbitalMath.calcPosFromM(
-                    celestialBody.scaledA,
-                    bodyData.e,
-                    bodyData.i,
-                    bodyData.w,
-                    bodyData.Node,
-                    meanAnomaly
+                const f = (index / ORBIT_LINE_RESOLUTION) * 2 * Math.PI;
+                const rawPosition = OrbitalMath.calcPosFromTrueAnomaly(
+                    celestialBody.scaledA, bodyData.e, bodyData.i, bodyData.w, bodyData.Node, f
                 );
                 orbitPoints.push(new THREE.Vector3(rawPosition.x, rawPosition.y, rawPosition.z));
             }
+            celestialBody.orbitLine.geometry.setFromPoints(orbitPoints);
         }
+    }
 
-        celestialBody.orbitLine.geometry.setFromPoints(orbitPoints);
+    _updateOrbitPhase(celestialBody, bodyData, daysSinceJ2000) {
+        let phaseOffset;
+        if (bodyData.orbit_model === ORBIT_MODEL_MEEUS || bodyData.orbit_model === ORBIT_MODEL_VSOP87) {
+            phaseOffset = daysSinceJ2000 / bodyData.period;
+        } else {
+            const currentMeanAnomaly = bodyData.M0 + bodyData.n * daysSinceJ2000;
+            const f_current = OrbitalMath.getTrueAnomaly(currentMeanAnomaly, bodyData.e);
+            phaseOffset = f_current / (2 * Math.PI);
+        }
+        celestialBody.orbitLine.material.uniforms.uPhase.value = phaseOffset - Math.floor(phaseOffset);
+    }
+    _analyticalRebuildDue(celestialBody) {
+        const last = celestialBody._lastOrbitRebuildFrame ?? -Infinity;
+        return this._frameCounter - last >= this.ANALYTICAL_REBUILD_FRAME_INTERVAL;
     }
 
     _updateOrbitCurtainGeometry(
@@ -654,18 +680,17 @@ export class RenderPipeline {
             }
         } else {
             const currentMeanAnomaly = bodyData.M0 + bodyData.n * daysSinceJ2000;
+            const f_current = OrbitalMath.getTrueAnomaly(currentMeanAnomaly, bodyData.e);
+
             for (let index = 0; index <= ORBIT_LINE_RESOLUTION; index++) {
-                const meanAnomaly =
-                    currentMeanAnomaly -
-                    2 * Math.PI +
-                    (index / ORBIT_LINE_RESOLUTION) * 2 * Math.PI;
-                const rawPosition = OrbitalMath.calcPosFromM(
+                const f = f_current - 2 * Math.PI + (index / ORBIT_LINE_RESOLUTION) * 2 * Math.PI;
+                const rawPosition = OrbitalMath.calcPosFromTrueAnomaly(
                     celestialBody.scaledA,
                     bodyData.e,
                     bodyData.i,
                     bodyData.w,
                     bodyData.Node,
-                    meanAnomaly
+                    f
                 );
                 const p = new THREE.Vector3(rawPosition.x, rawPosition.y, rawPosition.z);
                 emit(p);
@@ -751,7 +776,11 @@ export class RenderPipeline {
             const systemLabel = particleSystem.userData.groupLabel;
             if (!systemLabel) return;
 
-            if (!particleSystem.visible || fadeOpacity <= 0.01) {
+            const activeDensityObj = this.densityObjects.find(
+                (obj) => obj.userData.datasetName === particleSystem.userData.datasetName && obj.visible
+            );
+            
+            if (!particleSystem.visible || fadeOpacity <= 0.01 || activeDensityObj) {
                 systemLabel.visible = false;
                 particleSystem.userData._labelWasVisible = false;
                 return;
@@ -790,9 +819,52 @@ export class RenderPipeline {
             systemLabel.updateMatrixWorld();
         });
     }
-    updateDensityObjects(currentOrigin, daysSinceJ2000 = 0, getBodyAngleRad = () => null) {
+   updateDensityObjects(currentOrigin, daysSinceJ2000 = 0, getBodyAngleRad = () => null) {
+        const currentZoom = this.camera.zoom;
+        const fadeOpacity = 1.0 - this._smoothstep(this.LABEL_ZOOM_FADE_START, this.LABEL_ZOOM_FADE_END, currentZoom);
+
         this.densityObjects.forEach((object) => {
             object.visible = object.userData.datasetVisible !== false;
+            
+            const systemLabel = object.userData.groupLabel;
+            if (systemLabel) {
+                if (!object.visible || fadeOpacity <= 0.01) {
+                    systemLabel.visible = false;
+                } else {
+                    systemLabel.visible = true;
+
+                    const base = object.userData.baseShape;
+                    const meanA = base?.meanA_au || 2.5;
+                    const anchorDist = meanA * 0.75; 
+
+                    const orbit = base?.meanOrbit;
+                    let currentM = 0;
+                    if (orbit && orbit.m_deg !== undefined && orbit.n_deg_per_day !== undefined) {
+                        const m0_rad = THREE.MathUtils.degToRad(orbit.m_deg);
+                        const n_rad = THREE.MathUtils.degToRad(orbit.n_deg_per_day);
+                        currentM = m0_rad + n_rad * daysSinceJ2000;
+                    }
+                    
+                    const anchorPosition = new THREE.Vector3(
+                        Math.cos(currentM) * anchorDist, 
+                        0, 
+                        -Math.sin(currentM) * anchorDist
+                    );
+
+                    systemLabel.position.copy(anchorPosition).sub(currentOrigin);
+
+                    const angleFromSunRadians = Math.atan2(anchorPosition.z, anchorPosition.x);
+                    const yawAngle = -angleFromSunRadians - Math.PI / 2;
+
+                    this._yawQuaternion.setFromAxisAngle(this._yAxis, yawAngle);
+                    systemLabel.quaternion.copy(this._yawQuaternion).multiply(this._flatQuaternion);
+
+                    systemLabel.material.opacity = fadeOpacity;
+                    systemLabel.updateMatrix();
+                    systemLabel.updateMatrixWorld();
+                }
+            }
+
             if (!object.visible) return;
 
             object.position.copy(object.userData.basePosition).sub(currentOrigin);
@@ -817,7 +889,11 @@ export class RenderPipeline {
                 const orbitElements = child.userData?.orbitsSun && child.userData.orbitElements;
                 if (!orbitElements) return;
 
-                child.rotation.y = orbitElements.m0 + orbitElements.n * daysSinceJ2000;
+                if (child.userData.shapeType === 'bubble') {
+                    child.rotation.y = orbitElements.n * daysSinceJ2000;
+                } else {
+                    child.rotation.y = orbitElements.m0 + orbitElements.n * daysSinceJ2000;
+                }
             });
         });
     }

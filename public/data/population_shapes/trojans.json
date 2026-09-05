@@ -3,7 +3,8 @@
   "datasetName": "trojans",
   "type": "density-mesh",
   "inferredShapes": [
-    "torus"
+    "bubble",
+    "shell"
   ],
   "epoch": {
     "daysSinceJ2000": 0.0,
@@ -11,15 +12,15 @@
   },
   "components": [
     {
-      "type": "torus",
+      "type": "shell",
       "isBase": true,
       "isSubComponent": false,
       "meanA_au": 4.89334,
-      "innerRadius_au": 3.14752,
-      "outerRadius_au": 6.46015,
-      "width_au": 3.31263,
-      "thickness_au": 7.36401,
-      "zCenter_au": -0.07335,
+      "innerRadius_au": 4.2131,
+      "outerRadius_au": 5.50175,
+      "width_au": 1.28865,
+      "thickness_au": 4.35928,
+      "zCenter_au": -0.06327,
       "particleCountInComponent": 16357,
       "meanOrbit": {
         "a_au": 5.20386,
@@ -32,15 +33,23 @@
       }
     },
     {
-      "type": "torus",
+      "type": "bubble",
       "isBase": false,
       "isSubComponent": true,
-      "meanA_au": 4.9519,
+      "center_au": [
+        -0.87165,
+        4.60945,
+        -0.00977
+      ],
+      "semiAxes_au": [
+        3.091,
+        0.84881,
+        1.42323
+      ],
+      "meanRadius_au": 4.9519,
+      "radialSpread_au": 0.2329,
       "innerRadius_au": 4.29741,
       "outerRadius_au": 5.71036,
-      "width_au": 1.41295,
-      "thickness_au": 4.49418,
-      "zCenter_au": 0.04334,
       "particleCountInComponent": 8825,
       "meanOrbit": {
         "a_au": 5.20411,
@@ -50,23 +59,26 @@
         "node_deg": 170.5547,
         "m_deg": 26.66176,
         "n_deg_per_day": 0.08304
-      },
-      "resonanceLock": {
-        "lockToBody": "Jupiter",
-        "angularOffset_deg": 60,
-        "arcWidth_deg": 50
       }
     },
     {
-      "type": "torus",
+      "type": "bubble",
       "isBase": false,
       "isSubComponent": true,
-      "meanA_au": 4.86277,
+      "center_au": [
+        4.1945,
+        -1.97529,
+        0.03964
+      ],
+      "semiAxes_au": [
+        1.46274,
+        2.58722,
+        2.00229
+      ],
+      "meanRadius_au": 4.86277,
+      "radialSpread_au": 0.23972,
       "innerRadius_au": 4.19441,
       "outerRadius_au": 5.63039,
-      "width_au": 1.43598,
-      "thickness_au": 4.99741,
-      "zCenter_au": 0.03247,
       "particleCountInComponent": 4357,
       "meanOrbit": {
         "a_au": 5.20479,
@@ -76,11 +88,6 @@
         "node_deg": 167.4546,
         "m_deg": 10.50722,
         "n_deg_per_day": 0.08302
-      },
-      "resonanceLock": {
-        "lockToBody": "Jupiter",
-        "angularOffset_deg": -60,
-        "arcWidth_deg": 50
       }
     }
   ],
@@ -98,7 +105,7 @@
       "trojans_chunk_2.json",
       "trojans_chunk_3.json"
     ],
-    "generatedAt": "2026-08-25T22:47:04.025708+00:00",
+    "generatedAt": "2026-09-04T07:12:31.611820+00:00",
     "generator": "generate_population_shapes.py"
   }
 }

@@ -3,8 +3,7 @@
   "datasetName": "centaur",
   "type": "density-mesh",
   "inferredShapes": [
-    "bubble",
-    "shell"
+    "bubble"
   ],
   "epoch": {
     "daysSinceJ2000": 0.0,
@@ -41,15 +40,23 @@
       }
     },
     {
-      "type": "shell",
+      "type": "bubble",
       "isBase": false,
       "isSubComponent": true,
-      "meanA_au": 5.27161,
+      "center_au": [
+        -3.96026,
+        2.86463,
+        -0.13166
+      ],
+      "semiAxes_au": [
+        2.86016,
+        3.16887,
+        1.19831
+      ],
+      "meanRadius_au": 5.27161,
+      "radialSpread_au": 0.80956,
       "innerRadius_au": 3.55634,
       "outerRadius_au": 7.7477,
-      "width_au": 4.19135,
-      "thickness_au": 3.945,
-      "zCenter_au": -0.05748,
       "particleCountInComponent": 93,
       "meanOrbit": {
         "a_au": 5.97618,
@@ -73,7 +80,7 @@
     "chunks": [
       "centaur_chunk_0.json"
     ],
-    "generatedAt": "2026-08-25T22:46:45.760643+00:00",
+    "generatedAt": "2026-09-04T07:12:09.611604+00:00",
     "generator": "generate_population_shapes.py"
   }
 }
