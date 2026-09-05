@@ -1,13 +1,11 @@
 import { OrbitalMath, kmToAU } from '@physics/OrbitalMath.js';
 
-const TWO_PI = Math.PI * 2;
 const DEFAULT_SAMPLE_COUNT = 720;
 const MIN_VECTOR_LENGTH = 1e-12;
 
 function dot(a, b) {
     return a.x * b.x + a.y * b.y + a.z * b.z;
 }
-
 function cross(a, b) {
     return {
         x: a.y * b.z - a.z * b.y,
@@ -15,33 +13,20 @@ function cross(a, b) {
         z: a.x * b.y - a.y * b.x,
     };
 }
-
 function length(vector) {
     return Math.hypot(vector.x, vector.y, vector.z);
 }
-
 function normalize(vector) {
     const magnitude = length(vector);
     if (magnitude <= MIN_VECTOR_LENGTH || !Number.isFinite(magnitude)) return null;
-    return {
-        x: vector.x / magnitude,
-        y: vector.y / magnitude,
-        z: vector.z / magnitude,
-    };
+    return { x: vector.x / magnitude, y: vector.y / magnitude, z: vector.z / magnitude };
 }
-
 function subtract(a, b) {
     return { x: a.x - b.x, y: a.y - b.y, z: a.z - b.z };
 }
-
-function scale(vector, scalar) {
-    return { x: vector.x * scalar, y: vector.y * scalar, z: vector.z * scalar };
-}
-
 function clamp(value, min, max) {
     return Math.max(min, Math.min(max, value));
 }
-
 function angularDistanceFromPlane(direction, normal) {
     return Math.asin(Math.abs(clamp(dot(direction, normal), -1, 1)));
 }
@@ -57,8 +42,8 @@ export class EclipseSeasonEngine {
 
         const sampleCount = options.sampleCount || DEFAULT_SAMPLE_COUNT;
         const span = options.spanDays || parentPeriod;
-        const start = daysSinceJ2000 - span;
-        const end = daysSinceJ2000 + span;
+        const start = daysSinceJ2000;
+        const end = start + span;
         const step = (end - start) / sampleCount;
         const samples = [];
 
@@ -66,42 +51,31 @@ export class EclipseSeasonEngine {
             const time = start + index * step;
             const parentPosition = OrbitalMath.calculatePosition(parentData, time);
             const moonPosition = OrbitalMath.calculatePosition(moonData, time);
-            const moonNormal = this._getLocalOrbitalNormal(moonData, time, moonPeriod);
-            const parentNormal = this._getLocalOrbitalNormal(parentData, time, parentPeriod);
-            if (!moonNormal || !parentNormal) continue;
+            const moonNormal = this._getOrbitalNormal(moonData, time, moonPeriod);
+            const parentNormal = this._getOrbitalNormal(parentData, time, parentPeriod);
+            const parentDirection = normalize(parentPosition);
+            if (!moonNormal || !parentNormal || !parentDirection) continue;
 
             const nodeLine = normalize(cross(moonNormal, parentNormal));
-            const parentDirection = normalize(parentPosition);
-            if (!nodeLine || !parentDirection) continue;
+            if (!nodeLine) continue;
 
-            const moonRelativePosition = this._getMoonRelativePosition(
-                moonData,
-                parentData,
-                time,
-                moonPosition,
-                parentPosition
-            );
-            const moonDistance = length(moonRelativePosition);
-            const parentSunDistance = length(parentPosition);
-            if (!(moonDistance > 0) || !(parentSunDistance > 0)) continue;
+            const moonDistance = length(moonPosition);
+            const sunDistance = length(parentPosition);
+            if (!(moonDistance > 0) || !(sunDistance > 0)) continue;
 
-            const tolerance = this._getAlignmentTolerance(
+            const tolerance = this._getSolarAlignmentTolerance(
                 moonData,
-                parentData,
                 sunData,
                 moonDistance,
-                parentSunDistance
+                sunDistance
             );
-            const planeDistance = angularDistanceFromPlane(scale(parentDirection, -1), moonNormal);
-            const nodeAlignment = Math.asin(
-                Math.abs(clamp(dot(scale(parentDirection, -1), nodeLine), -1, 1))
-            );
+            const sunDirection = { x: -parentDirection.x, y: -parentDirection.y, z: -parentDirection.z };
+            const planeDistance = angularDistanceFromPlane(sunDirection, moonNormal);
+            const nodeAlignment = Math.asin(Math.abs(clamp(dot(sunDirection, nodeLine), -1, 1)));
 
             samples.push({
                 time,
                 parentPosition,
-                moonRelativePosition,
-                moonDistance,
                 tolerance,
                 planeDistance,
                 nodeAlignment,
@@ -111,42 +85,23 @@ export class EclipseSeasonEngine {
         return this._buildWindows(samples);
     }
 
-    static _getMoonRelativePosition(moonData, parentData, time, moonPosition, parentPosition) {
-        if (moonData.orbit_model === 'MEEUS' || moonData.orbit_model === 'VSOP87') {
-            return moonPosition;
-        }
-
-        const parentQuaternion = null;
-        if (parentQuaternion) return moonPosition;
-        return subtract(moonPosition, parentPosition);
-    }
-
-    static _getLocalOrbitalNormal(bodyData, time, period) {
+    static _getOrbitalNormal(bodyData, time, period) {
         const delta = Math.max(period * 0.125, 1e-6);
         const previous = OrbitalMath.calculatePosition(bodyData, time - delta);
         const current = OrbitalMath.calculatePosition(bodyData, time);
         const next = OrbitalMath.calculatePosition(bodyData, time + delta);
-        const first = subtract(current, previous);
-        const second = subtract(next, current);
-        const normal = normalize(cross(first, second));
-        if (normal) return normal;
-
-        const fallback = normalize(cross(previous, next));
-        return fallback;
+        return normalize(cross(subtract(current, previous), subtract(next, current))) ||
+            normalize(cross(previous, next));
     }
 
-    static _getAlignmentTolerance(moonData, parentData, sunData, moonDistance, sunDistance) {
-        const parentRadius = kmToAU(parentData.radius_km || 0);
+    static _getSolarAlignmentTolerance(moonData, sunData, moonDistance, sunDistance) {
         const moonRadius = kmToAU(moonData.radius_km || 0);
         const sunRadius = kmToAU(sunData.radius_km || 0);
+        if (!(moonRadius >= 0) || !(sunRadius > 0)) return 0;
 
-        if (!(parentRadius > 0) || !(moonRadius >= 0) || !(sunRadius > 0)) return 0;
-
-        const solarRadius = Math.asin(
-            clamp((parentRadius + moonRadius) / moonDistance, 0, 1)
-        );
-        const sunRadiusAngle = Math.asin(clamp(sunRadius / sunDistance, 0, 1));
-        return solarRadius + sunRadiusAngle;
+        const moonAngularRadius = Math.asin(clamp(moonRadius / moonDistance, 0, 1));
+        const sunAngularRadius = Math.asin(clamp(sunRadius / sunDistance, 0, 1));
+        return moonAngularRadius + sunAngularRadius;
     }
 
     static _buildWindows(samples) {
@@ -157,24 +112,22 @@ export class EclipseSeasonEngine {
         for (let index = 0; index < samples.length; index++) {
             const sample = samples[index];
             const active = sample.planeDistance <= sample.tolerance;
-
             if (active && activeStart === null) {
                 activeStart = index === 0 ? sample : this._interpolateBoundary(samples[index - 1], sample);
             }
 
             const isLast = index === samples.length - 1;
-            if (!active || isLast) {
-                if (activeStart !== null) {
-                    const end = active
-                        ? sample
-                        : this._interpolateBoundary(samples[index - 1], sample);
+            if ((!active || isLast) && activeStart !== null) {
+                const end = active
+                    ? sample
+                    : this._interpolateBoundary(samples[index - 1], sample);
+                if (end.time > activeStart.time) {
                     windows.push(this._createWindow(activeStart, end, samples));
-                    activeStart = null;
                 }
+                activeStart = null;
             }
         }
-
-        return windows.filter((window) => window.endTime > window.startTime);
+        return windows;
     }
 
     static _interpolateBoundary(a, b) {
