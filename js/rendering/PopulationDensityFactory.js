@@ -49,7 +49,7 @@ export class PopulationDensityFactory {
         const meanDensity = shapeDescriptor.stats?.meanOccupiedDensity || 1.0;
 
         const normalizedDensity = Math.min(meanDensity / 50.0, 1.0);
-        const baseOpacity = Math.max(0.012, normalizedDensity * 0.20);
+        const baseOpacity = Math.max(0.05, normalizedDensity * 0.20);
 
         const totalParticles = shapeDescriptor.stats?.totalParticlesConsidered || 1;
 

@@ -4,8 +4,10 @@ import { DataRepository } from '@core/DataRepository.js';
 import { PlanetaryDataProcessor } from '@core/PlanetaryDataProcessor.js';
 import { PopulationShapeLoader } from '@core/PopulationShapeLoader.js';
 import { PopulationDensityFactory } from '@rendering/PopulationDensityFactory.js';
+import { TacticalShaders } from '@rendering/shaders/tactical.js';
 import { TutorialManager } from '@ui/TutorialManager.js';
 import { logger } from '@core/logger.js';
+import { LabelFactory } from '@rendering/LabelFactory.js';
 
 const DATA_SOURCE_STORAGE_KEY = 'heliochronicon_dataSourcePath';
 const DEFAULT_DATA_BASE_PATH = 'data/';
@@ -319,7 +321,18 @@ export class DatasetCoordinator {
                 this.savedColors[datasetName]
             );
 
-            this.scene.add(densityObject);
+            const baseComponent = shapeDescriptor.components.find(c => c.isBase) || shapeDescriptor.components[0];
+            const meanA = baseComponent?.meanA_au || 2.5;
+
+            const labelMesh = LabelFactory.buildGroupLabel(
+                datasetName,
+                this.savedColors[datasetName],
+                meanA
+            );
+            
+            densityObject.userData.groupLabel = labelMesh;
+            densityObject.userData.baseShape = baseComponent; 
+            
             this.bodyRegistry.registerDensityObject(densityObject);
             this.bodyRegistry.setDatasetDisplayMode(datasetName, this.getDisplayMode(datasetName));
         } catch (error) {

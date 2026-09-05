@@ -1,6 +1,5 @@
 // js/rendering/RenderPipeline.js
 import { OrbitalMath } from '@physics/OrbitalMath.js';
-import { OrbitFactory } from '@core/OrbitFactory.js';
 import * as THREE from 'three';
 
 // --- Constants ---
@@ -298,7 +297,6 @@ export class RenderPipeline {
 
             const meshVisibleSize = celestialBody.physicalRadius * 2 * this.camera.zoom;
             const isMeshBigger = meshVisibleSize >= baseSpriteSize;
-            const isMeshDetailed = meshVisibleSize >= 25.0;
 
             celestialBody.mesh.visible = isMeshBigger;
             celestialBody.sprite.visible = !isOccluded && !isMeshBigger;
@@ -778,7 +776,11 @@ export class RenderPipeline {
             const systemLabel = particleSystem.userData.groupLabel;
             if (!systemLabel) return;
 
-            if (!particleSystem.visible || fadeOpacity <= 0.01) {
+            const activeDensityObj = this.densityObjects.find(
+                (obj) => obj.userData.datasetName === particleSystem.userData.datasetName && obj.visible
+            );
+            
+            if (!particleSystem.visible || fadeOpacity <= 0.01 || activeDensityObj) {
                 systemLabel.visible = false;
                 particleSystem.userData._labelWasVisible = false;
                 return;
@@ -817,9 +819,52 @@ export class RenderPipeline {
             systemLabel.updateMatrixWorld();
         });
     }
-    updateDensityObjects(currentOrigin, daysSinceJ2000 = 0, getBodyAngleRad = () => null) {
+   updateDensityObjects(currentOrigin, daysSinceJ2000 = 0, getBodyAngleRad = () => null) {
+        const currentZoom = this.camera.zoom;
+        const fadeOpacity = 1.0 - this._smoothstep(this.LABEL_ZOOM_FADE_START, this.LABEL_ZOOM_FADE_END, currentZoom);
+
         this.densityObjects.forEach((object) => {
             object.visible = object.userData.datasetVisible !== false;
+            
+            const systemLabel = object.userData.groupLabel;
+            if (systemLabel) {
+                if (!object.visible || fadeOpacity <= 0.01) {
+                    systemLabel.visible = false;
+                } else {
+                    systemLabel.visible = true;
+
+                    const base = object.userData.baseShape;
+                    const meanA = base?.meanA_au || 2.5;
+                    const anchorDist = meanA * 0.75; 
+
+                    const orbit = base?.meanOrbit;
+                    let currentM = 0;
+                    if (orbit && orbit.m_deg !== undefined && orbit.n_deg_per_day !== undefined) {
+                        const m0_rad = THREE.MathUtils.degToRad(orbit.m_deg);
+                        const n_rad = THREE.MathUtils.degToRad(orbit.n_deg_per_day);
+                        currentM = m0_rad + n_rad * daysSinceJ2000;
+                    }
+                    
+                    const anchorPosition = new THREE.Vector3(
+                        Math.cos(currentM) * anchorDist, 
+                        0, 
+                        -Math.sin(currentM) * anchorDist
+                    );
+
+                    systemLabel.position.copy(anchorPosition).sub(currentOrigin);
+
+                    const angleFromSunRadians = Math.atan2(anchorPosition.z, anchorPosition.x);
+                    const yawAngle = -angleFromSunRadians - Math.PI / 2;
+
+                    this._yawQuaternion.setFromAxisAngle(this._yAxis, yawAngle);
+                    systemLabel.quaternion.copy(this._yawQuaternion).multiply(this._flatQuaternion);
+
+                    systemLabel.material.opacity = fadeOpacity;
+                    systemLabel.updateMatrix();
+                    systemLabel.updateMatrixWorld();
+                }
+            }
+
             if (!object.visible) return;
 
             object.position.copy(object.userData.basePosition).sub(currentOrigin);
