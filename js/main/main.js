@@ -23,6 +23,7 @@ import { DaylightController } from '@rendering/DaylightController.js';
 import { EclipseEngine } from '@physics/EclipseEngine.js';
 import { EclipseShadowController } from '@rendering/EclipseShadowController.js';
 import { SeasonMarkerController } from '@rendering/SeasonMarkerController.js';
+import { EclipseSeasonController } from '@rendering/EclipseSeasonController.js';
 import { TooltipManager } from '@ui/TooltipManager.js';
 import { AccessibilityManager } from '@ui/AccessibilityManager.js';
 import { CelestialLabelManager } from '@ui/CelestialLabelManager.js';
@@ -148,6 +149,12 @@ const seasonMarkerController = new SeasonMarkerController({
     scene,
     celestialBodies,
     bodyRegistry,
+    camera,
+    tooltipManager,
+});
+const eclipseSeasonController = new EclipseSeasonController({
+    bodyRegistry,
+    scene,
     camera,
     tooltipManager,
 });
@@ -292,6 +299,7 @@ const renderingLoop = new RenderingLoop({
     measurementManager,
     pinnedStarManager,
     seasonMarkerController,
+    eclipseSeasonController,
     gridPlane,
     equatorialGridPlane,
     equatorialMaterial,

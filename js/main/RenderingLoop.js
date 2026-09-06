@@ -1,6 +1,7 @@
 // js/main/RenderingLoop.js
 import * as THREE from 'three';
 import { PhysicsEngine } from '@physics/PhysicsEngine.js';
+
 const STAR_FAR_PLANE_AU = 1e14;
 export class RenderingLoop {
     constructor({
@@ -16,6 +17,7 @@ export class RenderingLoop {
         measurementManager,
         pinnedStarManager,
         seasonMarkerController,
+        eclipseSeasonController,
         gridPlane,
         equatorialGridPlane,
         equatorialMaterial,
@@ -38,6 +40,7 @@ export class RenderingLoop {
         this.measurementManager = measurementManager;
         this.pinnedStarManager = pinnedStarManager;
         this.seasonMarkerController = seasonMarkerController;
+        this.eclipseSeasonController = eclipseSeasonController;
         this.gridPlane = gridPlane;
         this.equatorialGridPlane = equatorialGridPlane;
         this.equatorialMaterial = equatorialMaterial;
@@ -79,6 +82,10 @@ export class RenderingLoop {
             this.appState.systemDate,
             daysSinceJ2000,
             this.appState.currentOrigin
+        );
+        this.eclipseSeasonController.update(
+            this.appState.currentTargetData,
+            daysSinceJ2000
         );
         this.executeFinalRender(daysSinceJ2000);
     }
@@ -213,4 +220,5 @@ export class RenderingLoop {
         this.updateStarFieldFarProjection();
         this.renderer.render(this.scene, this.camera);
     }
+    
 }

@@ -245,4 +245,7 @@ export class BodyRegistry {
             }
         }
     }
+    getAllBodies() {
+        return this.celestialBodies;
+    }
 }
