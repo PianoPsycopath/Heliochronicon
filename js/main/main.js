@@ -38,6 +38,11 @@ import { RenderingLoop } from '@main/RenderingLoop.js';
 import { CinematicManager } from '@core/CinematicManager.js';
 import { PanelExtensionController } from '@ui/PanelExtensionController.js';
 import { ThemeManager } from '@ui/ThemeManager.js';
+import { MissionController } from '@main/MissionController.js';
+import { MissionResultPanel } from '@ui/MissionResultPanel.js';
+import { PorkchopPanel } from '@ui/PorkchopPanel.js';
+import { TransferTrajectoryRenderer } from '@rendering/TransferTrajectoryRenderer.js';
+import { BurnSelectionController } from '@main/BurnSelectionController.js';
 
 inject();
 injectSpeedInsights();
@@ -104,6 +109,26 @@ const bodyRegistry = new BodyRegistry({
     daylightController,
     eclipseShadowController,
     labelManager: celestialLabelManager,
+});
+
+const missionResultPanel = new MissionResultPanel();
+const transferTrajectoryRenderer = new TransferTrajectoryRenderer();
+scene.add(transferTrajectoryRenderer.getObject3D());
+const porkchopPanel = new PorkchopPanel();
+
+const burnSelectionController = new BurnSelectionController({
+    camera,
+    renderer,
+    transferRenderer: transferTrajectoryRenderer,
+    missionPanel: missionResultPanel,
+});
+
+const missionController = new MissionController({
+    appState,
+    bodyRegistry,
+    missionPanel: missionResultPanel,
+    transferRenderer: transferTrajectoryRenderer,
+    porkchopPanel,
 });
 
 const renderPipeline = new RenderPipeline({
@@ -311,6 +336,7 @@ const renderingLoop = new RenderingLoop({
     },
     updateCredits,
     getBodyAngleRad,
+    transferTrajectoryRenderer,
 });
 
 async function initializeStarField() {

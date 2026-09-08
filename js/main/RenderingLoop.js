@@ -27,6 +27,7 @@ export class RenderingLoop {
         setStarVisibilityState,
         updateCredits,
         getBodyAngleRad,
+        transferTrajectoryRenderer = null,
     }) {
         this.appState = appState;
         this.UI = UI;
@@ -50,6 +51,7 @@ export class RenderingLoop {
         this.setStarVisibilityState = setStarVisibilityState;
         this.updateCredits = updateCredits;
         this.getBodyAngleRad = getBodyAngleRad || (() => null);
+        this.transferTrajectoryRenderer = transferTrajectoryRenderer;
         this.lastFrameTime = performance.now();
         this.running = false;
     }
@@ -73,6 +75,7 @@ export class RenderingLoop {
         const timeData = this.updateSystemTime(deltaSec);
         const daysSinceJ2000 = timeData.daysSinceJ2000;
         this.runPhysics(daysSinceJ2000);
+        this.syncMissionTransferOrigin();
         this.updateHardware();
         this.runRenderPrePass(daysSinceJ2000);
         this.updateDualGrids();
@@ -125,6 +128,15 @@ export class RenderingLoop {
             this.camera.position,
             this.appState.currentOrigin
         );
+    }
+    // Mission transfer geometry (TransferTrajectoryRenderer) is built once in
+    // heliocentric AU on Calculate and is not recomputed here — only its
+    // group offset is kept in sync with the floating origin, the same way
+    // gridPlane's position is set in updateDualGrids.
+    syncMissionTransferOrigin() {
+        if (!this.transferTrajectoryRenderer) return;
+        const origin = this.appState.currentOrigin;
+        this.transferTrajectoryRenderer.getObject3D().position.set(-origin.x, -origin.y, -origin.z);
     }
     updateHardware() {
         const currentTarget = this.appState.currentTargetData;

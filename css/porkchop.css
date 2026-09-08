@@ -1,0 +1,109 @@
+/* =========================================
+   PORKCHOP PANEL (Phase 8 mission selection)
+========================================= */
+.porkchop-overlay {
+    position: absolute;
+    inset: 0;
+    z-index: 1100;
+    display: flex;
+    flex-direction: column;
+    background: var(--theme-bg);
+}
+.porkchop-overlay[hidden] {
+    display: none;
+}
+.porkchop-panel {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    height: 100%;
+    box-sizing: border-box;
+    border: none;
+    box-shadow: none;
+}
+.porkchop-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px;
+    border-bottom: 2px solid var(--theme-border);
+}
+.porkchop-header h2 {
+    flex: 1;
+    margin: 0;
+    font-size: 0.9rem; /* Adjusted for smaller panel width */
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--theme-accent);
+}
+.porkchop-metric {
+    background: #110800;
+    border: 1px solid var(--theme-instrument-border);
+    color: var(--theme-instrument-text);
+    font-family: var(--theme-font-primary);
+    padding: 4px 6px;
+}
+.porkchop-header .full-btn {
+    width: auto;
+    margin-bottom: 0;
+}
+.porkchop-canvas-wrap {
+    position: relative;
+    flex: 1;
+    touch-action: none;
+    overflow: hidden;
+}
+#porkchop-canvas {
+    width: 100%;
+    height: 100%;
+    display: block;
+    cursor: crosshair;
+}
+
+/* Blinking Selection Cursor */
+.porkchop-cursor {
+    position: absolute;
+    border: 2px solid var(--theme-accent, #00ffff);
+    background: rgba(0, 255, 255, 0.25);
+    pointer-events: none;
+    animation: porkchopBlink 0.8s step-end infinite;
+    box-sizing: border-box;
+}
+@keyframes porkchopBlink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0; }
+}
+.porkchop-legend {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 14px;
+    padding: 6px 15px;
+    font-size: 0.72rem;
+    color: var(--theme-text-secondary);
+    border-top: 1px solid var(--theme-border-soft);
+}
+.porkchop-legend-swatch {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    margin-right: 4px;
+    vertical-align: middle;
+}
+.porkchop-hover-info {
+    padding: 8px 15px;
+    font-size: 0.85rem;
+    color: var(--theme-text-primary);
+    background: rgba(0, 0, 0, 0.2);
+    border-top: 1px solid var(--theme-border-soft);
+    text-align: center;
+    min-height: 1.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.porkchop-hover-info strong {
+    color: var(--theme-accent, #00ffff);
+    font-weight: normal;
+}
