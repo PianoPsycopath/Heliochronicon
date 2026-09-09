@@ -3,7 +3,7 @@ import { EphemerisBoundary } from './EphemerisBoundary.js';
 import { orbitalStateFromEphemeris } from './OrbitalState.js';
 import { LambertSolver, lambertSolverDefinition } from './LambertSolver.js';
 import { calculateMassAfterImpulsiveBurn } from './PropulsionEvaluator.js';
-import { createTransferField } from './TransferField.js';
+import { createTransferField, CELL_STATUS } from './TransferField.js';
 import { assert, assertFiniteNumber } from './validation.js';
 
 function assertWindow(window, label) {
@@ -145,7 +145,7 @@ export function searchTransferField({
     const fuelRequiredGrid = [];
     const c3Grid = [];
     const tofGrid = [];
-    const feasibilityGrid = [];
+    const statusGrid = [];
 
     let minDeltaV = null;
     let minFuel = null;
@@ -158,7 +158,7 @@ export function searchTransferField({
         const fuelRow = [];
         const c3Row = [];
         const tofRow = [];
-        const feasibilityRow = [];
+        const statusRow = [];
 
         for (let j = 0; j < cols; j++) {
             const dt = arrivalTimes[j] - departureTimes[i];
@@ -186,7 +186,7 @@ export function searchTransferField({
                 fuelRow.push(NaN);
                 c3Row.push(NaN);
                 tofRow.push(dt);
-                feasibilityRow.push(false);
+                statusRow.push(CELL_STATUS.UNSOLVABLE);
                 continue;
             }
 
@@ -204,7 +204,7 @@ export function searchTransferField({
             fuelRow.push(fuelRequired);
             c3Row.push(c3);
             tofRow.push(dt);
-            feasibilityRow.push(isFeasible);
+            statusRow.push(isFeasible ? CELL_STATUS.VALID : CELL_STATUS.INFEASIBLE);
 
             if (isFeasible) {
                 minDeltaV = updateMinimum(minDeltaV, totalDeltaVMagnitude, i, j);
@@ -219,7 +219,7 @@ export function searchTransferField({
         fuelRequiredGrid.push(fuelRow);
         c3Grid.push(c3Row);
         tofGrid.push(tofRow);
-        feasibilityGrid.push(feasibilityRow);
+        statusGrid.push(statusRow);
     }
 
     const field = createTransferField({
@@ -231,9 +231,8 @@ export function searchTransferField({
         fuelRequired_kg: fuelRequiredGrid,
         c3_km2s2: c3Grid,
         timeOfFlight_days: tofGrid,
-        feasibility: feasibilityGrid,
+        status: statusGrid,
         solver: solverDefinition,
-        selectedSolutionReference: null,
     });
 
     return { field, minima: { deltaV: minDeltaV, fuel: minFuel, timeOfFlight: minTOF } };

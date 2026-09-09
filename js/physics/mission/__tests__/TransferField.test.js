@@ -15,7 +15,7 @@ function buildValidArgs(overrides = {}) {
         fuelRequired_kg: grid(),
         c3_km2s2: grid(),
         timeOfFlight_days: grid(),
-        feasibility: grid(),
+        status: Array.from({ length: rows }, () => Array.from({ length: cols }, () => 'VALID')),
         solver: createSolverDefinition({
             id: 'lambert-universal',
             name: 'Lambert',

@@ -1,5 +1,17 @@
 import { assert, deepFreeze } from './validation.js';
 
+// A cell resolves to exactly one of these. VALID: solved and within the spacecraft's
+// propellant budget. INFEASIBLE: solved, but the transfer exceeds the propellant budget.
+// UNSOLVABLE: no transfer exists for this pair (arrival not after departure, outside the
+// requested time-of-flight window, or the solver could not converge).
+export const CELL_STATUS = Object.freeze({
+    VALID: 'VALID',
+    INFEASIBLE: 'INFEASIBLE',
+    UNSOLVABLE: 'UNSOLVABLE',
+});
+
+const CELL_STATUS_VALUES = Object.freeze(Object.values(CELL_STATUS));
+
 function assertNumericArray(value, label) {
     assert(Array.isArray(value) && value.length > 0, `${label} must be a non-empty array`);
     assert(
@@ -15,6 +27,18 @@ function assertGrid(grid, rows, cols, label) {
     });
 }
 
+function assertStatusGrid(grid, rows, cols, label) {
+    assertGrid(grid, rows, cols, label);
+    grid.forEach((row) => {
+        row.forEach((entry) => {
+            assert(
+                CELL_STATUS_VALUES.includes(entry),
+                `${label} entries must be one of ${CELL_STATUS_VALUES.join(', ')}`
+            );
+        });
+    });
+}
+
 export function createTransferField({
     departureTimes_daysSinceJ2000,
     arrivalTimes_daysSinceJ2000,
@@ -24,7 +48,7 @@ export function createTransferField({
     fuelRequired_kg,
     c3_km2s2,
     timeOfFlight_days,
-    feasibility,
+    status,
     solver,
     selectedSolutionReference = null,
 }) {
@@ -40,23 +64,18 @@ export function createTransferField({
     assertGrid(fuelRequired_kg, rows, cols, 'TransferField.fuelRequired_kg');
     assertGrid(c3_km2s2, rows, cols, 'TransferField.c3_km2s2');
     assertGrid(timeOfFlight_days, rows, cols, 'TransferField.timeOfFlight_days');
-    assertGrid(feasibility, rows, cols, 'TransferField.feasibility');
+    assertStatusGrid(status, rows, cols, 'TransferField.status');
     assert(solver !== null && typeof solver === 'object', 'TransferField.solver is required');
 
     if (selectedSolutionReference !== null) {
+        const { departureIndex, arrivalIndex } = selectedSolutionReference;
         assert(
-            typeof selectedSolutionReference === 'object' &&
-                Number.isInteger(selectedSolutionReference.departureIndex) &&
-                Number.isInteger(selectedSolutionReference.arrivalIndex),
-            'TransferField.selectedSolutionReference must have integer departureIndex/arrivalIndex'
+            departureIndex >= 0 && departureIndex < rows,
+            'departureIndex is out of range'
         );
         assert(
-            selectedSolutionReference.departureIndex >= 0 && selectedSolutionReference.departureIndex < rows,
-            'TransferField.selectedSolutionReference.departureIndex is out of range'
-        );
-        assert(
-            selectedSolutionReference.arrivalIndex >= 0 && selectedSolutionReference.arrivalIndex < cols,
-            'TransferField.selectedSolutionReference.arrivalIndex is out of range'
+            arrivalIndex >= 0 && arrivalIndex < cols,
+            'arrivalIndex is out of range'
         );
     }
 
@@ -69,7 +88,7 @@ export function createTransferField({
         fuelRequired_kg,
         c3_km2s2,
         timeOfFlight_days,
-        feasibility,
+        status,
         solver,
         selectedSolutionReference,
     });

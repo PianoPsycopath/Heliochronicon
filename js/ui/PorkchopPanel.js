@@ -12,6 +12,7 @@ import {
     colorForValue,
     candidateAt,
     minimaMarkers,
+    CELL_STATUS,
 } from './porkchopMath.js';
 
 const MARKER_RADIUS_PX = 4;
@@ -158,7 +159,7 @@ export class PorkchopPanel {
         for (let i = 0; i < rows; i++) {
             for (let j = 0; j < cols; j++) {
                 const value = valueAt(field, metricKey, i, j);
-                this.ctx.fillStyle = colorForValue(value, range, field.feasibility[i][j]);
+                this.ctx.fillStyle = colorForValue(value, range, field.status[i][j]);
                 this.ctx.fillRect(offsetX + i * cellSize, offsetY + j * cellSize, Math.ceil(cellSize), Math.ceil(cellSize));
             }
         }
@@ -212,6 +213,7 @@ export class PorkchopPanel {
             <span>${swatch('hsl(180,85%,50%)')}${range.min.toFixed(2)} (best)</span>
             <span>${swatch('hsl(0,85%,50%)')}${range.max.toFixed(2)} (worst)</span>
             <span>${swatch('#1a1a1a')}infeasible</span>
+            <span>${swatch('#000000')}unsolvable</span>
         `;
     }
 
@@ -262,10 +264,12 @@ export class PorkchopPanel {
     _handlePointerSelect(event) {
         const cell = this._cellFromEvent(event);
         if (!cell) return;
+        const candidate = candidateAt(this.field, cell.departureIndex, cell.arrivalIndex);
+        if (candidate.status === CELL_STATUS.UNSOLVABLE) return;
         this.selectedCell = cell;
         this._render();
         if (this.onCandidateSelected) {
-            this.onCandidateSelected(candidateAt(this.field, cell.departureIndex, cell.arrivalIndex));
+            this.onCandidateSelected(candidate);
         }
     }
 
@@ -278,9 +282,18 @@ export class PorkchopPanel {
     }
     _updateHoverInfo(cell) {
         const candidate = candidateAt(this.field, cell.departureIndex, cell.arrivalIndex);
-        
-        if (!candidate.feasible) {
-            this.infoEl.innerHTML = '<span style="color:var(--theme-danger);">INFEASIBLE TRAJECTORY</span>';
+
+        if (candidate.status === CELL_STATUS.UNSOLVABLE) {
+            this.infoEl.innerHTML = '<span style="color:var(--theme-danger);">NO TRAJECTORY (UNSOLVABLE)</span>';
+            return;
+        }
+
+        if (candidate.status === CELL_STATUS.INFEASIBLE) {
+            this.infoEl.innerHTML = `
+                <span style="color:var(--theme-danger);">EXCEEDS PROPELLANT BUDGET</span> &nbsp;&middot;&nbsp;
+                Δv: <strong>${candidate.deltaV_kmps.toFixed(3)} km/s</strong> &nbsp;&middot;&nbsp;
+                FUEL: <strong>${candidate.fuelRequired_kg.toFixed(1)} kg</strong>
+            `;
             return;
         }
 
@@ -289,15 +302,5 @@ export class PorkchopPanel {
             TOF: <strong>${candidate.timeOfFlight_days.toFixed(1)} d</strong> &nbsp;&middot;&nbsp; 
             FUEL: <strong>${candidate.fuelRequired_kg.toFixed(1)} kg</strong>
         `;
-    }
-
-    _showTooltip(event, cell) {
-        const candidate = candidateAt(this.field, cell.departureIndex, cell.arrivalIndex);
-        this.tooltipEl.hidden = false;
-        this.tooltipEl.style.left = `${event.clientX}px`;
-        this.tooltipEl.style.top = `${event.clientY}px`;
-        this.tooltipEl.innerHTML = candidate.feasible
-            ? `Δv ${candidate.deltaV_kmps.toFixed(3)} km/s · TOF ${candidate.timeOfFlight_days.toFixed(1)} d · fuel ${candidate.fuelRequired_kg.toFixed(1)} kg`
-            : 'INFEASIBLE';
     }
 }

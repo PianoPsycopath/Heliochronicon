@@ -9,11 +9,20 @@
 // This module performs no astrodynamics itself: it only reads current
 // app/body state, delegates to calculateMission/searchTransferField, and
 // forwards their already-computed, immutable results.
+//
+// Phase 9C: selectCandidate() is the sole path from a porkchop CandidateReference
+// to a MissionSolution — calculateMission() now also returns the MissionSnapshot
+// it built for that solve (Chronometer time at the moment Calculate/selection
+// happened, the ephemeris states, spacecraft/propulsion, solver identity, and
+// target/search configuration). This controller records that snapshot as-is; it
+// does not interpret, recompute, or reconstruct any of the astrodynamics behind
+// it. Snapshot-vs-live-state invalidation (EMPTY/VALID/STALE) is Phase 9F.
 import { calculateMission } from '@physics/mission/MissionCalculator.js';
 import { searchTransferField } from '@physics/mission/TransferSearch.js';
 import { PhysicsEngine } from '@physics/PhysicsEngine.js';
 import { createSpacecraftDefinition } from '@physics/mission/SpacecraftDefinition.js';
 import { createPropulsionDefinition } from '@physics/mission/PropulsionDefinition.js';
+import { LambertSolver } from '@physics/mission/LambertSolver.js';
 
 // TODO(Phase 7 / spacecraft presets): replace with a real, UI-selected
 // SpacecraftDefinition once presets exist (Phase 1 owns the shape). Built
@@ -69,6 +78,7 @@ export class MissionController {
         spacecraft = PLACEHOLDER_SPACECRAFT,
         route = 'PROGRADE',
         mu = GM_SUN_AU3_PER_DAY2,
+        solver = LambertSolver,
     }) {
         this.appState = appState;
         this.bodyRegistry = bodyRegistry;
@@ -79,6 +89,13 @@ export class MissionController {
         this.spacecraft = spacecraft;
         this.route = route;
         this.mu = mu;
+        this.solver = solver;
+
+        // Phase 9C: the MissionSnapshot recorded for the currently selected candidate, and the
+        // searchConfiguration that produced the active TransferField (so a later selectCandidate
+        // call can attribute its snapshot back to the search that surfaced the candidate).
+        this.currentMissionSnapshot = null;
+        this._lastSearchConfiguration = null;
 
         this.missionPanel.onCalculateRequested = () => this.calculate();
         this.porkchopPanel.onCandidateSelected = (candidate) => this.selectCandidate(candidate);
@@ -96,10 +113,17 @@ export class MissionController {
         if (!originBody || !targetBody || originBody.data.name === targetBody.data.name) {
             this.missionPanel.clearMissionResult();
             this.transferRenderer.setSolution(null);
+            this.currentMissionSnapshot = null;
             return;
         }
 
         const departureStart_daysSinceJ2000 = PhysicsEngine.getJ2000Days(this.appState.systemDate);
+
+        const searchConfiguration = {
+            departureStep_days: DEFAULT_SEARCH_STEP_DAYS,
+            arrivalStep_days: DEFAULT_SEARCH_STEP_DAYS,
+        };
+        this._lastSearchConfiguration = searchConfiguration;
 
         const { field, minima } = searchTransferField({
             originBodyData: originBody.data,
@@ -113,20 +137,23 @@ export class MissionController {
             route: this.route,
             resolveParent: (name) => this.bodyRegistry.getByName(name)?.data ?? null,
             mu: this.mu,
-            searchConfiguration: {
-                departureStep_days: DEFAULT_SEARCH_STEP_DAYS,
-                arrivalStep_days: DEFAULT_SEARCH_STEP_DAYS,
-            },
+            searchConfiguration,
         });
 
         this.porkchopPanel.open(field, { minima });
     }
 
-    // Phase 8 -> Phase 6a: the porkchop candidate carries only compact
-    // per-cell metadata (see porkchopMath.candidateAt), so the exact
+    // Phase 8 -> Phase 6a, formalized in Phase 9C: the porkchop candidate carries
+    // only compact per-cell metadata (see porkchopMath.candidateAt), so the exact
     // departure/arrival pair is re-solved once, in full, through the same
     // calculateMission pipeline Phase 6d already wired up. This is a single
-    // Lambert solve for one already-chosen pair, not a re-run of the search.
+    // Lambert solve for one already-chosen pair, not a re-run of the search, and
+    // it is the only place this controller turns a candidate into a solution —
+    // there is no second, parallel calculation path. calculateMission builds the
+    // MissionSnapshot for this exact call (Chronometer time at selection, the
+    // resolved states, spacecraft/propulsion, solver identity, and the search
+    // configuration that produced the candidate); this controller only records
+    // that snapshot, it does not construct or interpret it.
     selectCandidate(candidate) {
         const originBody = this.bodyRegistry.getByName(this.originBodyName);
         const targetBody = this.appState.currentTargetData
@@ -135,7 +162,9 @@ export class MissionController {
 
         if (!originBody || !targetBody) return;
 
-        const { solution, isFeasible } = calculateMission({
+        const calculationTime_daysSinceJ2000 = PhysicsEngine.getJ2000Days(this.appState.systemDate);
+
+        const { snapshot, solution, isFeasible } = calculateMission({
             originBodyData: originBody.data,
             targetBodyData: targetBody.data,
             departureTime_daysSinceJ2000: candidate.departureTime_daysSinceJ2000,
@@ -144,8 +173,19 @@ export class MissionController {
             route: this.route,
             resolveParent: (name) => this.bodyRegistry.getByName(name)?.data ?? null,
             mu: this.mu,
+            solver: this.solver,
+            calculationTime_daysSinceJ2000,
+            targetConfiguration: {
+                originBodyName: originBody.data.name,
+                targetBodyName: targetBody.data.name,
+            },
+            searchConfiguration: this._lastSearchConfiguration ?? {
+                departureStep_days: DEFAULT_SEARCH_STEP_DAYS,
+                arrivalStep_days: DEFAULT_SEARCH_STEP_DAYS,
+            },
         });
 
+        this.currentMissionSnapshot = snapshot;
         this.missionPanel.showMissionResult(solution, { isFeasible });
         this.transferRenderer.setSolution(solution);
     }

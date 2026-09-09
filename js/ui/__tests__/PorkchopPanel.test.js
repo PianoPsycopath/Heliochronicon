@@ -3,6 +3,14 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { PorkchopPanel } from '../PorkchopPanel.js';
 import { createTransferField } from '../../physics/mission/TransferField.js';
 
+global.ResizeObserver = vi.fn().mockImplementation(function () {
+    return {
+        observe: vi.fn(),
+        unobserve: vi.fn(),
+        disconnect: vi.fn(),
+    };
+});
+
 const solverDefinition = {
     id: 'LAMBERT_UNIVERSAL',
     name: 'Lambert Universal Variables Solver',
@@ -47,7 +55,7 @@ function buildField() {
         fuelRequired_kg: [[50, 40], [30, 20]],
         c3_km2s2: [[4, 4], [1, 1]],
         timeOfFlight_days: [[100, 110], [90, 100]],
-        feasibility: [[true, true], [true, true]],
+        status: [['VALID', 'VALID'], ['VALID', 'VALID']],
         solver: solverDefinition,
         selectedSolutionReference: null,
     });
@@ -94,7 +102,7 @@ describe('PorkchopPanel', () => {
 
         const onCandidateSelected = vi.fn();
         panel.onCandidateSelected = onCandidateSelected;
-        panel._handlePointerSelect({ clientX: 350, clientY: 250 });
+        panel._handlePointerSelect({ clientX: 275, clientY: 225 });
 
         expect(onCandidateSelected).toHaveBeenCalledTimes(1);
         const candidate = onCandidateSelected.mock.calls[0][0];

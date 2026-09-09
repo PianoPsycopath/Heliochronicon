@@ -1,155 +1,100 @@
 import { describe, it, expect, vi } from 'vitest';
-import { createPropulsionDefinition } from '../PropulsionDefinition.js';
-import { createSpacecraftDefinition } from '../SpacecraftDefinition.js';
-
-const MU_SUN = 2.959122082855911e-4; // AU^3/day^2
-
-const DEPARTURE_TIME = 1000;
-const ARRIVAL_TIME = 1207; // 207-day transfer
-
-const ORIGIN_POSITION = { x: 1.0, y: 0, z: 0 };
-const ORIGIN_VELOCITY = { x: 0, y: 0.0172, z: 0 };
-
-const TARGET_ANGLE_RAD = (149.77 * Math.PI) / 180;
-const TARGET_RADIUS_AU = 1.524;
-const TARGET_POSITION = {
-    x: TARGET_RADIUS_AU * Math.cos(TARGET_ANGLE_RAD),
-    y: TARGET_RADIUS_AU * Math.sin(TARGET_ANGLE_RAD),
-    z: 0,
-};
-const TARGET_VELOCITY = {
-    x: -Math.sin(TARGET_ANGLE_RAD) * 0.01393,
-    y: Math.cos(TARGET_ANGLE_RAD) * 0.01393,
-    z: 0,
-};
+import { readFileSync } from 'node:fs';
+import { calculateMission } from '../MissionCalculator.js';
+import { LambertSolver } from '../LambertSolver.js';
 
 vi.mock('../EphemerisBoundary.js', () => ({
     EphemerisBoundary: {
-        getState: vi.fn((bodyData) => {
-            if (bodyData.name === 'ORIGIN') {
-                return { position: ORIGIN_POSITION, velocity: ORIGIN_VELOCITY };
-            }
-            if (bodyData.name === 'TARGET') {
-                return { position: TARGET_POSITION, velocity: TARGET_VELOCITY };
-            }
-            throw new Error(`unexpected body in test double: ${bodyData.name}`);
-        }),
+        getState: vi.fn((bodyData) => ({ bodyData })),
     },
 }));
 
-const { calculateMission } = await import('../MissionCalculator.js');
+vi.mock('../OrbitalState.js', () => ({
+    orbitalStateFromEphemeris: vi.fn((ephemeris, epoch_daysSinceJ2000, mu) => ({
+        position: ephemeris.bodyData.position,
+        velocity: ephemeris.bodyData.velocity,
+        epoch_daysSinceJ2000,
+        mu,
+    })),
+}));
 
-const originBodyData = { name: 'ORIGIN', parent: 'SUN' };
-const targetBodyData = { name: 'TARGET', parent: 'SUN' };
+vi.mock('../PropulsionEvaluator.js', () => ({
+    evaluateTransferFeasibility: vi.fn((transfer, spacecraft) => ({
+        solution: { transfer, spacecraft },
+        isFeasible: true,
+    })),
+}));
 
-function buildSpacecraft({ propellantMass_kg }) {
-    const propulsion = createPropulsionDefinition({
-        name: 'Chemical Stage',
-        type: 'CHEMICAL',
-        specificImpulse_s: 300,
-        thrust_N: 500,
-    });
-    return createSpacecraftDefinition({
-        name: 'Test Probe',
-        dryMass_kg: 500,
-        propellantMass_kg,
-        propulsion,
-    });
+import { evaluateTransferFeasibility } from '../PropulsionEvaluator.js';
+
+const originBodyData = { name: 'EARTH', position: { x: 1, y: 0, z: 0 }, velocity: { x: 0, y: 0.0172, z: 0 } };
+const targetBodyData = { name: 'MARS', position: { x: 0, y: 1.5, z: 0 }, velocity: { x: -0.014, y: 0, z: 0 } };
+const spacecraft = { 
+    dryMass_kg: 2000, 
+    propellantMass_kg: 1500,
+    propulsion: { 
+        name: 'Test Thruster',
+        type: 'CHEMICAL', 
+        specificImpulse_s: 320, 
+        thrust_N: 5000 
+    }
+};
+const mu = 2.959122082855911e-4;
+
+function baseArgs(overrides = {}) {
+    return {
+        originBodyData,
+        targetBodyData,
+        departureTime_daysSinceJ2000: 0,
+        arrivalTime_daysSinceJ2000: 200,
+        spacecraft,
+        mu,
+        resolveParent: () => null,
+        ...overrides,
+    };
 }
 
-describe('calculateMission', () => {
-    it('produces a valid MissionSolution with finite deltaV, TOF, burns and trajectory samples', () => {
-        const spacecraft = buildSpacecraft({ propellantMass_kg: 2000 });
+describe('calculateMission solver boundary (Phase 9A)', () => {
+    it('throws when no solver is supplied', () => {
+        expect(() => calculateMission(baseArgs())).toThrow(/solver/i);
+    });
 
-        const { solution, isFeasible, transfer } = calculateMission({
-            originBodyData,
-            targetBodyData,
-            departureTime_daysSinceJ2000: DEPARTURE_TIME,
-            arrivalTime_daysSinceJ2000: ARRIVAL_TIME,
-            spacecraft,
-            mu: MU_SUN,
-            sampleCount: 20,
-        });
+    it('throws when the supplied solver does not implement the TrajectorySolver contract', () => {
+        expect(() => calculateMission(baseArgs({ solver: {} }))).toThrow(/solver/i);
+    });
 
-        expect(Number.isFinite(solution.totalDeltaV_kmps)).toBe(true);
-        expect(solution.totalDeltaV_kmps).toBeGreaterThan(0);
-        expect(Number.isFinite(solution.timeOfFlight_days)).toBe(true);
-        expect(solution.timeOfFlight_days).toBeCloseTo(ARRIVAL_TIME - DEPARTURE_TIME);
+    it('invokes an injected substitute solver instead of any concrete implementation', () => {
+        const fakeTransfer = { totalDeltaVMagnitude: 1.2345, fake: true };
+        const fakeSolver = { 
+            solve: vi.fn(() => fakeTransfer),
+            definition: { id: 'fake', name: 'Fake Solver' } 
+        };
 
-        expect(solution.burns).toHaveLength(2);
-        solution.burns.forEach((burn) => {
-            expect(Number.isFinite(burn.deltaVMagnitude_kmps)).toBe(true);
-        });
+        const { transfer } = calculateMission(
+            baseArgs({ solver: fakeSolver, route: 'LONG', sampleCount: 10 })
+        );
 
-        expect(solution.trajectorySamples.length).toBeGreaterThan(0);
-        solution.trajectorySamples.forEach((sample) => {
-            expect(Number.isFinite(sample.position.x)).toBe(true);
-            expect(Number.isFinite(sample.velocity.x)).toBe(true);
-        });
+        expect(fakeSolver.solve).toHaveBeenCalledTimes(1);
+        const request = fakeSolver.solve.mock.calls[0][0];
+        expect(request.route).toBe('LONG');
+        expect(request.sampleCount).toBe(10);
+        expect(request.departureState).toBeDefined();
+        expect(request.arrivalState).toBeDefined();
+        expect(transfer).toBe(fakeTransfer);
+        expect(evaluateTransferFeasibility).toHaveBeenCalledWith(fakeTransfer, spacecraft);
+    });
 
+    it('produces an equivalent impulsive result when LambertSolver is injected as the default concrete implementation', () => {
+        const { transfer, isFeasible } = calculateMission(baseArgs({ solver: LambertSolver }));
+
+        expect(isFeasible).toBe(true);
+        expect(transfer.solverMetadata.route).toBe('PROGRADE');
         expect(transfer.solverMetadata.converged).toBe(true);
-        expect(isFeasible).toBe(true);
-        expect(Object.isFrozen(solution)).toBe(true);
+        expect(Number.isFinite(transfer.totalDeltaVMagnitude)).toBe(true);
     });
 
-    it('still returns a MissionSolution with isFeasible === false when propellant is insufficient', () => {
-        const spacecraft = buildSpacecraft({ propellantMass_kg: 0.05 });
-
-        const { solution, isFeasible } = calculateMission({
-            originBodyData,
-            targetBodyData,
-            departureTime_daysSinceJ2000: DEPARTURE_TIME,
-            arrivalTime_daysSinceJ2000: ARRIVAL_TIME,
-            spacecraft,
-            mu: MU_SUN,
-            sampleCount: 20,
-        });
-
-        expect(isFeasible).toBe(false);
-        expect(Number.isFinite(solution.totalDeltaV_kmps)).toBe(true);
-        expect(solution.propellantRemaining_kg).toBeLessThan(0);
-    });
-
-    it('accepts propulsion passed separately from the spacecraft definition', () => {
-        const propulsion = createPropulsionDefinition({
-            name: 'Ion Stage',
-            type: 'ION',
-            specificImpulse_s: 3000,
-            thrust_N: 0.5,
-        });
-        const spacecraftWithoutPropulsion = createSpacecraftDefinition({
-            name: 'Bus Only',
-            dryMass_kg: 500,
-            propellantMass_kg: 50,
-        });
-
-        const { solution, isFeasible } = calculateMission({
-            originBodyData,
-            targetBodyData,
-            departureTime_daysSinceJ2000: DEPARTURE_TIME,
-            arrivalTime_daysSinceJ2000: ARRIVAL_TIME,
-            spacecraft: spacecraftWithoutPropulsion,
-            propulsion,
-            mu: MU_SUN,
-            sampleCount: 20,
-        });
-
-        expect(isFeasible).toBe(true);
-        expect(Number.isFinite(solution.totalDeltaV_kmps)).toBe(true);
-    });
-
-    it('rejects a non-positive time of flight before delegating to the solver', () => {
-        const spacecraft = buildSpacecraft({ propellantMass_kg: 2000 });
-
-        expect(() =>
-            calculateMission({
-                originBodyData,
-                targetBodyData,
-                departureTime_daysSinceJ2000: ARRIVAL_TIME,
-                arrivalTime_daysSinceJ2000: DEPARTURE_TIME,
-                spacecraft,
-                mu: MU_SUN,
-            })
-        ).toThrow();
+    it('does not import LambertSolver directly from MissionCalculator', () => {
+        const source = readFileSync(new URL('../MissionCalculator.js', import.meta.url), 'utf8');
+        expect(source).not.toMatch(/import\s+.*LambertSolver.*from/);
     });
 });

@@ -41,10 +41,6 @@ export class BurnSelectionController {
         this.pointer.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
         this.pointer.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
 
-        // Orthographic camera with a wide zoom range: Points.threshold is a
-        // world-space distance, so it must be derived from the camera's
-        // current world-units-per-pixel rather than a fixed constant, or it
-        // silently becomes unclickable at most zoom levels.
         this.raycaster.params.Points.threshold = this._pixelToleranceToWorldUnits(rect.width);
 
         this.raycaster.setFromCamera(this.pointer, this.camera);

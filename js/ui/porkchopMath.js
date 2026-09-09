@@ -19,7 +19,18 @@ const METRIC_GRID_KEYS = Object.freeze({
     [METRIC_KEYS.C3]: 'c3_km2s2',
 });
 
+// Mirrors TransferField.CELL_STATUS by contract (values must match). Kept as a local,
+// import-free copy rather than an import from js/physics/mission so this UI-side pure-math
+// module stays decoupled from the physics module boundary, consistent with how it already
+// consumes TransferField's grids structurally rather than by importing the module.
+export const CELL_STATUS = Object.freeze({
+    VALID: 'VALID',
+    INFEASIBLE: 'INFEASIBLE',
+    UNSOLVABLE: 'UNSOLVABLE',
+});
+
 const INFEASIBLE_COLOR = '#1a1a1a';
+const UNSOLVABLE_COLOR = '#000000';
 
 function clamp01(t) {
     if (t < 0) return 0;
@@ -43,7 +54,7 @@ export function computeValueRange(field, metricKey) {
     let max = null;
     for (let i = 0; i < grid.length; i++) {
         for (let j = 0; j < grid[i].length; j++) {
-            if (!field.feasibility[i][j]) continue;
+            if (field.status[i][j] !== CELL_STATUS.VALID) continue;
             const value = grid[i][j];
             if (!Number.isFinite(value)) continue;
             if (min === null || value < min) min = value;
@@ -55,20 +66,16 @@ export function computeValueRange(field, metricKey) {
     return { min, max };
 }
 
-// Low values (favorable) map to cyan, high values (costly) map to red,
-// matching the existing CRT accent/danger palette rather than a generic rainbow.
-export function colorForValue(value, range, feasible) {
-    if (!feasible || !Number.isFinite(value)) return INFEASIBLE_COLOR;
+// Low values (favorable) map to cyan, high values (costly) map to red, matching the
+// existing CRT accent/danger palette rather than a generic rainbow. Infeasible and
+// unsolvable cells are rendered as flat, non-gradient colors so they never read as a
+// point on the heat scale.
+export function colorForValue(value, range, status) {
+    if (status === CELL_STATUS.UNSOLVABLE) return UNSOLVABLE_COLOR;
+    if (status === CELL_STATUS.INFEASIBLE || !Number.isFinite(value)) return INFEASIBLE_COLOR;
     const t = clamp01((value - range.min) / (range.max - range.min));
     const hue = 180 - t * 180;
     return `hsl(${hue.toFixed(1)}, 85%, 50%)`;
-}
-
-export function cellFromPosition({ x, y, width, height, rows, cols }) {
-    if (rows <= 0 || cols <= 0) return null;
-    const departureIndex = Math.min(rows - 1, Math.floor(clamp01(x / width) * rows));
-    const arrivalIndex = Math.min(cols - 1, Math.floor(clamp01(y / height) * cols));
-    return { departureIndex, arrivalIndex, cellWidth: width / rows, cellHeight: height / cols };
 }
 
 export function candidateAt(field, departureIndex, arrivalIndex) {
@@ -83,7 +90,7 @@ export function candidateAt(field, departureIndex, arrivalIndex) {
         fuelRequired_kg: field.fuelRequired_kg[departureIndex][arrivalIndex],
         c3_km2s2: field.c3_km2s2[departureIndex][arrivalIndex],
         timeOfFlight_days: field.timeOfFlight_days[departureIndex][arrivalIndex],
-        feasible: field.feasibility[departureIndex][arrivalIndex],
+        status: field.status[departureIndex][arrivalIndex],
     };
 }
 
