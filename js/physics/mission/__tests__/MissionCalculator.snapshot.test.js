@@ -1,22 +1,18 @@
-// js/physics/mission/__tests__/MissionCalculator.snapshot.test.js
-//
-// Phase 9C: covers the MissionSnapshot step added to calculateMission. This file is additive —
-// merge alongside any existing MissionCalculator.test.js (e.g. the Phase 9A substitute-solver
-// coverage) rather than replacing it; it was written without visibility into that file's exact
-// mocking conventions, so double-check for duplicate mock setup when merging into the real repo.
 import { describe, it, expect, vi } from 'vitest';
 import { calculateMission } from '../MissionCalculator.js';
 
 const DEPARTURE_STATE = {
     position: { x: 1, y: 0, z: 0 },
     velocity: { x: 0, y: 1, z: 0 },
-    time_daysSinceJ2000: 1000,
+    epoch_daysSinceJ2000: 1000,
+    mu: 1,
 };
 
 const ARRIVAL_STATE = {
     position: { x: 0, y: 1.5, z: 0 },
     velocity: { x: -1, y: 0, z: 0 },
-    time_daysSinceJ2000: 1200,
+    epoch_daysSinceJ2000: 1200,
+    mu: 1,
 };
 
 vi.mock('../EphemerisBoundary.js', () => ({
@@ -74,16 +70,16 @@ describe('calculateMission — Phase 9C MissionSnapshot', () => {
         });
 
         expect(snapshot.calculationTime_daysSinceJ2000).toBe(950);
-        expect(snapshot.originState).toEqual(DEPARTURE_STATE);
-        expect(snapshot.targetState).toEqual(ARRIVAL_STATE);
+        expect(snapshot.originState).toBe(DEPARTURE_STATE);
+        expect(snapshot.targetState).toBe(ARRIVAL_STATE);
         expect(snapshot.spacecraft).toEqual(spacecraft);
         expect(snapshot.propulsion).toEqual(spacecraft.propulsion);
         expect(snapshot.solver).toBe(solver.definition);
 
         expect(solver.solve).toHaveBeenCalledTimes(1);
         const solveRequest = solver.solve.mock.calls[0][0];
-        expect(solveRequest.departureState).toEqual(snapshot.originState);
-        expect(solveRequest.arrivalState).toEqual(snapshot.targetState);
+        expect(solveRequest.departureState).toBe(snapshot.originState);
+        expect(solveRequest.arrivalState).toBe(snapshot.targetState);
 
         expect(transfer).toEqual(solver.solve.mock.results[0].value);
         expect(isFeasible).toBe(true);
