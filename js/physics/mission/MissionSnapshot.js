@@ -4,7 +4,10 @@ function assertState(state, label) {
     assert(state !== null && typeof state === 'object', `${label} must be an object`);
     assertVector3(state.position, `${label}.position`);
     assertVector3(state.velocity, `${label}.velocity`);
-    assertFiniteNumber(state.time_daysSinceJ2000, `${label}.time_daysSinceJ2000`);
+    assertFiniteNumber(
+        state.time_daysSinceJ2000 ?? state.epoch_daysSinceJ2000,
+        `${label} time (time_daysSinceJ2000 or epoch_daysSinceJ2000)`
+    );
 }
 
 export function createMissionSnapshot({
