@@ -4,6 +4,7 @@ import { createSpacecraftDefinition } from '../SpacecraftDefinition.js';
 import { createPropulsionDefinition } from '../PropulsionDefinition.js';
 import { createSolverDefinition } from '../SolverDefinition.js';
 import { createTargetDefinition } from '../TargetDefinition.js';
+import { createOrbitalState } from '../OrbitalState.js';
 
 function buildValidArgs(overrides = {}) {
     return {
@@ -53,5 +54,34 @@ describe('createMissionSnapshot', () => {
         expect(() =>
             createMissionSnapshot(buildValidArgs({ originState: { position: { x: 1, y: 0, z: 0 } } }))
         ).toThrow('MissionSnapshot.originState.velocity must be an object with x, y, z');
+    });
+
+    it('accepts canonical OrbitalState epoch_daysSinceJ2000 as the captured state time', () => {
+        const originState = createOrbitalState({
+            position: { x: 1, y: 0, z: 0 },
+            velocity: { x: 0, y: 1, z: 0 },
+            epoch_daysSinceJ2000: 9000,
+            mu: 1,
+        });
+        const targetState = createOrbitalState({
+            position: { x: 1.5, y: 0, z: 0 },
+            velocity: { x: 0, y: 0.8, z: 0 },
+            epoch_daysSinceJ2000: 9200,
+            mu: 1,
+        });
+        const snapshot = createMissionSnapshot(buildValidArgs({ originState, targetState }));
+        expect(snapshot.originState).toBe(originState);
+        expect(snapshot.targetState).toBe(targetState);
+        expect(snapshot.originState.epoch_daysSinceJ2000).toBe(9000);
+    });
+
+    it('rejects a state with neither time_daysSinceJ2000 nor epoch_daysSinceJ2000', () => {
+        expect(() =>
+            createMissionSnapshot(
+                buildValidArgs({
+                    originState: { position: { x: 1, y: 0, z: 0 }, velocity: { x: 0, y: 1, z: 0 } },
+                })
+            )
+        ).toThrow('MissionSnapshot.originState time');
     });
 });
