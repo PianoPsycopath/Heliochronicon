@@ -39,10 +39,6 @@ export function calculateMission({
     mu,
     sampleCount,
     solver,
-    // Phase 9C: when the calculation was actually requested (Chronometer "now"), which is
-    // generally not the same instant as departureTime_daysSinceJ2000. Falls back to the
-    // departure time only so pre-9C callers that don't yet pass it keep working; real callers
-    // (MissionController) should always pass the live Chronometer time explicitly.
     calculationTime_daysSinceJ2000 = departureTime_daysSinceJ2000,
     targetConfiguration = { origin: originBodyData?.name ?? null, target: targetBodyData?.name ?? null },
     searchConfiguration = { route },
@@ -70,23 +66,14 @@ export function calculateMission({
     const departureState = orbitalStateFromEphemeris(originEphemeris, departureTime_daysSinceJ2000, mu);
     const arrivalState = orbitalStateFromEphemeris(targetEphemeris, arrivalTime_daysSinceJ2000, mu);
 
-    // MissionSnapshot.assertState requires state.time_daysSinceJ2000 to be a finite number, but
-    // orbitalStateFromEphemeris's returned state is not guaranteed to carry one (it wasn't
-    // previously read by anything). departureTime_daysSinceJ2000 / arrivalTime_daysSinceJ2000
-    // are already asserted finite above and are the correct value for "the state's timestamp" by
-    // definition, so stamp them explicitly rather than trusting an unrelated/absent field on the
-    // ephemeris result.
-    const snapshotOriginState = { ...departureState, time_daysSinceJ2000: departureTime_daysSinceJ2000 };
-    const snapshotTargetState = { ...arrivalState, time_daysSinceJ2000: arrivalTime_daysSinceJ2000 };
-
     const effectiveSpacecraft = propulsion !== null && propulsion !== undefined
         ? { ...spacecraft, propulsion }
         : spacecraft;
 
     const snapshot = createMissionSnapshot({
         calculationTime_daysSinceJ2000,
-        originState: snapshotOriginState,
-        targetState: snapshotTargetState,
+        originState: departureState,
+        targetState: arrivalState,
         spacecraft: effectiveSpacecraft,
         propulsion: effectiveSpacecraft.propulsion,
         solver: solver.definition,
