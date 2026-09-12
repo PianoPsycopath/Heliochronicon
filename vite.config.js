@@ -25,6 +25,7 @@ export default defineConfig({
             '@main': path.resolve(__dirname, 'js/main'),
             '@shaders': path.resolve(__dirname, 'js/shaders'),
             '@camera': path.resolve(__dirname, 'js/ui/camera'),
+            '@navigation': path.resolve(__dirname, 'js/navigation'),
         },
     },
 });

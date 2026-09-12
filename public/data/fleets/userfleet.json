@@ -1,0 +1,26 @@
+{
+  "id": "user-fleet",
+  "name": "Astrum Domini",
+  "ships": [
+    {
+      "id": "ship-1",
+      "name": "ASD Vanguard",
+      "weight": 42000,
+      "thrust": 890000,
+      "fuelType": "LOX/LH2",
+      "fuelVolume": 28000,
+      "shipVolume": 61000,
+      "isp": 452
+    },
+    {
+      "id": "ship-2",
+      "name": "ASD Wayfarer",
+      "weight": 31500,
+      "thrust": 410000,
+      "fuelType": "NTO/MMH",
+      "fuelVolume": 15000,
+      "shipVolume": 39000,
+      "isp": 321
+    }
+  ]
+}
