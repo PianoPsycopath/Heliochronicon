@@ -83,10 +83,7 @@ export class RenderingLoop {
             daysSinceJ2000,
             this.appState.currentOrigin
         );
-        this.eclipseSeasonController.update(
-            this.appState.currentTargetData,
-            daysSinceJ2000
-        );
+        this.eclipseSeasonController.update(this.appState.currentTargetData, daysSinceJ2000);
         this.executeFinalRender(daysSinceJ2000);
     }
     updatePerformance(deltaSec) {
@@ -220,5 +217,4 @@ export class RenderingLoop {
         this.updateStarFieldFarProjection();
         this.renderer.render(this.scene, this.camera);
     }
-    
 }

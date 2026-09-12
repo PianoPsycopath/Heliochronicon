@@ -91,9 +91,8 @@ export class OrbitalMath {
     }
     static getTrueAnomaly(M, e) {
         const E = this.solveKepler(M, e);
-        return 2 * Math.atan2(
-            Math.sqrt(1 + e) * Math.sin(E / 2),
-            Math.sqrt(1 - e) * Math.cos(E / 2)
+        return (
+            2 * Math.atan2(Math.sqrt(1 + e) * Math.sin(E / 2), Math.sqrt(1 - e) * Math.cos(E / 2))
         );
     }
 
@@ -105,14 +104,18 @@ export class OrbitalMath {
         // True Astronomical Ecliptic Coordinates
         const ast_x =
             (Math.cos(w_deg) * Math.cos(Node_deg) -
-                Math.sin(w_deg) * Math.sin(Node_deg) * Math.cos(i_deg)) * xv +
+                Math.sin(w_deg) * Math.sin(Node_deg) * Math.cos(i_deg)) *
+                xv +
             (-Math.sin(w_deg) * Math.cos(Node_deg) -
-                Math.cos(w_deg) * Math.sin(Node_deg) * Math.cos(i_deg)) * yv;
+                Math.cos(w_deg) * Math.sin(Node_deg) * Math.cos(i_deg)) *
+                yv;
         const ast_y =
             (Math.cos(w_deg) * Math.sin(Node_deg) +
-                Math.sin(w_deg) * Math.cos(Node_deg) * Math.cos(i_deg)) * xv +
+                Math.sin(w_deg) * Math.cos(Node_deg) * Math.cos(i_deg)) *
+                xv +
             (-Math.sin(w_deg) * Math.sin(Node_deg) +
-                Math.cos(w_deg) * Math.cos(Node_deg) * Math.cos(i_deg)) * yv;
+                Math.cos(w_deg) * Math.cos(Node_deg) * Math.cos(i_deg)) *
+                yv;
         const ast_z =
             Math.sin(w_deg) * Math.sin(i_deg) * xv + Math.cos(w_deg) * Math.sin(i_deg) * yv;
 

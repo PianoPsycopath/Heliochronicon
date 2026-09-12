@@ -95,5 +95,5 @@ export {
     EclipseShaders,
     NightSideShaders,
     TerrainShaders,
-    OrbitTrailShaders
+    OrbitTrailShaders,
 };

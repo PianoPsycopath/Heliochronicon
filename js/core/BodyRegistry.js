@@ -127,7 +127,7 @@ export class BodyRegistry {
             const obj = this.densityObjects[i];
             if (obj.userData && obj.userData.datasetName === datasetName) {
                 this.scene.remove(obj);
-                
+
                 if (obj.userData.groupLabel) {
                     this.scene.remove(obj.userData.groupLabel);
                     if (obj.userData.groupLabel.material.map) {
@@ -220,7 +220,7 @@ export class BodyRegistry {
     registerDensityObject(object) {
         this.densityObjects.push(object);
         this.scene.add(object);
-        
+
         if (object.userData && object.userData.groupLabel) {
             this.scene.add(object.userData.groupLabel);
         }

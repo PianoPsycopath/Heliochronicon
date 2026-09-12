@@ -35,11 +35,6 @@ export class Burn {
     }
 
     static isVector3(v) {
-        return (
-            !!v &&
-            typeof v.x === 'number' &&
-            typeof v.y === 'number' &&
-            typeof v.z === 'number'
-        );
+        return !!v && typeof v.x === 'number' && typeof v.y === 'number' && typeof v.z === 'number';
     }
 }

@@ -27,7 +27,12 @@ export class OrbitFactory {
             for (let j = 0; j <= ORBIT_RESOLUTION; j++) {
                 const f = (j / ORBIT_RESOLUTION) * Math.PI * 2;
                 const pos = OrbitalMath.calcPosFromTrueAnomaly(
-                    scaledA, data.e, data.i, data.w, data.Node, f
+                    scaledA,
+                    data.e,
+                    data.i,
+                    data.w,
+                    data.Node,
+                    f
                 );
                 points.push(new THREE.Vector3(pos.x, pos.y, pos.z));
             }
@@ -49,7 +54,7 @@ export class OrbitFactory {
             solidFraction: ORBIT_TRAIL_SOLID_FRACTION,
             dashCycles: ORBIT_TRAIL_DASH_CYCLES,
             dashRatio: ORBIT_TRAIL_DASH_RATIO,
-            linewidth: computedLinewidth
+            linewidth: computedLinewidth,
         });
 
         const line = new THREE.Line(geometry, mat);
@@ -68,7 +73,10 @@ export class OrbitFactory {
 
     createOrbitCurtain(color = 0x00aaff) {
         const mat = new THREE.LineBasicMaterial({
-            color, transparent: true, opacity: 0.2, depthTest: false,
+            color,
+            transparent: true,
+            opacity: 0.2,
+            depthTest: false,
         });
         const curtain = new THREE.LineSegments(new THREE.BufferGeometry(), mat);
         curtain.renderOrder = 1;

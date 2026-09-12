@@ -49,7 +49,7 @@ export class PopulationDensityFactory {
         const meanDensity = shapeDescriptor.stats?.meanOccupiedDensity || 1.0;
 
         const normalizedDensity = Math.min(meanDensity / 50.0, 1.0);
-        const baseOpacity = Math.max(0.05, normalizedDensity * 0.20);
+        const baseOpacity = Math.max(0.05, normalizedDensity * 0.2);
 
         const totalParticles = shapeDescriptor.stats?.totalParticlesConsidered || 1;
 
@@ -58,11 +58,15 @@ export class PopulationDensityFactory {
 
             if (component.isSubComponent) {
                 const concentrationRatio = component.particleCountInComponent / totalParticles;
-                const densityBoost = 1.0 + (concentrationRatio * 2.0); 
-                finalOpacity = Math.min(baseOpacity * densityBoost, 0.40);
+                const densityBoost = 1.0 + concentrationRatio * 2.0;
+                finalOpacity = Math.min(baseOpacity * densityBoost, 0.4);
             }
 
-            const mesh = PopulationDensityFactory._buildComponent(component, colorHex, finalOpacity);
+            const mesh = PopulationDensityFactory._buildComponent(
+                component,
+                colorHex,
+                finalOpacity
+            );
             if (mesh) group.add(mesh);
         });
 
@@ -71,14 +75,14 @@ export class PopulationDensityFactory {
 
     static _buildComponent(component, colorHex, opacity) {
         let mesh = null;
-        
+
         switch (component.type) {
             case 'torus':
                 mesh = component.resonanceLock
                     ? PopulationDensityFactory._buildResonantArc(component, colorHex, opacity)
                     : PopulationDensityFactory._buildRing(component, colorHex, opacity);
                 break;
-            case 'scattered-disk': 
+            case 'scattered-disk':
                 mesh = PopulationDensityFactory._buildRing(component, colorHex, opacity * 0.5);
                 break;
             case 'bubble':
@@ -92,7 +96,7 @@ export class PopulationDensityFactory {
         if (mesh && mesh.userData) {
             mesh.userData.shapeType = component.type;
         }
-        
+
         return mesh;
     }
     static _buildRing(component, colorHex, opacity) {
@@ -103,7 +107,7 @@ export class PopulationDensityFactory {
             RING_RADIAL_SEGMENTS,
             RING_TUBULAR_SEGMENTS
         );
-        geometry.rotateX(Math.PI / 2); 
+        geometry.rotateX(Math.PI / 2);
 
         const verticalScale = component.thickness_au / component.width_au;
         geometry.scale(1, verticalScale, 1);
@@ -166,7 +170,7 @@ export class PopulationDensityFactory {
 
         const material = DensityShaders.getDensitySurfaceMaterial(colorHex, opacity);
         const mesh = new THREE.Mesh(geometry, material);
-        
+
         mesh.position.set(0, 0, 0);
 
         const orbitElements = buildOrbitElements(component.meanOrbit);
@@ -174,7 +178,7 @@ export class PopulationDensityFactory {
             mesh.userData.orbitsSun = true;
             mesh.userData.orbitElements = orbitElements;
         }
-        
+
         return mesh;
     }
     static _buildShell(component, colorHex, opacity) {

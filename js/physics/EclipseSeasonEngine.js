@@ -1,5 +1,4 @@
 import { OrbitalMath, kmToAU } from '@physics/OrbitalMath.js';
-import { AU_IN_KM } from '@core/constants.js';
 
 const TWO_PI = Math.PI * 2;
 const DEG_TO_RAD = Math.PI / 180;
@@ -35,7 +34,15 @@ export class EclipseSeasonEngine {
             if (current === inside) continue;
             const left = fromDays + (index - 1) * step;
             const right = fromDays + index * step;
-            const boundary = this._refineBoundary(moonData, parentData, starData, bodiesByName, left, right, inside);
+            const boundary = this._refineBoundary(
+                moonData,
+                parentData,
+                starData,
+                bodiesByName,
+                left,
+                right,
+                inside
+            );
             if (current) {
                 startDays = boundary;
             } else if (startDays !== null) {
@@ -55,7 +62,13 @@ export class EclipseSeasonEngine {
         const { moonNormal, parentNormal, moonDistance, sunDistance } = geometry;
         const planeDot = Math.min(1, Math.max(-1, Math.abs(this._dot(moonNormal, parentNormal))));
         const inclination = Math.acos(planeDot);
-        const betaLimit = this._getPhysicalLatitudeLimit(parentData, moonData, starData, moonDistance, sunDistance);
+        const betaLimit = this._getPhysicalLatitudeLimit(
+            parentData,
+            moonData,
+            starData,
+            moonDistance,
+            sunDistance
+        );
         if (betaLimit === null) return false;
         if (inclination <= betaLimit + ROOT_TOLERANCE) return true;
         const sinInclination = Math.sin(inclination);
@@ -72,19 +85,49 @@ export class EclipseSeasonEngine {
         if (!parentPosition) return false;
         const sunDirection = { x: -parentPosition.x, y: -parentPosition.y, z: -parentPosition.z };
         this._normalize(sunDirection);
-        const nodeAlignment = Math.min(1, Math.max(0, Math.abs(this._dot(sunDirection, nodeDirection))));
+        const nodeAlignment = Math.min(
+            1,
+            Math.max(0, Math.abs(this._dot(sunDirection, nodeDirection)))
+        );
         const nodeLongitude = Math.acos(nodeAlignment);
         return nodeLongitude <= maximumNodeLongitude + ROOT_TOLERANCE;
     }
     static _getGeometry(moonData, parentData, starData, bodiesByName, days) {
         const epsilon = this._positionStep(moonData, parentData);
-        const moonBefore = this._getAbsolutePosition(moonData, bodiesByName, days - epsilon, new Map());
-        const moonAfter = this._getAbsolutePosition(moonData, bodiesByName, days + epsilon, new Map());
-        const parentBefore = this._getAbsolutePosition(parentData, bodiesByName, days - epsilon, new Map());
-        const parentAfter = this._getAbsolutePosition(parentData, bodiesByName, days + epsilon, new Map());
+        const moonBefore = this._getAbsolutePosition(
+            moonData,
+            bodiesByName,
+            days - epsilon,
+            new Map()
+        );
+        const moonAfter = this._getAbsolutePosition(
+            moonData,
+            bodiesByName,
+            days + epsilon,
+            new Map()
+        );
+        const parentBefore = this._getAbsolutePosition(
+            parentData,
+            bodiesByName,
+            days - epsilon,
+            new Map()
+        );
+        const parentAfter = this._getAbsolutePosition(
+            parentData,
+            bodiesByName,
+            days + epsilon,
+            new Map()
+        );
         const parentPosition = this._getAbsolutePosition(parentData, bodiesByName, days, new Map());
         const moonPosition = this._getAbsolutePosition(moonData, bodiesByName, days, new Map());
-        if (!moonBefore || !moonAfter || !parentBefore || !parentAfter || !parentPosition || !moonPosition) {
+        if (
+            !moonBefore ||
+            !moonAfter ||
+            !parentBefore ||
+            !parentAfter ||
+            !parentPosition ||
+            !moonPosition
+        ) {
             return null;
         }
         const moonRelativeBefore = this._subtract(moonBefore, parentBefore);
@@ -94,23 +137,39 @@ export class EclipseSeasonEngine {
         const moonNormal = this._cross(moonRelative, moonVelocity);
         const parentVelocity = this._subtract(parentAfter, parentBefore);
         const parentNormal = this._cross(parentPosition, parentVelocity);
-        if (this._length(moonNormal) <= ROOT_TOLERANCE || this._length(parentNormal) <= ROOT_TOLERANCE) {
+        if (
+            this._length(moonNormal) <= ROOT_TOLERANCE ||
+            this._length(parentNormal) <= ROOT_TOLERANCE
+        ) {
             return null;
         }
         this._normalize(moonNormal);
         this._normalize(parentNormal);
-        return { moonNormal, parentNormal, moonDistance: this._length(moonRelative), sunDistance: this._length(parentPosition) };
+        return {
+            moonNormal,
+            parentNormal,
+            moonDistance: this._length(moonRelative),
+            sunDistance: this._length(parentPosition),
+        };
     }
     static _getPhysicalLatitudeLimit(parentData, moonData, starData, moonDistance, sunDistance) {
         const parentRadius = this._radiusAU(parentData);
         const moonRadius = this._radiusAU(moonData);
         const starRadius = this._radiusAU(starData);
-        if (parentRadius === null || moonRadius === null || starRadius === null || moonDistance <= 0 || sunDistance <= 0) {
+        if (
+            parentRadius === null ||
+            moonRadius === null ||
+            starRadius === null ||
+            moonDistance <= 0 ||
+            sunDistance <= 0
+        ) {
             return null;
         }
-        const solarUmbraDistance = moonRadius + (moonDistance * (starRadius + moonRadius)) / sunDistance;
+        const solarUmbraDistance =
+            moonRadius + (moonDistance * (starRadius + moonRadius)) / sunDistance;
         const solarTolerance = (solarUmbraDistance + parentRadius) / moonDistance;
-        const lunarPenumbraDistance = parentRadius + (moonDistance * (starRadius + parentRadius)) / sunDistance;
+        const lunarPenumbraDistance =
+            parentRadius + (moonDistance * (starRadius + parentRadius)) / sunDistance;
         const lunarTolerance = (lunarPenumbraDistance + moonRadius) / moonDistance;
         const tolerance = Math.min(1, Math.max(solarTolerance, lunarTolerance));
         return Math.asin(tolerance);
@@ -149,14 +208,23 @@ export class EclipseSeasonEngine {
             const local = OrbitalMath.calculatePosition(bodyData, days);
             if (!local) return null;
             const localPosition = { x: local.x, y: local.y, z: local.z };
-            if (bodyData.category === 'MOON' && (!bodyData.orbit_model || bodyData.orbit_model === 'KEPLER')) {
+            if (
+                bodyData.category === 'MOON' &&
+                (!bodyData.orbit_model || bodyData.orbit_model === 'KEPLER')
+            ) {
                 const parentData = bodiesByName.get(bodyData.parent);
                 if (parentData) this._applyPoleRotation(localPosition, parentData, days);
             }
             const parentData = bodiesByName.get(bodyData.parent);
-            const parentPosition = parentData ? this._getAbsolutePosition(parentData, bodiesByName, days, cache) : { x: 0, y: 0, z: 0 };
+            const parentPosition = parentData
+                ? this._getAbsolutePosition(parentData, bodiesByName, days, cache)
+                : { x: 0, y: 0, z: 0 };
             if (!parentPosition) return null;
-            position = { x: localPosition.x + parentPosition.x, y: localPosition.y + parentPosition.y, z: localPosition.z + parentPosition.z };
+            position = {
+                x: localPosition.x + parentPosition.x,
+                y: localPosition.y + parentPosition.y,
+                z: localPosition.z + parentPosition.z,
+            };
         }
         cache.set(cacheKey, position);
         return position;
@@ -166,7 +234,11 @@ export class EclipseSeasonEngine {
         const rad = DEG_TO_RAD;
         const ra = (bodyData.pole_ra + bodyData.pole_ra_rate * T) * rad;
         const dec = (bodyData.pole_dec + bodyData.pole_dec_rate * T) * rad;
-        const pole = { x: Math.cos(dec) * Math.cos(ra), y: Math.sin(dec), z: -Math.cos(dec) * Math.sin(ra) };
+        const pole = {
+            x: Math.cos(dec) * Math.cos(ra),
+            y: Math.sin(dec),
+            z: -Math.cos(dec) * Math.sin(ra),
+        };
         const source = { x: 0, y: 1, z: 0 };
         const axis = this._cross(source, pole);
         const axisLength = this._length(axis);
@@ -196,8 +268,13 @@ export class EclipseSeasonEngine {
     }
     static _positionStep(moonData, parentData) {
         const moonPeriod = Number.isFinite(moonData.period) ? Math.abs(moonData.period) : Infinity;
-        const parentPeriod = Number.isFinite(parentData.period) ? Math.abs(parentData.period) : Infinity;
-        return Math.max(POSITION_EPSILON_DAYS, Math.min(0.25, moonPeriod / 100, parentPeriod / 100));
+        const parentPeriod = Number.isFinite(parentData.period)
+            ? Math.abs(parentData.period)
+            : Infinity;
+        return Math.max(
+            POSITION_EPSILON_DAYS,
+            Math.min(0.25, moonPeriod / 100, parentPeriod / 100)
+        );
     }
     static _radiusAU(data) {
         if (!Number.isFinite(data.radius_km) || data.radius_km <= 0) return null;

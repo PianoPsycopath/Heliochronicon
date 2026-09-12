@@ -108,7 +108,10 @@ export class EclipseSeasonController {
 
             const mappedIntervals = intervals
                 .map((interval) => {
-                    const start = EclipseSeasonEngine.getOrbitProgress(parent.data, interval.startDays);
+                    const start = EclipseSeasonEngine.getOrbitProgress(
+                        parent.data,
+                        interval.startDays
+                    );
                     const end = EclipseSeasonEngine.getOrbitProgress(parent.data, interval.endDays);
                     if (start === null || end === null) return null;
                     return { start, end };
@@ -127,7 +130,7 @@ export class EclipseSeasonController {
                         isStart: true,
                         date: new Date(J2000_EPOCH_MS + interval.startDays * 86400000),
                         position: startPos,
-                        label: 'Eclipse Season Start'
+                        label: 'Eclipse Season Start',
                     });
                 }
                 if (endPos) {
@@ -135,7 +138,7 @@ export class EclipseSeasonController {
                         isStart: false,
                         date: new Date(J2000_EPOCH_MS + interval.endDays * 86400000),
                         position: endPos,
-                        label: 'Eclipse Season End'
+                        label: 'Eclipse Season End',
                     });
                 }
             }
@@ -164,7 +167,7 @@ export class EclipseSeasonController {
                 }
 
                 marker.countdownText = formatCountdown(marker.date, systemDate);
-                
+
                 sprite.material = marker.isStart ? startMat : endMat;
                 sprite.visible = true;
 
@@ -252,7 +255,10 @@ export class EclipseSeasonController {
 
     _handlePointerMove(event) {
         if (event.pointerType === 'touch') return;
-        if (event.target.closest && (event.target.closest('.panel') || event.target.closest('button'))) {
+        if (
+            event.target.closest &&
+            (event.target.closest('.panel') || event.target.closest('button'))
+        ) {
             this._hideTooltip();
             return;
         }
@@ -279,7 +285,7 @@ export class EclipseSeasonController {
             const screenX = (projected.x * 0.5 + 0.5) * window.innerWidth;
             const screenY = (-projected.y * 0.5 + 0.5) * window.innerHeight;
             const dist = Math.hypot(event.clientX - screenX, event.clientY - screenY);
-            
+
             if (dist < closestDist) {
                 closestDist = dist;
                 closestIndex = i;
@@ -306,7 +312,7 @@ export class EclipseSeasonController {
             <div>${dateStr}</div>
             <div class="hc-tooltip-sub">${marker.countdownText}</div>
         `;
-        
+
         this.tooltipManager.show(this, { html }, this._lastClientX, this._lastClientY, 'marker');
     }
 

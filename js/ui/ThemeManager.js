@@ -40,7 +40,7 @@ export class ThemeManager {
     }
 
     setTheme(themeId) {
-        const theme = this.themes.find(t => t.id === themeId) || this.themes[0];
+        const theme = this.themes.find((t) => t.id === themeId) || this.themes[0];
 
         // Apply all variables directly to the document root
         const root = document.documentElement;

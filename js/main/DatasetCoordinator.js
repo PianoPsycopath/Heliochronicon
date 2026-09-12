@@ -4,7 +4,6 @@ import { DataRepository } from '@core/DataRepository.js';
 import { PlanetaryDataProcessor } from '@core/PlanetaryDataProcessor.js';
 import { PopulationShapeLoader } from '@core/PopulationShapeLoader.js';
 import { PopulationDensityFactory } from '@rendering/PopulationDensityFactory.js';
-import { TacticalShaders } from '@rendering/shaders/tactical.js';
 import { TutorialManager } from '@ui/TutorialManager.js';
 import { logger } from '@core/logger.js';
 import { LabelFactory } from '@rendering/LabelFactory.js';
@@ -321,7 +320,8 @@ export class DatasetCoordinator {
                 this.savedColors[datasetName]
             );
 
-            const baseComponent = shapeDescriptor.components.find(c => c.isBase) || shapeDescriptor.components[0];
+            const baseComponent =
+                shapeDescriptor.components.find((c) => c.isBase) || shapeDescriptor.components[0];
             const meanA = baseComponent?.meanA_au || 2.5;
 
             const labelMesh = LabelFactory.buildGroupLabel(
@@ -329,10 +329,10 @@ export class DatasetCoordinator {
                 this.savedColors[datasetName],
                 meanA
             );
-            
+
             densityObject.userData.groupLabel = labelMesh;
-            densityObject.userData.baseShape = baseComponent; 
-            
+            densityObject.userData.baseShape = baseComponent;
+
             this.bodyRegistry.registerDensityObject(densityObject);
             this.bodyRegistry.setDatasetDisplayMode(datasetName, this.getDisplayMode(datasetName));
         } catch (error) {

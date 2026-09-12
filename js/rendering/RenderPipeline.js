@@ -89,7 +89,7 @@ export class RenderPipeline {
         this.curtainMode = 0;
 
         this._frameCounter = 0;
-        this.ANALYTICAL_REBUILD_FRAME_INTERVAL = 15; 
+        this.ANALYTICAL_REBUILD_FRAME_INTERVAL = 15;
     }
     setCurtainMode(mode) {
         this.curtainMode = mode;
@@ -574,7 +574,8 @@ export class RenderPipeline {
     _rebuildOrbitLineGeometry(celestialBody, bodyData, daysSinceJ2000) {
         const orbitPoints = [];
         const isAnalytical =
-            bodyData.orbit_model === ORBIT_MODEL_MEEUS || bodyData.orbit_model === ORBIT_MODEL_VSOP87;
+            bodyData.orbit_model === ORBIT_MODEL_MEEUS ||
+            bodyData.orbit_model === ORBIT_MODEL_VSOP87;
 
         if (isAnalytical) {
             const orbitalPeriod = bodyData.period;
@@ -582,9 +583,13 @@ export class RenderPipeline {
 
             for (let index = 0; index <= ORBIT_LINE_RESOLUTION; index++) {
                 const timeInDays =
-                    daysSinceJ2000 - orbitalPeriod + (index / ORBIT_LINE_RESOLUTION) * orbitalPeriod;
+                    daysSinceJ2000 -
+                    orbitalPeriod +
+                    (index / ORBIT_LINE_RESOLUTION) * orbitalPeriod;
                 const positionVector = OrbitalMath.calculatePosition(bodyData, timeInDays);
-                orbitPoints.push(new THREE.Vector3(positionVector.x, positionVector.y, positionVector.z));
+                orbitPoints.push(
+                    new THREE.Vector3(positionVector.x, positionVector.y, positionVector.z)
+                );
                 const phaseAtVertex = timeInDays / orbitalPeriod;
                 progress[index] = phaseAtVertex - Math.floor(phaseAtVertex);
             }
@@ -594,7 +599,8 @@ export class RenderPipeline {
             let progressAttr = celestialBody.orbitLine.geometry.getAttribute('aProgress');
             if (!progressAttr || progressAttr.count !== progress.length) {
                 celestialBody.orbitLine.geometry.setAttribute(
-                    'aProgress', new THREE.BufferAttribute(progress, 1)
+                    'aProgress',
+                    new THREE.BufferAttribute(progress, 1)
                 );
             } else {
                 progressAttr.set(progress);
@@ -604,7 +610,12 @@ export class RenderPipeline {
             for (let index = 0; index <= ORBIT_LINE_RESOLUTION; index++) {
                 const f = (index / ORBIT_LINE_RESOLUTION) * 2 * Math.PI;
                 const rawPosition = OrbitalMath.calcPosFromTrueAnomaly(
-                    celestialBody.scaledA, bodyData.e, bodyData.i, bodyData.w, bodyData.Node, f
+                    celestialBody.scaledA,
+                    bodyData.e,
+                    bodyData.i,
+                    bodyData.w,
+                    bodyData.Node,
+                    f
                 );
                 orbitPoints.push(new THREE.Vector3(rawPosition.x, rawPosition.y, rawPosition.z));
             }
@@ -614,14 +625,18 @@ export class RenderPipeline {
 
     _updateOrbitPhase(celestialBody, bodyData, daysSinceJ2000) {
         let phaseOffset;
-        if (bodyData.orbit_model === ORBIT_MODEL_MEEUS || bodyData.orbit_model === ORBIT_MODEL_VSOP87) {
+        if (
+            bodyData.orbit_model === ORBIT_MODEL_MEEUS ||
+            bodyData.orbit_model === ORBIT_MODEL_VSOP87
+        ) {
             phaseOffset = daysSinceJ2000 / bodyData.period;
         } else {
             const currentMeanAnomaly = bodyData.M0 + bodyData.n * daysSinceJ2000;
             const f_current = OrbitalMath.getTrueAnomaly(currentMeanAnomaly, bodyData.e);
             phaseOffset = f_current / (2 * Math.PI);
         }
-        celestialBody.orbitLine.material.uniforms.uPhase.value = phaseOffset - Math.floor(phaseOffset);
+        celestialBody.orbitLine.material.uniforms.uPhase.value =
+            phaseOffset - Math.floor(phaseOffset);
     }
     _analyticalRebuildDue(celestialBody) {
         const last = celestialBody._lastOrbitRebuildFrame ?? -Infinity;
@@ -777,9 +792,10 @@ export class RenderPipeline {
             if (!systemLabel) return;
 
             const activeDensityObj = this.densityObjects.find(
-                (obj) => obj.userData.datasetName === particleSystem.userData.datasetName && obj.visible
+                (obj) =>
+                    obj.userData.datasetName === particleSystem.userData.datasetName && obj.visible
             );
-            
+
             if (!particleSystem.visible || fadeOpacity <= 0.01 || activeDensityObj) {
                 systemLabel.visible = false;
                 particleSystem.userData._labelWasVisible = false;
@@ -819,13 +835,15 @@ export class RenderPipeline {
             systemLabel.updateMatrixWorld();
         });
     }
-   updateDensityObjects(currentOrigin, daysSinceJ2000 = 0, getBodyAngleRad = () => null) {
+    updateDensityObjects(currentOrigin, daysSinceJ2000 = 0, getBodyAngleRad = () => null) {
         const currentZoom = this.camera.zoom;
-        const fadeOpacity = 1.0 - this._smoothstep(this.LABEL_ZOOM_FADE_START, this.LABEL_ZOOM_FADE_END, currentZoom);
+        const fadeOpacity =
+            1.0 -
+            this._smoothstep(this.LABEL_ZOOM_FADE_START, this.LABEL_ZOOM_FADE_END, currentZoom);
 
         this.densityObjects.forEach((object) => {
             object.visible = object.userData.datasetVisible !== false;
-            
+
             const systemLabel = object.userData.groupLabel;
             if (systemLabel) {
                 if (!object.visible || fadeOpacity <= 0.01) {
@@ -835,7 +853,7 @@ export class RenderPipeline {
 
                     const base = object.userData.baseShape;
                     const meanA = base?.meanA_au || 2.5;
-                    const anchorDist = meanA * 0.75; 
+                    const anchorDist = meanA * 0.75;
 
                     const orbit = base?.meanOrbit;
                     let currentM = 0;
@@ -844,10 +862,10 @@ export class RenderPipeline {
                         const n_rad = THREE.MathUtils.degToRad(orbit.n_deg_per_day);
                         currentM = m0_rad + n_rad * daysSinceJ2000;
                     }
-                    
+
                     const anchorPosition = new THREE.Vector3(
-                        Math.cos(currentM) * anchorDist, 
-                        0, 
+                        Math.cos(currentM) * anchorDist,
+                        0,
                         -Math.sin(currentM) * anchorDist
                     );
 
