@@ -42,6 +42,7 @@ export class TimeThrottle {
     constructor(domElements) {
         this.timeMultiplier = 1;
         this.isLiveTime = true;
+        this._planningSnapshot = null;
 
         this.timeSlider = domElements.timeSlider;
         this.throttleLabel = domElements.throttleLabel;
@@ -76,9 +77,6 @@ export class TimeThrottle {
         });
     }
 
-    // Goes through AccessibilityManager when supplied, matching every other
-    // toggle button in the app; falls back to direct DOM writes so this
-    // class still works standalone (e.g. in isolation tests).
     _setLivePressed(isPressed) {
         if (this.a11y) {
             this.a11y.setPressed(this.btnLive, isPressed);
@@ -115,5 +113,29 @@ export class TimeThrottle {
 
     pauseForManualInput() {
         this.applyThrottle(10);
+    }
+
+    pauseForPlanning() {
+        if (this._planningSnapshot === null) {
+            this._planningSnapshot = {
+                index: parseInt(this.timeSlider.value, 10),
+                wasLive: this.isLiveTime,
+            };
+        }
+        this.applyThrottle(10);
+    }
+
+    resumeFromPlanning() {
+        const snapshot = this._planningSnapshot;
+        this._planningSnapshot = null;
+        if (!snapshot) return;
+
+        if (snapshot.wasLive) {
+            this.applyThrottle(11);
+            this.isLiveTime = true;
+            this._setLivePressed(true);
+        } else {
+            this.applyThrottle(snapshot.index);
+        }
     }
 }

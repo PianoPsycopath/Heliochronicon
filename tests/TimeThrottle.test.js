@@ -87,3 +87,82 @@ describe('TimeThrottle Class State & DOM Mutations', () => {
         expect(mocks.btnLive.classList.toggle).toHaveBeenCalledWith('active', false);
     });
 });
+
+describe('TimeThrottle Planning Session Pause/Resume', () => {
+    const createMockElements = () => ({
+        timeSlider: {
+            value: 0,
+            addEventListener: vi.fn(),
+            classList: { add: vi.fn(), remove: vi.fn() },
+            setAttribute: vi.fn()
+        },
+        throttleLabel: { innerText: '', style: {} },
+        chronoWrapper: { classList: { add: vi.fn(), remove: vi.fn() } },
+        btnRev: { addEventListener: vi.fn() },
+        btnFwd: { addEventListener: vi.fn() },
+        btnPause: { addEventListener: vi.fn() },
+        btn1x: { addEventListener: vi.fn() },
+        btnLive: {
+            addEventListener: vi.fn(),
+            classList: { add: vi.fn(), remove: vi.fn(), toggle: vi.fn() },
+            setAttribute: vi.fn()
+        }
+    });
+
+    it('pauseForPlanning freezes the chronometer and resumeFromPlanning restores the prior throttle index', () => {
+        const mocks = createMockElements();
+        const throttle = new TimeThrottle(mocks);
+
+        throttle.applyThrottle(14); // 1 DAY / SEC
+        throttle.pauseForPlanning();
+
+        expect(throttle.timeMultiplier).toBe(0);
+        expect(mocks.throttleLabel.innerText).toBe('PAUSED');
+
+        throttle.resumeFromPlanning();
+
+        expect(throttle.timeMultiplier).toBe(86400);
+        expect(mocks.throttleLabel.innerText).toBe('1 DAY / SEC');
+    });
+
+    it('resumeFromPlanning restores live time and re-presses the Live button when it was live', () => {
+        const mocks = createMockElements();
+        const throttle = new TimeThrottle(mocks);
+
+        throttle.applyThrottle(11);
+        throttle.isLiveTime = true;
+
+        throttle.pauseForPlanning();
+        expect(throttle.isLiveTime).toBe(false);
+
+        throttle.resumeFromPlanning();
+
+        expect(throttle.timeMultiplier).toBe(1);
+        expect(throttle.isLiveTime).toBe(true);
+        expect(mocks.btnLive.classList.toggle).toHaveBeenCalledWith('active', true);
+    });
+
+    it('a repeated pauseForPlanning call before resuming does not overwrite the original snapshot', () => {
+        const mocks = createMockElements();
+        const throttle = new TimeThrottle(mocks);
+
+        throttle.applyThrottle(15); // 1 WEEK / SEC
+        throttle.pauseForPlanning();
+        throttle.pauseForPlanning(); // nested/duplicate call — must not snapshot "PAUSED"
+
+        throttle.resumeFromPlanning();
+
+        expect(throttle.timeMultiplier).toBe(604800);
+        expect(mocks.throttleLabel.innerText).toBe('1 WEEK / SEC');
+    });
+
+    it('resumeFromPlanning is a safe no-op when nothing was paused for planning', () => {
+        const mocks = createMockElements();
+        const throttle = new TimeThrottle(mocks);
+
+        throttle.applyThrottle(13); // 1 HOUR / SEC
+        throttle.resumeFromPlanning();
+
+        expect(throttle.timeMultiplier).toBe(3600);
+    });
+});
