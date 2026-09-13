@@ -9,6 +9,20 @@ function makeContainer() {
     return div;
 }
 
+function makeCandidate(overrides = {}) {
+    return {
+        candidateId: 'time-0',
+        fleetId: 'user-fleet',
+        optimizationMode: 'time',
+        tof: 180,
+        totalDeltaV: 5.4,
+        propellantRequired: 1234.5,
+        isFeasible: true,
+        warnings: [],
+        ...overrides,
+    };
+}
+
 describe('FlightPlanningPanel', () => {
     let container;
     let panel;
@@ -24,11 +38,12 @@ describe('FlightPlanningPanel', () => {
         expect(() => new FlightPlanningPanel()).toThrow();
     });
 
-    it('renders fleet identity, target control, and calculate button', () => {
+    it('renders fleet identity, target control, calculate button, and candidate list', () => {
         expect(container.querySelector('#fp-fleet-status').textContent).toBe('NO FLEET LOADED');
         expect(container.querySelector('#fp-target-input')).toBeTruthy();
         expect(container.querySelector('#fp-calculate-btn')).toBeTruthy();
         expect(container.querySelector('#fp-results').hidden).toBe(true);
+        expect(container.querySelector('#fp-candidates').hidden).toBe(true);
     });
 
     describe('setFleet', () => {
@@ -178,6 +193,104 @@ describe('FlightPlanningPanel', () => {
         });
     });
 
+    describe('showCandidates', () => {
+        it('renders one row per candidate and reveals the list', () => {
+            panel.showCandidates([
+                makeCandidate({ candidateId: 'time-0', tof: 180 }),
+                makeCandidate({ candidateId: 'time-1', tof: 270 }),
+            ]);
+
+            const list = container.querySelector('#fp-candidates');
+            expect(list.hidden).toBe(false);
+            expect(list.querySelectorAll('[data-candidate-id]').length).toBe(2);
+            expect(list.textContent).toContain('180.0');
+            expect(list.textContent).toContain('270.0');
+        });
+
+        it('labels infeasible candidates as NOT FEASIBLE without hiding them', () => {
+            panel.showCandidates([
+                makeCandidate({ candidateId: 'fuel-0', isFeasible: true }),
+                makeCandidate({ candidateId: 'fuel-1', isFeasible: false }),
+            ]);
+
+            const list = container.querySelector('#fp-candidates');
+            const rows = list.querySelectorAll('[data-candidate-id]');
+            expect(rows.length).toBe(2);
+            expect(rows[0].classList.contains('fp-feasible')).toBe(true);
+            expect(rows[1].classList.contains('fp-infeasible')).toBe(true);
+            expect(rows[1].textContent).toContain('NOT FEASIBLE');
+        });
+
+        it('derives TOF from epochs when candidate.tof is absent', () => {
+            panel.showCandidates([
+                makeCandidate({
+                    candidateId: 'time-0',
+                    tof: undefined,
+                    departureEpochDaysJ2000: 0,
+                    arrivalEpochDaysJ2000: 365,
+                }),
+            ]);
+            expect(container.querySelector('#fp-candidates').textContent).toContain('365.0');
+        });
+
+        it('treats an empty or missing candidate list as clearCandidates', () => {
+            panel.showCandidates([makeCandidate()]);
+            panel.showCandidates([]);
+            const list = container.querySelector('#fp-candidates');
+            expect(list.hidden).toBe(true);
+            expect(list.innerHTML).toBe('');
+        });
+
+        it('escapes candidateId when rendering', () => {
+            panel.showCandidates([makeCandidate({ candidateId: '"><script>alert(1)</script>' })]);
+            expect(container.querySelector('#fp-candidates').innerHTML).not.toContain('<script>');
+        });
+
+        it('fires onCandidateSelected with the clicked candidate id', () => {
+            const onCandidateSelected = vi.fn();
+            panel.onCandidateSelected = onCandidateSelected;
+
+            panel.showCandidates([
+                makeCandidate({ candidateId: 'time-0' }),
+                makeCandidate({ candidateId: 'time-1' }),
+            ]);
+
+            const rows = container.querySelectorAll('[data-candidate-id]');
+            rows[1].click();
+
+            expect(onCandidateSelected).toHaveBeenCalledTimes(1);
+            expect(onCandidateSelected).toHaveBeenCalledWith('time-1');
+        });
+
+        it('does not throw when no callback is registered', () => {
+            panel.showCandidates([makeCandidate({ candidateId: 'time-0' })]);
+            expect(() => container.querySelector('[data-candidate-id]').click()).not.toThrow();
+        });
+
+        it('ignores clicks for stale candidate ids after re-render', () => {
+            const onCandidateSelected = vi.fn();
+            panel.onCandidateSelected = onCandidateSelected;
+
+            panel.showCandidates([makeCandidate({ candidateId: 'time-0' })]);
+            const staleBtn = container.querySelector('[data-candidate-id]');
+
+            panel.showCandidates([makeCandidate({ candidateId: 'time-1' })]);
+            staleBtn.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+
+            expect(onCandidateSelected).not.toHaveBeenCalled();
+        });
+    });
+
+    describe('clearCandidates', () => {
+        it('hides and empties the candidate list', () => {
+            panel.showCandidates([makeCandidate()]);
+            panel.clearCandidates();
+            const list = container.querySelector('#fp-candidates');
+            expect(list.hidden).toBe(true);
+            expect(list.innerHTML).toBe('');
+        });
+    });
+
     describe('destroy', () => {
         it('detaches listeners so calculate no longer fires', () => {
             const onCalculateRequested = vi.fn();
@@ -190,6 +303,17 @@ describe('FlightPlanningPanel', () => {
                 .dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
 
             expect(onCalculateRequested).not.toHaveBeenCalled();
+        });
+
+        it('detaches the candidate list listener so selection no longer fires', () => {
+            const onCandidateSelected = vi.fn();
+            panel.onCandidateSelected = onCandidateSelected;
+            panel.showCandidates([makeCandidate({ candidateId: 'time-0' })]);
+
+            panel.destroy();
+
+            container.querySelector('[data-candidate-id]').click();
+            expect(onCandidateSelected).not.toHaveBeenCalled();
         });
     });
 });

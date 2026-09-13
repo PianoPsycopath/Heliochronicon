@@ -12,11 +12,12 @@ export class FlightPlanningPanel {
         }
         this.container = container;
 
-        // Callback only — set by the composition layer in a later phase.
         this.onCalculateRequested = null;
+        this.onCandidateSelected = null;
 
         this._fleet = { id: null, name: null, state: null };
         this._targetName = '';
+        this._candidateIds = [];
 
         this._renderShell();
         this._wireEvents();
@@ -91,11 +92,37 @@ export class FlightPlanningPanel {
         this._resultsEl.innerHTML = '';
         this._resultsEl.hidden = true;
     }
-    
+
+    /**
+     * @param {object[]} candidates
+     */
+    showCandidates(candidates) {
+        if (!Array.isArray(candidates) || candidates.length === 0) {
+            this.clearCandidates();
+            return;
+        }
+
+        this._candidateIds = candidates.map((c) => c.candidateId);
+
+        this._candidatesEl.innerHTML = candidates
+            .map((candidate) => this._renderCandidateRow(candidate))
+            .join('');
+        this._candidatesEl.hidden = false;
+    }
+
+    clearCandidates() {
+        this._candidateIds = [];
+        this._candidatesEl.innerHTML = '';
+        this._candidatesEl.hidden = true;
+    }
+
     destroy() {
         if (this._calcBtn) this._calcBtn.removeEventListener('click', this._onCalcClick);
         if (this._targetInput) {
             this._targetInput.removeEventListener('keydown', this._onTargetKeydown);
+        }
+        if (this._candidatesEl) {
+            this._candidatesEl.removeEventListener('click', this._onCandidateClick);
         }
     }
 
@@ -108,6 +135,32 @@ export class FlightPlanningPanel {
             return plan.arrivalEpochDaysJ2000 - plan.departureEpochDaysJ2000;
         }
         return null;
+    }
+
+    _renderCandidateRow(candidate) {
+        const tof = this._resolveTof(candidate);
+        const propellant = Number.isFinite(candidate.propellantRequired)
+            ? candidate.propellantRequired
+            : null;
+        const feasible = candidate.isFeasible !== false;
+        const id = String(candidate.candidateId);
+
+        return `
+            <li class="fp-candidate-row">
+                <button
+                    type="button"
+                    class="fp-candidate-btn ${feasible ? 'fp-feasible' : 'fp-infeasible'}"
+                    data-candidate-id="${this._escapeHtml(id)}"
+                    aria-label="Select candidate transfer, TOF ${tof != null ? tof.toFixed(1) : 'unknown'} days"
+                >
+                    <span class="fp-candidate-tof">${tof != null ? tof.toFixed(1) : '—'} d</span>
+                    <span class="fp-candidate-propellant">${
+                        propellant != null ? propellant.toFixed(1) : '—'
+                    }</span>
+                    <span class="fp-candidate-status">${feasible ? 'FEASIBLE' : 'NOT FEASIBLE'}</span>
+                </button>
+            </li>
+        `;
     }
 
     _renderShell() {
@@ -131,6 +184,7 @@ export class FlightPlanningPanel {
                 >
                     CALCULATE
                 </button>
+                <ul id="fp-candidates" class="fp-candidates" aria-live="polite" hidden></ul>
                 <div id="fp-results" aria-live="polite" aria-atomic="true" hidden></div>
             </div>
         `;
@@ -139,6 +193,7 @@ export class FlightPlanningPanel {
         this._targetInput = this.container.querySelector('#fp-target-input');
         this._calcBtn = this.container.querySelector('#fp-calculate-btn');
         this._resultsEl = this.container.querySelector('#fp-results');
+        this._candidatesEl = this.container.querySelector('#fp-candidates');
     }
 
     _wireEvents() {
@@ -146,8 +201,11 @@ export class FlightPlanningPanel {
         this._onTargetKeydown = (e) => {
             if (e.key === 'Enter') this._requestCalculate();
         };
+        this._onCandidateClick = (e) => this._handleCandidateClick(e);
+
         this._calcBtn.addEventListener('click', this._onCalcClick);
         this._targetInput.addEventListener('keydown', this._onTargetKeydown);
+        this._candidatesEl.addEventListener('click', this._onCandidateClick);
     }
 
     _requestCalculate() {
@@ -155,6 +213,18 @@ export class FlightPlanningPanel {
         this._targetName = targetName;
         if (this.onCalculateRequested) {
             this.onCalculateRequested({ fleetId: this._fleet.id, targetName });
+        }
+    }
+
+    _handleCandidateClick(e) {
+        const btn = e.target.closest('[data-candidate-id]');
+        if (!btn || !this._candidatesEl.contains(btn)) return;
+
+        const candidateId = btn.dataset.candidateId;
+        if (!this._candidateIds.includes(candidateId)) return;
+
+        if (this.onCandidateSelected) {
+            this.onCandidateSelected(candidateId);
         }
     }
 
