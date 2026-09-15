@@ -1,14 +1,59 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, beforeAll, vi } from 'vitest';
 import * as THREE from 'three';
 import { FlightPlanRenderer } from '@rendering/FlightPlanRenderer.js';
 
 describe('FlightPlanRenderer', () => {
     let scene;
     let renderer;
+    let mockCamera;
+    let mockWebGLRenderer;
+    let mockGetCurrentOrigin; // Add variable for the mock
 
+    beforeAll(() => {
+        // Mock the browser document and canvas API required by getBurnDotTexture()
+        vi.stubGlobal('document', {
+            createElement: (tag) => {
+                if (tag === 'canvas') {
+                    return {
+                        width: 64,
+                        height: 64,
+                        getContext: () => ({
+                            createRadialGradient: () => ({ addColorStop: () => {} }),
+                            fillRect: () => {}
+                        })
+                    };
+                }
+                return {};
+            }
+        });
+
+        // Mock browser animation frame APIs
+        vi.stubGlobal('requestAnimationFrame', vi.fn(() => 1)); 
+        vi.stubGlobal('cancelAnimationFrame', vi.fn());
+    });
     beforeEach(() => {
         scene = new THREE.Scene();
-        renderer = new FlightPlanRenderer({ scene });
+        
+        // Mock a basic PerspectiveCamera
+        mockCamera = new THREE.PerspectiveCamera(50, 1, 0.1, 1000);
+        
+        // Mock the WebGLRenderer
+        mockWebGLRenderer = {
+            domElement: {
+                clientHeight: 720
+            }
+        };
+
+        // Mock the getCurrentOrigin function to return a 0,0,0 coordinate object
+        mockGetCurrentOrigin = vi.fn(() => ({ x: 0, y: 0, z: 0 }));
+
+        // Pass all four required dependencies
+        renderer = new FlightPlanRenderer({ 
+            scene,
+            camera: mockCamera,
+            renderer: mockWebGLRenderer,
+            getCurrentOrigin: mockGetCurrentOrigin
+        });
     });
 
     it('initializes cleanly and attaches trajectory group to scene', () => {

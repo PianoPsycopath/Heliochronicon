@@ -2,7 +2,14 @@
 import * as THREE from 'three';
 import { inject } from '@vercel/analytics';
 import { injectSpeedInsights } from '@vercel/speed-insights';
-import { AU_IN_KM, MAX_WELLS } from '@core/constants.js';
+import {
+    AU_IN_KM,
+    MAX_WELLS,
+    EARTH_RADIUS_KM,
+    EARTH_MU_KM3_PER_S2,
+    SUN_MU_AU3_PER_DAY2,
+    DEFAULT_LEO_ALTITUDE_KM,
+} from '@core/constants.js';
 import { SceneManager } from '@core/SceneManager.js';
 import { Shaders } from '@rendering/Shaders.js';
 import { UIController } from '@ui/UIController.js';
@@ -38,6 +45,8 @@ import { RenderingLoop } from '@main/RenderingLoop.js';
 import { CinematicManager } from '@core/CinematicManager.js';
 import { PanelExtensionController } from '@ui/PanelExtensionController.js';
 import { ThemeManager } from '@ui/ThemeManager.js';
+import { FleetNavigationController } from '@main/FleetNavigationController.js';
+import { FleetRuntimeStore } from '@navigation/FleetRuntimeStore.js';
 
 inject();
 injectSpeedInsights();
@@ -477,6 +486,31 @@ UI.onDatasetColorChanged = (datasetName, colorHex) => {
     }
 };
 
+// --- Fleet navigation / flight planning (Phase 9 vertical slice) ---------
+// Mounted dynamically rather than via index.html markup so this phase's
+// Allowed-files contract (main.js + optional thin controller only) doesn't
+// require an index.html edit. Moving this into static markup + its own
+// stylesheet is a fine follow-up whenever the UI pass for this panel happens.
+const flightPlanningPanelContainer = document.createElement('div');
+flightPlanningPanelContainer.id = 'flight-planning-panel-container';
+document.getElementById('panel-right')?.appendChild(flightPlanningPanelContainer);
+
+const fleetNavigationController = new FleetNavigationController({
+    scene,
+    camera,
+    webglRenderer: renderer,
+    timeController: UI.timeThrottle,
+    panelContainer: flightPlanningPanelContainer,
+    getBodyDataByName: (name) => bodyRegistry.getByName(name)?.data ?? null,
+    getCurrentEpochDaysJ2000: () => PhysicsEngine.getJ2000Days(appState.systemDate),
+    getCurrentOrigin: () => appState.currentOrigin,
+    mu: SUN_MU_AU3_PER_DAY2,
+    earthRadiusKm: EARTH_RADIUS_KM,
+    earthMuKm3PerS2: EARTH_MU_KM3_PER_S2,
+    fallbackAltitudeKm: DEFAULT_LEO_ALTITUDE_KM,
+    runtimeStore: new FleetRuntimeStore(storage),
+});
+
 function getBodyAngleRad(bodyName) {
     const body = bodyRegistry.getByName(bodyName);
     if (!body) return null;
@@ -505,6 +539,14 @@ async function startApplication() {
         creditsManager.setAssetManifest(datasetCoordinator.manifest);
         updateCredits();
     });
+
+    // Independent of solar-system dataset load: the fleet only needs Earth
+    // constants + its own JSON, not the body registry. Body lookups for a
+    // requested target only happen later, at CALCULATE time.
+    fleetNavigationController.initialize().catch((err) => {
+        logger.error('[Heliochronicon] Failed to load fleet', err);
+    });
+
     await cinematicManager.run(dataLoadPromise);
 }
 

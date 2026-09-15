@@ -43,3 +43,8 @@ export const SEASON_SYMBOLS = {
     PERI_HOT: 'P\u{1F702}',
     APO_COLD: 'A\u{1F704}',
 };
+
+export const DEFAULT_LEO_ALTITUDE_KM = 400;
+export const EARTH_MU_KM3_PER_S2 = 398600.4418;
+export const EARTH_RADIUS_KM = 6371.0;
+export const SUN_MU_AU3_PER_DAY2 = 2.959122082855911e-04;

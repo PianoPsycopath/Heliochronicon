@@ -14,6 +14,8 @@ export class FlightPlanningPanel {
 
         this.onCalculateRequested = null;
         this.onCandidateSelected = null;
+        this.onConfirmRequested = null;
+        this.onCancelRequested = null;
 
         this._fleet = { id: null, name: null, state: null };
         this._targetName = '';
@@ -31,6 +33,23 @@ export class FlightPlanningPanel {
     setFleet({ id, name, state } = {}) {
         this._fleet = { id: id ?? null, name: name ?? null, state: state ?? null };
         this._updateFleetStatus();
+    }
+
+    /**
+     * @param {string|null} name
+     */
+    setConfirmedTarget(name) {
+        if (!name) {
+            this.clearConfirmedTarget();
+            return;
+        }
+        this._confirmedTargetEl.textContent = `CONFIRMED TARGET: ${name.toUpperCase()}`;
+        this._confirmedTargetEl.hidden = false;
+    }
+
+    clearConfirmedTarget() {
+        this._confirmedTargetEl.textContent = '';
+        this._confirmedTargetEl.hidden = true;
     }
 
     /**
@@ -93,6 +112,14 @@ export class FlightPlanningPanel {
         this._resultsEl.hidden = true;
     }
 
+    showConfirmActions() {
+        this._confirmActionsEl.hidden = false;
+    }
+
+    hideConfirmActions() {
+        this._confirmActionsEl.hidden = true;
+    }
+
     /**
      * @param {object[]} candidates
      */
@@ -124,6 +151,8 @@ export class FlightPlanningPanel {
         if (this._candidatesEl) {
             this._candidatesEl.removeEventListener('click', this._onCandidateClick);
         }
+        if (this._confirmBtn) this._confirmBtn.removeEventListener('click', this._onConfirmClick);
+        if (this._cancelBtn) this._cancelBtn.removeEventListener('click', this._onCancelClick);
     }
 
     _resolveTof(plan) {
@@ -167,6 +196,7 @@ export class FlightPlanningPanel {
         this.container.innerHTML = `
             <div class="flight-planning-panel">
                 <p class="fp-fleet-status" id="fp-fleet-status">NO FLEET LOADED</p>
+                <p class="fp-confirmed-target" id="fp-confirmed-target" hidden></p>
                 <div class="control-group">
                     <label id="fp-target-label" for="fp-target-input">TARGET BODY</label>
                     <input
@@ -186,14 +216,36 @@ export class FlightPlanningPanel {
                 </button>
                 <ul id="fp-candidates" class="fp-candidates" aria-live="polite" hidden></ul>
                 <div id="fp-results" aria-live="polite" aria-atomic="true" hidden></div>
+                <div id="fp-confirm-actions" class="fp-confirm-actions" hidden>
+                    <button
+                        type="button"
+                        id="fp-confirm-btn"
+                        class="full-btn"
+                        aria-label="Confirm selected flight plan"
+                    >
+                        CONFIRM
+                    </button>
+                    <button
+                        type="button"
+                        id="fp-cancel-btn"
+                        class="full-btn fp-cancel-btn"
+                        aria-label="Cancel flight planning"
+                    >
+                        CANCEL
+                    </button>
+                </div>
             </div>
         `;
 
         this._statusEl = this.container.querySelector('#fp-fleet-status');
+        this._confirmedTargetEl = this.container.querySelector('#fp-confirmed-target');
         this._targetInput = this.container.querySelector('#fp-target-input');
         this._calcBtn = this.container.querySelector('#fp-calculate-btn');
         this._resultsEl = this.container.querySelector('#fp-results');
         this._candidatesEl = this.container.querySelector('#fp-candidates');
+        this._confirmActionsEl = this.container.querySelector('#fp-confirm-actions');
+        this._confirmBtn = this.container.querySelector('#fp-confirm-btn');
+        this._cancelBtn = this.container.querySelector('#fp-cancel-btn');
     }
 
     _wireEvents() {
@@ -202,10 +254,18 @@ export class FlightPlanningPanel {
             if (e.key === 'Enter') this._requestCalculate();
         };
         this._onCandidateClick = (e) => this._handleCandidateClick(e);
+        this._onConfirmClick = () => {
+            if (this.onConfirmRequested) this.onConfirmRequested();
+        };
+        this._onCancelClick = () => {
+            if (this.onCancelRequested) this.onCancelRequested();
+        };
 
         this._calcBtn.addEventListener('click', this._onCalcClick);
         this._targetInput.addEventListener('keydown', this._onTargetKeydown);
         this._candidatesEl.addEventListener('click', this._onCandidateClick);
+        this._confirmBtn.addEventListener('click', this._onConfirmClick);
+        this._cancelBtn.addEventListener('click', this._onCancelClick);
     }
 
     _requestCalculate() {
