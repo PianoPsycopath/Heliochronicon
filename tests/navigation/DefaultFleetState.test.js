@@ -59,9 +59,9 @@ describe('DefaultFleetState', () => {
             });
 
             const expectedSpeed = Math.sqrt(earthMuKm3PerS2 / 6778);
-            expect(state.velocity.y).toBeCloseTo(expectedSpeed, 6);
+            expect(state.velocity.z).toBeCloseTo(-expectedSpeed, 6);
             expect(state.velocity.x).toBe(0);
-            expect(state.velocity.z).toBe(0);
+            expect(state.velocity.y).toBe(0);
         });
 
         it('throws when earthRadiusKm or altitudeKm is missing', () => {

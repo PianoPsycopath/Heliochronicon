@@ -33,7 +33,7 @@ describe('TerrainController', () => {
 
     const mkBody = (name) => ({
         data: { name },
-        mesh: { material: 'ORIGINAL_MATERIAL' }
+        mesh: { material: 'ORIGINAL_MATERIAL', children: [] }
     });
 
     it('loads the manifest on construction and stores it once resolved', async () => {
