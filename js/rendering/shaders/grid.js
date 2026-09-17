@@ -20,14 +20,22 @@ export class GridShaders {
                 numWells: { value: 0 },
             },
             vertexShader: `
+                #include <common>
+                #include <logdepthbuf_pars_vertex>
+                
                 varying vec3 vWorldPosition;
+                
                 void main() {
                     vec4 worldPos = modelMatrix * vec4(position, 1.0);
                     vWorldPosition = worldPos.xyz;
                     gl_Position = projectionMatrix * viewMatrix * worldPos;
+                    
+                    #include <logdepthbuf_vertex>
                 }
             `,
             fragmentShader: `
+                #include <common>
+                #include <logdepthbuf_pars_fragment>
                 uniform float zoomScale; 
                 uniform vec3 cameraPos;
                 
@@ -105,16 +113,24 @@ export class GridShaders {
                 uGridRadius: { value: 0.5 }, // NEW: Dynamic grid size uniform
             },
             vertexShader: `
+                #include <common>
+                #include <logdepthbuf_pars_vertex>
+                
                 varying vec3 vWorldPosition;
                 varying vec2 vLocalPlane;
+                
                 void main() {
                     vec4 worldPos = modelMatrix * vec4(position, 1.0);
                     vWorldPosition = worldPos.xyz;
-                    vLocalPlane = position.xy; // Extracts geometry scale cleanly
+                    vLocalPlane = position.xy; 
                     gl_Position = projectionMatrix * viewMatrix * worldPos;
+                    
+                    #include <logdepthbuf_vertex>
                 }
             `,
             fragmentShader: `
+                #include <common>
+                #include <logdepthbuf_pars_fragment>
                 uniform vec3 cameraPos;
                 uniform float uGridRadius;
                 
@@ -145,11 +161,12 @@ export class GridShaders {
                     intensity = max(intensity, drawGrid(coord, 0.01,    0.60)); // Hill Sphere
                     intensity = max(intensity, drawGrid(coord, 0.1,     0.80)); // System Space
                     
-                    // NEW: Dynamic Radial Fade using the mass-calculated uGridRadius
                     float edgeFade = 1.0 - smoothstep(uGridRadius * 0.2, uGridRadius, length(coord)); 
                     
                     if (intensity < 0.015) discard;
                     gl_FragColor = vec4(lineColor, intensity * edgeFade * 0.35);
+
+                    #include <logdepthbuf_fragment>
                 }
             `,
             transparent: true,

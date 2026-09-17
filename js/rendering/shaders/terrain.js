@@ -16,28 +16,37 @@ export class TerrainShaders {
                 uLineWidthPx: { value: 2.0 },
             },
             vertexShader: `
+                #include <common>
+                #include <logdepthbuf_pars_vertex>
+                
                 varying vec2 vUv;
                 varying vec3 vNormal;
+                
                 void main() {
                     vUv = uv;
                     vNormal = normalize(normalMatrix * normal);
                     gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+                    
+                    #include <logdepthbuf_vertex>
                 }
             `,
             fragmentShader: `
-            uniform sampler2D uHeightmap;
-            uniform float uElevMin;
-            uniform float uElevMax;
-            uniform float uLonOffset;
-            uniform float uLineWidthPx; 
+                #include <common>
+                #include <logdepthbuf_pars_fragment>
+                
+                uniform sampler2D uHeightmap;
+                uniform float uElevMin;
+                uniform float uElevMax;
+                uniform float uLonOffset;
+                uniform float uLineWidthPx; 
 
-            varying vec2 vUv;
-            varying vec3 vNormal;
+                varying vec2 vUv;
+                varying vec3 vNormal;
 
-            float decodeElev(vec2 uv) {
-                vec2 rg = texture2D(uHeightmap, uv).rg * 255.0;
-                float raw16 = rg.x * 256.0 + rg.y;
-                return uElevMin + (raw16 - 1.0) / 65534.0 * (uElevMax - uElevMin);
+                float decodeElev(vec2 uv) {
+                    vec2 rg = texture2D(uHeightmap, uv).rg * 255.0;
+                    float raw16 = rg.x * 256.0 + rg.y;
+                    return uElevMin + (raw16 - 1.0) / 65534.0 * (uElevMax - uElevMin);
             }
 
             float drawContour(float elev, float interval, float baseAlpha, float lineWidthPx) {
@@ -52,8 +61,6 @@ export class TerrainShaders {
                 float fade = smoothstep(0.2, 0.05, deriv);
                 return val * fade * baseAlpha;
             }
-
-            // NEW: Draws a UV-based coordinate grid (Latitude / Longitude)
             float drawLatLonGrid(vec2 uv, vec2 cells, float baseAlpha, float lineWidthPx) {
                 vec2 gridCoord = uv * cells;
                 vec2 deriv = fwidth(gridCoord);
@@ -86,7 +93,7 @@ export class TerrainShaders {
 
                 // Calculate the planetary grid (36 longitude lines, 18 latitude lines = 10-degree squares)
                 // Intensity is kept low (0.15) so it is softer than the contours.
-                float gridIntensity = drawLatLonGrid(uv, vec2(36.0, 18.0), 0.15, uLineWidthPx);
+                float gridIntensity = drawLatLonGrid(uv, vec2(36.0, 18.0), 0.05, uLineWidthPx);
 
                 if (isLiquid) {
                     // Render ocean and overlay the soft white grid
@@ -122,9 +129,13 @@ export class TerrainShaders {
                 color = mix(color, gridColor, gridIntensity);
                 
                 gl_FragColor = vec4(color, 1.0); 
+                #include <logdepthbuf_fragment>
             }
         `,
-            transparent: true,
+            transparent: false,
+            depthTest: true,
+            depthWrite: true,
+            side: THREE.FrontSide, 
             extensions: { derivatives: true },
         });
     }

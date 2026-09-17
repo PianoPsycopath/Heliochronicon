@@ -9,22 +9,34 @@ export class TacticalShaders {
     static getTacticalMaterial() {
         return new THREE.ShaderMaterial({
             vertexShader: `
+                #include <common>
+                #include <logdepthbuf_pars_vertex>
+                
                 varying vec3 vNormal;
+                
                 void main() {
                     vNormal = normalize(normalMatrix * normal);
                     gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+                    
+                    #include <logdepthbuf_vertex>
                 }
             `,
             fragmentShader: `
+                #include <common>
+                #include <logdepthbuf_pars_fragment>
+                
                 varying vec3 vNormal;
+                
                 void main() {
                     float intensity = pow(1.0 - abs(vNormal.z), 3.0);
                     float line = smoothstep(0.4, 0.5, intensity);
                     gl_FragColor = vec4(vec3(1.0, 0.8, 0.0) * line, 1.0);
+                    
+                    #include <logdepthbuf_fragment>
                 }
             `,
-            depthTest: false,
-            transparent: true,
+            depthWrite: true,
+            transparent: false,
         });
     }
 
@@ -99,6 +111,9 @@ export class TacticalShaders {
                 uZoom: { value: 1.0 },
             },
             vertexShader: `
+                #include <common>
+                #include <logdepthbuf_pars_vertex>
+                
                 uniform float uTime;
                 uniform vec3 uOrigin;
                 uniform float uZoom;
@@ -160,9 +175,12 @@ export class TacticalShaders {
                     vDarken = mix(0.1, 1.0, visibility); 
                     
                     gl_Position = projectionMatrix * mvPosition;
+                    #include <logdepthbuf_vertex>
                 }
             `,
             fragmentShader: `
+                #include <common>
+                #include <logdepthbuf_pars_fragment>
                 uniform vec3 uColor;
                 varying float vAlpha;
                 varying float vDarken;
@@ -182,6 +200,7 @@ export class TacticalShaders {
                     vec3 finalColor = baseColor * glow * 1.5 * vAlpha;
                     
                     gl_FragColor = vec4(finalColor, vAlpha);
+                    #include <logdepthbuf_fragment>
                 }
             `,
             transparent: true,

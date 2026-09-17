@@ -27,6 +27,7 @@ export class RenderingLoop {
         setStarVisibilityState,
         updateCredits,
         getBodyAngleRad,
+        fleetNavigationController = null,
     }) {
         this.appState = appState;
         this.UI = UI;
@@ -44,12 +45,19 @@ export class RenderingLoop {
         this.gridPlane = gridPlane;
         this.equatorialGridPlane = equatorialGridPlane;
         this.equatorialMaterial = equatorialMaterial;
+        if (this.gridPlane && this.gridPlane.material) {
+            this.gridPlane.material.depthTest = true;
+        }
+        if (this.equatorialMaterial) {
+            this.equatorialMaterial.depthTest = true;
+        }
         this.interactionController = interactionController;
         this.starFieldMaterialRef = starFieldMaterialRef;
         this.getStarVisibilityState = getStarVisibilityState;
         this.setStarVisibilityState = setStarVisibilityState;
         this.updateCredits = updateCredits;
         this.getBodyAngleRad = getBodyAngleRad || (() => null);
+        this.fleetNavigationController = fleetNavigationController;
         this.lastFrameTime = performance.now();
         this.running = false;
     }
@@ -84,7 +92,20 @@ export class RenderingLoop {
             this.appState.currentOrigin
         );
         this.eclipseSeasonController.update(this.appState.currentTargetData, daysSinceJ2000);
+        this.updateFleet(daysSinceJ2000);
         this.executeFinalRender(daysSinceJ2000);
+    }
+    /**
+     * @param {{update: Function}|null} controller
+     */
+    setFleetNavigationController(controller) {
+        this.fleetNavigationController = controller;
+    }
+    updateFleet(daysSinceJ2000) {
+        if (!this.fleetNavigationController) {
+            return;
+        }
+        this.fleetNavigationController.update(daysSinceJ2000);
     }
     updatePerformance(deltaSec) {
         const perfSample = this.UI.performanceMonitor.tick(deltaSec);

@@ -158,6 +158,16 @@
                     VISIBILITY
                 </button>
                 <button
+                    id="btn-tab-fleet"
+                    class="tab-btn"
+                    role="tab"
+                    aria-selected="false"
+                    aria-controls="tab-fleet"
+                    tabindex="-1"
+                >
+                    FLEET
+                </button>
+                <button
                     id="btn-tab-settings"
                     class="tab-btn"
                     role="tab"
@@ -359,6 +369,17 @@
                         />
                     </div>
                 </div>
+            </div>
+            <div
+                id="tab-fleet"
+                class="tab-content"
+                role="tabpanel"
+                aria-labelledby="btn-tab-fleet"
+                tabindex="0"
+                hidden
+                style="padding: 10px 5px"
+            >
+                <div id="fleet-status-container"></div>
             </div>
             <div
                 id="tab-settings"

@@ -16,6 +16,7 @@ export class FlightPlanningPanel {
         this.onCandidateSelected = null;
         this.onConfirmRequested = null;
         this.onCancelRequested = null;
+        this.onClearRequested = null;
 
         this._fleet = { id: null, name: null, state: null };
         this._targetName = '';
@@ -120,6 +121,31 @@ export class FlightPlanningPanel {
         this._confirmActionsEl.hidden = true;
     }
 
+    showClearAction() {
+        this._clearActionEl.hidden = false;
+    }
+
+    hideClearAction() {
+        this._clearActionEl.hidden = true;
+    }
+
+    /**
+     * @param {string} message
+     */
+    showNotice(message) {
+        if (!message) {
+            this.clearNotice();
+            return;
+        }
+        this._noticeEl.textContent = message;
+        this._noticeEl.hidden = false;
+    }
+
+    clearNotice() {
+        this._noticeEl.textContent = '';
+        this._noticeEl.hidden = true;
+    }
+
     /**
      * @param {object[]} candidates
      */
@@ -153,6 +179,7 @@ export class FlightPlanningPanel {
         }
         if (this._confirmBtn) this._confirmBtn.removeEventListener('click', this._onConfirmClick);
         if (this._cancelBtn) this._cancelBtn.removeEventListener('click', this._onCancelClick);
+        if (this._clearBtn) this._clearBtn.removeEventListener('click', this._onClearClick);
     }
 
     _resolveTof(plan) {
@@ -216,6 +243,7 @@ export class FlightPlanningPanel {
                 </button>
                 <ul id="fp-candidates" class="fp-candidates" aria-live="polite" hidden></ul>
                 <div id="fp-results" aria-live="polite" aria-atomic="true" hidden></div>
+                <p class="fp-notice" id="fp-notice" aria-live="polite" hidden></p>
                 <div id="fp-confirm-actions" class="fp-confirm-actions" hidden>
                     <button
                         type="button"
@@ -234,6 +262,16 @@ export class FlightPlanningPanel {
                         CANCEL
                     </button>
                 </div>
+                <div id="fp-clear-action" class="fp-clear-action" hidden>
+                    <button
+                        type="button"
+                        id="fp-clear-btn"
+                        class="full-btn fp-clear-btn"
+                        aria-label="Clear the active flight plan"
+                    >
+                        CLEAR PLAN
+                    </button>
+                </div>
             </div>
         `;
 
@@ -246,6 +284,9 @@ export class FlightPlanningPanel {
         this._confirmActionsEl = this.container.querySelector('#fp-confirm-actions');
         this._confirmBtn = this.container.querySelector('#fp-confirm-btn');
         this._cancelBtn = this.container.querySelector('#fp-cancel-btn');
+        this._noticeEl = this.container.querySelector('#fp-notice');
+        this._clearActionEl = this.container.querySelector('#fp-clear-action');
+        this._clearBtn = this.container.querySelector('#fp-clear-btn');
     }
 
     _wireEvents() {
@@ -260,12 +301,16 @@ export class FlightPlanningPanel {
         this._onCancelClick = () => {
             if (this.onCancelRequested) this.onCancelRequested();
         };
+        this._onClearClick = () => {
+            if (this.onClearRequested) this.onClearRequested();
+        };
 
         this._calcBtn.addEventListener('click', this._onCalcClick);
         this._targetInput.addEventListener('keydown', this._onTargetKeydown);
         this._candidatesEl.addEventListener('click', this._onCandidateClick);
         this._confirmBtn.addEventListener('click', this._onConfirmClick);
         this._cancelBtn.addEventListener('click', this._onCancelClick);
+        this._clearBtn.addEventListener('click', this._onClearClick);
     }
 
     _requestCalculate() {

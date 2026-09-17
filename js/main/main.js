@@ -486,14 +486,27 @@ UI.onDatasetColorChanged = (datasetName, colorHex) => {
     }
 };
 
-// --- Fleet navigation / flight planning (Phase 9 vertical slice) ---------
-// Mounted dynamically rather than via index.html markup so this phase's
-// Allowed-files contract (main.js + optional thin controller only) doesn't
-// require an index.html edit. Moving this into static markup + its own
-// stylesheet is a fine follow-up whenever the UI pass for this panel happens.
 const flightPlanningPanelContainer = document.createElement('div');
 flightPlanningPanelContainer.id = 'flight-planning-panel-container';
 document.getElementById('panel-right')?.appendChild(flightPlanningPanelContainer);
+
+const FLEET_FOCUS_VIEW_HEIGHT_AU = 0.02;
+
+function focusOnFleet(scenePosition) {
+    appState.trackingTargetData = null;
+    interactionController.clearTracking();
+
+    const offset = FLEET_FOCUS_VIEW_HEIGHT_AU;
+    controls.target.set(scenePosition.x, scenePosition.y, scenePosition.z);
+    camera.position.set(
+        scenePosition.x + offset,
+        scenePosition.y + offset,
+        scenePosition.z + offset
+    );
+    camera.zoom = frustumSize / FLEET_FOCUS_VIEW_HEIGHT_AU;
+    camera.updateProjectionMatrix();
+    controls.update();
+}
 
 const fleetNavigationController = new FleetNavigationController({
     scene,
@@ -501,15 +514,19 @@ const fleetNavigationController = new FleetNavigationController({
     webglRenderer: renderer,
     timeController: UI.timeThrottle,
     panelContainer: flightPlanningPanelContainer,
+    fleetPanelContainer: document.getElementById('fleet-status-container'),
     getBodyDataByName: (name) => bodyRegistry.getByName(name)?.data ?? null,
     getCurrentEpochDaysJ2000: () => PhysicsEngine.getJ2000Days(appState.systemDate),
     getCurrentOrigin: () => appState.currentOrigin,
+    onFocusFleetRequested: focusOnFleet,
     mu: SUN_MU_AU3_PER_DAY2,
     earthRadiusKm: EARTH_RADIUS_KM,
     earthMuKm3PerS2: EARTH_MU_KM3_PER_S2,
     fallbackAltitudeKm: DEFAULT_LEO_ALTITUDE_KM,
     runtimeStore: new FleetRuntimeStore(storage),
 });
+
+renderingLoop.setFleetNavigationController(fleetNavigationController);
 
 function getBodyAngleRad(bodyName) {
     const body = bodyRegistry.getByName(bodyName);
@@ -540,9 +557,6 @@ async function startApplication() {
         updateCredits();
     });
 
-    // Independent of solar-system dataset load: the fleet only needs Earth
-    // constants + its own JSON, not the body registry. Body lookups for a
-    // requested target only happen later, at CALCULATE time.
     fleetNavigationController.initialize().catch((err) => {
         logger.error('[Heliochronicon] Failed to load fleet', err);
     });

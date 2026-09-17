@@ -44,8 +44,6 @@ export class BodyFactory {
         else if (d.datasetCategory === 'PLANET') rOrder = 1000;
         else if (d.datasetCategory === 'MOON') rOrder = 800;
 
-        mesh.renderOrder = rOrder;
-
         const wireMat = new THREE.MeshBasicMaterial({
             color: isSun ? 0xffcc00 : 0xaaaaaa,
             wireframe: true,
@@ -80,7 +78,6 @@ export class BodyFactory {
             : Shaders.createDiamondSpriteMat(d.symbol);
         const sprite = new THREE.Sprite(spriteMat);
         sprite.userData = d;
-        sprite.renderOrder = rOrder;
         scene.add(sprite);
 
         let orbitLine = null;

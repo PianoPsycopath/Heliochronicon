@@ -72,12 +72,13 @@ export class TerrainController {
 
                 const material = Shaders.createTerrainContourMat(texture, cfg.elevMin, cfg.elevMax);
 
-                // Guard: Was this body purged from the scene during the async texture load?
                 if (this.celestialBodies.includes(bodyObj) && bodyObj.mesh) {
                     this.cache.set(name, { texture, material });
                     bodyObj.mesh.material = material;
+
+                    const wireMesh = bodyObj.mesh.children.find(child => child.material && child.material.wireframe);
+                    if (wireMesh) wireMesh.visible = false;
                 } else {
-                    // The body was deleted. Dump the GPU resources.
                     texture.dispose();
                     material.dispose();
                 }

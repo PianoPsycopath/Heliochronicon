@@ -7,6 +7,13 @@ export const FLEET_STATE = Object.freeze({
     PLANNING: 'planning',
 });
 
+
+export const REFERENCE_FRAME = Object.freeze({
+    EARTH_CENTERED_KM: 'earth-centered-km',
+    BODY_CENTERED_KM: 'body-centered-km',
+    HELIOCENTRIC_AU: 'heliocentric-au',
+});
+
 /**
  * @param {object} fleet
  * @returns {number}
@@ -33,9 +40,16 @@ export function resolveDefaultAltitudeKm(fleetData) {
  * @param {number} params.earthRadiusKm 
  * @param {number} params.altitudeKm 
  * @param {number|null} [params.earthMuKm3PerS2] 
+ * @param {number|null} [params.epochDaysJ2000]
  * @returns {object} 
  */
-export function createDefaultRuntimeState({ fleet, earthRadiusKm, altitudeKm, earthMuKm3PerS2 = null }) {
+export function createDefaultRuntimeState({
+    fleet,
+    earthRadiusKm,
+    altitudeKm,
+    earthMuKm3PerS2 = null,
+    epochDaysJ2000 = null,
+}) {
     if (typeof earthRadiusKm !== 'number' || Number.isNaN(earthRadiusKm)) {
         throw new Error('createDefaultRuntimeState requires a numeric earthRadiusKm');
     }
@@ -49,13 +63,15 @@ export function createDefaultRuntimeState({ fleet, earthRadiusKm, altitudeKm, ea
 
     const velocity =
         typeof earthMuKm3PerS2 === 'number' && !Number.isNaN(earthMuKm3PerS2)
-            ? { x: 0, y: Math.sqrt(earthMuKm3PerS2 / r), z: 0 }
+            ? { x: 0, y: 0, z: -Math.sqrt(earthMuKm3PerS2 / r) }
             : { x: 0, y: 0, z: 0 };
 
     return {
         fuelRemaining: totalFuelVolume(fleet),
         position,
         velocity,
+        frame: REFERENCE_FRAME.EARTH_CENTERED_KM,
+        epochDaysJ2000,
         target: null,
         state: FLEET_STATE.PARKED,
     };

@@ -238,19 +238,19 @@ export class UIController {
             }
         });
 
-        const btnTabSearch = document.getElementById('btn-tab-search');
-        const btnTabVis = document.getElementById('btn-tab-vis');
-        const btnTabSettings = document.getElementById('btn-tab-settings'); // NEW
-        const tabSearch = document.getElementById('tab-search');
-        const tabVisibility = document.getElementById('tab-visibility');
-        const tabSettings = document.getElementById('tab-settings'); // NEW
+        const TAB_IDS = [
+            { btn: 'btn-tab-search', panel: 'tab-search' },
+            { btn: 'btn-tab-vis', panel: 'tab-visibility' },
+            { btn: 'btn-tab-fleet', panel: 'tab-fleet' },
+            { btn: 'btn-tab-settings', panel: 'tab-settings' },
+        ];
 
-        if (btnTabSearch && btnTabVis && btnTabSettings) {
-            const tabs = [
-                { btn: btnTabSearch, panel: tabSearch },
-                { btn: btnTabVis, panel: tabVisibility },
-                { btn: btnTabSettings, panel: tabSettings },
-            ];
+        const tabs = TAB_IDS.map(({ btn, panel }) => ({
+            btn: document.getElementById(btn),
+            panel: document.getElementById(panel),
+        })).filter((entry) => entry.btn && entry.panel);
+
+        if (tabs.length > 0) {
 
             const activateTab = (index, moveFocus) => {
                 tabs.forEach((entry, entryIndex) => {
