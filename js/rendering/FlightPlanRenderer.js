@@ -1,6 +1,10 @@
 import * as THREE from 'three';
 
-const BURN_MARKER_PIXEL_SIZE = 14;
+export const BURN_MARKER_PIXEL_SIZE = 14;
+
+function isFiniteVector3(v) {
+    return !!v && Number.isFinite(v.x) && Number.isFinite(v.y) && Number.isFinite(v.z);
+}
 
 
 let sharedBurnDotTexture = null;
@@ -62,6 +66,9 @@ export class FlightPlanRenderer {
         this.activePlan = null;
         this._burnMarkers = [];
         this._billboardLoopId = null;
+        this._markerWorldPosition = new THREE.Vector3();
+
+        this.lastPlanReport = null;
 
         // Shared materials for the trajectory line
         this.lineMaterial = new THREE.LineBasicMaterial({
@@ -88,13 +95,25 @@ export class FlightPlanRenderer {
     setPlan(flightPlan) {
         this.clear();
 
-        if (!flightPlan) return;
+        if (!flightPlan) {
+            this.lastPlanReport = null;
+            return;
+        }
         this.activePlan = flightPlan;
+
+        const report = {
+            trajectoryPoints: 0,
+            burnsTotal: 0,
+            burnMarkersShown: 0,
+            burnsWithoutPosition: 0,
+            burnsWithNonFinitePosition: 0,
+        };
 
         if (Array.isArray(flightPlan.trajectorySamples) && flightPlan.trajectorySamples.length > 1) {
             const points = flightPlan.trajectorySamples.map(
                 sample => new THREE.Vector3(sample.position.x, sample.position.y, sample.position.z)
             );
+            report.trajectoryPoints = points.length;
 
             const geometry = new THREE.BufferGeometry().setFromPoints(points);
             const line = new THREE.Line(geometry, this.lineMaterial);
@@ -104,17 +123,29 @@ export class FlightPlanRenderer {
         }
 
         if (Array.isArray(flightPlan.burns)) {
-            flightPlan.burns.forEach(burn => {
-                if (burn.position) {
-                    const marker = new THREE.Sprite(this.burnMaterial);
-                    marker.position.set(burn.position.x, burn.position.y, burn.position.z);
-                    marker.renderOrder = 4;
+            report.burnsTotal = flightPlan.burns.length;
 
-                    this.trajectoryGroup.add(marker);
-                    this._burnMarkers.push(marker);
+            flightPlan.burns.forEach(burn => {
+                if (!burn.position) {
+                    report.burnsWithoutPosition++;
+                    return;
                 }
+                if (!isFiniteVector3(burn.position)) {
+                    report.burnsWithNonFinitePosition++;
+                    return;
+                }
+
+                const marker = new THREE.Sprite(this.burnMaterial);
+                marker.position.set(burn.position.x, burn.position.y, burn.position.z);
+                marker.renderOrder = 4;
+
+                this.trajectoryGroup.add(marker);
+                this._burnMarkers.push(marker);
+                report.burnMarkersShown++;
             });
         }
+
+        this.lastPlanReport = report;
 
         if (this.activePlan) {
             this._updateFrame();
@@ -128,7 +159,7 @@ export class FlightPlanRenderer {
         while (this.trajectoryGroup.children.length > 0) {
             const child = this.trajectoryGroup.children[0];
             this.trajectoryGroup.remove(child);
-            if (child.geometry) {
+            if (child.geometry && !child.isSprite) {
                 child.geometry.dispose();
             }
         }
@@ -186,7 +217,11 @@ export class FlightPlanRenderer {
                 const worldHeight = (this.camera.top - this.camera.bottom) / this.camera.zoom;
                 worldSize = (BURN_MARKER_PIXEL_SIZE / viewportHeightPx) * worldHeight;
             } else {
-                const distance = this.camera.position.distanceTo(marker.position);
+                const distance = this.camera.position.distanceTo(
+                    this._markerWorldPosition
+                        .copy(marker.position)
+                        .add(this.trajectoryGroup.position)
+                );
                 const vFovRad = THREE.MathUtils.degToRad(this.camera.fov ?? 50);
                 const worldHeightAtDistance = 2 * Math.tan(vFovRad / 2) * distance;
                 worldSize = (BURN_MARKER_PIXEL_SIZE / viewportHeightPx) * worldHeightAtDistance;

@@ -244,6 +244,13 @@ export function applyDepartureInjection({
         z: earthState.position.z + injection.injectionPosition.z / AU_IN_KM,
     };
 
+    if (!isVector3(injectionPositionAu)) {
+        throw new Error(
+            'DepartureInjection produced a non-finite burn position ' +
+                '(check AU_IN_KM and the earthState/parking-state units)'
+        );
+    }
+
     const injectionEpochDaysJ2000 = Number.isFinite(plan.departureEpochDaysJ2000)
         ? plan.departureEpochDaysJ2000 + injection.secondsToInjection / SECONDS_PER_DAY
         : null;

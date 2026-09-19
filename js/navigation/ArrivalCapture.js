@@ -169,6 +169,7 @@ export function applyArrivalCapture({
     const arrivalBurn = plan.burns[plan.burns.length - 1];
     if (!isVector3(arrivalBurn?.deltaV)) return plan;
     if (!isVector3(plan.arrivalVelocity)) return plan;
+    if (!isVector3(plan.arrivalPosition)) return plan;
 
     const vInfinity = {
         x: -arrivalBurn.deltaV.x * AU_PER_DAY_IN_KM_PER_S,
@@ -202,6 +203,19 @@ export function applyArrivalCapture({
         : `Insufficient fuel: transfer requires ${propellantRequired.toFixed(2)}, ` +
           `fleet has ${fuelRemaining.toFixed(2)} remaining`;
 
+    const captureBurnPositionAu = {
+        x: plan.arrivalPosition.x + capture.periapsisPosition.x / AU_IN_KM,
+        y: plan.arrivalPosition.y + capture.periapsisPosition.y / AU_IN_KM,
+        z: plan.arrivalPosition.z + capture.periapsisPosition.z / AU_IN_KM,
+    };
+
+    if (!isVector3(captureBurnPositionAu)) {
+        throw new Error(
+            'ArrivalCapture produced a non-finite burn position ' +
+                '(check AU_IN_KM and plan.arrivalPosition units)'
+        );
+    }
+
     const burns = [
         ...plan.burns.slice(0, -1),
         {
@@ -211,11 +225,7 @@ export function applyArrivalCapture({
                 y: capture.deltaV.y / AU_PER_DAY_IN_KM_PER_S,
                 z: capture.deltaV.z / AU_PER_DAY_IN_KM_PER_S,
             },
-            position: {
-                x: plan.arrivalPosition.x + capture.periapsisPosition.x / AU_IN_KM,
-                y: plan.arrivalPosition.y + capture.periapsisPosition.y / AU_IN_KM,
-                z: plan.arrivalPosition.z + capture.periapsisPosition.z / AU_IN_KM,
-            },
+            position: captureBurnPositionAu,
         },
     ];
 

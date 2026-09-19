@@ -35,10 +35,11 @@ const DEFAULT_ARRIVAL_PARKING_ALTITUDE_KM = 300;
 
 const TRAJECTORY_RENDER_SAMPLES = 60;
 
-// The status readout is for humans, not for the frame budget.
 const STATUS_REFRESH_INTERVAL_MS = 250;
 
 const PARKING_REBASELINE_DAYS = 1;
+
+const BURN_TRAJECTORY_MISMATCH_WARN_AU = 1e-3;
 
 function isVector3(v) {
     return !!v && Number.isFinite(v.x) && Number.isFinite(v.y) && Number.isFinite(v.z);
@@ -208,7 +209,7 @@ export class FleetNavigationController {
         }
 
         this.activePlan = persistedPlan;
-        this.renderer.setPlan(persistedPlan);
+        this._renderPlan('restore', persistedPlan);
         this.panel.showFlightPlan(persistedPlan);
         this.panel.setTarget(persistedPlan.target?.bodyName ?? '');
         this.panel.showClearAction();
@@ -258,6 +259,68 @@ export class FleetNavigationController {
         
             return result;
         });
+    }
+
+    /**
+     * @param {string} source
+     * @param {object} plan
+     */
+    _renderPlan(source, plan) {
+        this.renderer.setPlan(plan);
+        this._reportRenderedPlan(source, plan);
+    }
+
+    _reportRenderedPlan(source, plan) {
+        if (!plan) return;
+
+        const burns = Array.isArray(plan.burns) ? plan.burns : [];
+        const samples = Array.isArray(plan.trajectorySamples) ? plan.trajectorySamples : [];
+        const report = this.renderer.lastPlanReport;
+
+        logger.info(
+            `[FleetNavigation] Plan drawn (${source}): ` +
+                JSON.stringify({
+                    candidateId: plan.candidateId ?? null,
+                    enrichedDeparture: !!plan.injection,
+                    enrichedArrival: !!plan.capture,
+                    burns: burns.map((b) => ({
+                        position: b.position ?? null,
+                        deltaVMagnitude: b.deltaV ? Math.hypot(b.deltaV.x, b.deltaV.y, b.deltaV.z) : null,
+                    })),
+                    trajectoryStart: samples[0]?.position ?? null,
+                    trajectoryEnd: samples[samples.length - 1]?.position ?? null,
+                    rendered: report,
+                })
+        );
+
+        if (burns.length >= 2 && report && report.burnMarkersShown < burns.length) {
+            logger.warn(
+                `[FleetNavigation] Only ${report.burnMarkersShown}/${burns.length} burn markers drawn ` +
+                    `(${report.burnsWithoutPosition} without position, ` +
+                    `${report.burnsWithNonFinitePosition} non-finite)`
+            );
+        }
+
+        if (samples.length > 1 && burns.length >= 2) {
+            this._warnIfBurnOffTrajectory('departure', burns[0], samples[0]);
+            this._warnIfBurnOffTrajectory('arrival', burns[burns.length - 1], samples[samples.length - 1]);
+        }
+    }
+
+    _warnIfBurnOffTrajectory(label, burn, sample) {
+        if (!isVector3(burn?.position) || !isVector3(sample?.position)) return;
+
+        const offsetAu = Math.hypot(
+            burn.position.x - sample.position.x,
+            burn.position.y - sample.position.y,
+            burn.position.z - sample.position.z
+        );
+        if (offsetAu > BURN_TRAJECTORY_MISMATCH_WARN_AU) {
+            logger.warn(
+                `[FleetNavigation] ${label} burn is ${offsetAu.toExponential(2)} AU from the trajectory ` +
+                    'endpoint; burn positions and trajectory samples are likely in different frames/units'
+            );
+        }
     }
 
     _handleCalculateRequested({ targetName }) {
@@ -324,20 +387,10 @@ export class FleetNavigationController {
 
         try {
             const provisionalPlan = this.session.start(transferParams);
-            logger.info(
-                `[FleetNavigation] Plan burns: ${JSON.stringify(
-                    (provisionalPlan.burns ?? []).map((b) => ({
-                        hasPosition: !!b.position,
-                        deltaVMagnitude: b.deltaV
-                            ? Math.hypot(b.deltaV.x, b.deltaV.y, b.deltaV.z)
-                            : null,
-                    }))
-                )}`
-            );
             this.panel.clearNotice();
             this.panel.setTarget(normalizedName);
             this.panel.showFlightPlan(provisionalPlan);
-            this.renderer.setPlan(provisionalPlan);
+            this._renderPlan('calculate', provisionalPlan);
             this.panel.showConfirmActions();
             this._syncFleetStatus();
         } catch (err) {
@@ -476,7 +529,7 @@ export class FleetNavigationController {
 
         this.session.plan = candidate;
         this.panel.showFlightPlan(candidate);
-        this.renderer.setPlan(candidate);
+        this._renderPlan('select', candidate);
     }
 
     _handleConfirmRequested() {
@@ -504,7 +557,7 @@ export class FleetNavigationController {
         this._persistActivePlan();
         this._syncFleetStatus();
 
-        this.renderer.setPlan(plan);
+        this._renderPlan('confirm', plan);
         this.panel.showFlightPlan(plan);
         this.panel.showClearAction();
 
