@@ -99,7 +99,7 @@ export function searchTransferCandidates({
                 stepDays,
                 samples,
             });
-        } catch (err) {
+        } catch (_err) {
             continue;
         }
 
@@ -113,7 +113,7 @@ export function searchTransferCandidates({
                 standardGravityMS2,
                 velocityUnitToMetersPerSecond,
             });
-        } catch (err) {
+        } catch (_err) {
             continue;
         }
 

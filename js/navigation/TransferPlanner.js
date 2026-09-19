@@ -95,7 +95,7 @@ export function calculateImpulsiveTransfer({
                     stepDays,
                     samples,
                 });
-            } catch (err) {
+            } catch (_err) {
                 continue;
             }
 
@@ -109,7 +109,7 @@ export function calculateImpulsiveTransfer({
                     standardGravityMS2,
                     velocityUnitToMetersPerSecond,
                 });
-            } catch (err) {
+            } catch (_err) {
                 continue;
             }
 
