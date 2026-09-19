@@ -24,6 +24,10 @@ import { FleetStatusPanel } from '@ui/FleetStatusPanel.js';
 import { FlightPlanRenderer } from '@rendering/FlightPlanRenderer.js';
 import { FleetMarkerRenderer } from '@rendering/FleetMarkerRenderer.js';
 import { applyArrivalCapture } from '@navigation/ArrivalCapture.js';
+import {
+    heliocentricStateToAuPerDay,
+    resolveHeliocentricOrigin,
+} from '@navigation/TrajectoryState.js';
 import { bodyMuKm3PerS2, bodyRadiusKm } from '@core/BodyPhysicalConstants.js';
 import { logger } from '@core/logger.js';
 
@@ -40,6 +44,8 @@ const STATUS_REFRESH_INTERVAL_MS = 250;
 const PARKING_REBASELINE_DAYS = 1;
 
 const BURN_TRAJECTORY_MISMATCH_WARN_AU = 1e-3;
+
+const STALE_ORIGIN_STATE_WARN_DAYS = 1e-3;
 
 function isVector3(v) {
     return !!v && Number.isFinite(v.x) && Number.isFinite(v.y) && Number.isFinite(v.z);
@@ -219,7 +225,10 @@ export class FleetNavigationController {
 
     _searchAndPublishCandidates(transferParams) {
         const rawCandidates = searchTransferCandidates(transferParams);
-        const candidates = this._applyInjectionToCandidates(rawCandidates, transferParams);
+        const { departureState } = transferParams;
+        const candidates = this._applyInjectionToCandidates(rawCandidates, transferParams).map(
+            (plan) => (departureState ? { ...plan, departureState } : plan)
+        );
 
         this.candidates = candidates;
         this.panel.showCandidates(candidates);
@@ -283,6 +292,13 @@ export class FleetNavigationController {
                     candidateId: plan.candidateId ?? null,
                     enrichedDeparture: !!plan.injection,
                     enrichedArrival: !!plan.capture,
+                    departureState: plan.departureState
+                        ? {
+                              frame: plan.departureState.frame,
+                              parentBody: plan.departureState.parentBody,
+                              epochDaysJ2000: plan.departureState.epochDaysJ2000,
+                          }
+                        : null,
                     burns: burns.map((b) => ({
                         position: b.position ?? null,
                         deltaVMagnitude: b.deltaV ? Math.hypot(b.deltaV.x, b.deltaV.y, b.deltaV.z) : null,
@@ -365,10 +381,16 @@ export class FleetNavigationController {
             : null;
         const originMuKm3PerS2 = this._parentMuKm3PerS2(runtimeState);
 
+        const departureState = this._resolveOriginTrajectoryState({
+            parkingState,
+            earthState,
+            epochDaysJ2000: currentEpochDaysJ2000,
+        });
+
         const solverFleet = {
             ...this.fleet,
             fuelRemaining: this.fleet.runtimeState?.fuelRemaining,
-            ...this._resolveHeliocentricOriginState({ parkingState, earthState }),
+            ...(departureState ? heliocentricStateToAuPerDay(departureState) : {}),
         };
 
         const transferParams = {
@@ -383,6 +405,7 @@ export class FleetNavigationController {
             parkingState,
             earthState,
             originMuKm3PerS2,
+            departureState,
         };
 
         try {
@@ -491,29 +514,35 @@ export class FleetNavigationController {
     }
 
     /**
-     * @returns {{position:object, velocity:object}|{}} heliocentric AU / AU-per-day
+     * @param {object} params
+     * @param {{position:object, velocity:object}|null} params.parkingState - km, km/s
+     * @param {{position:object, velocity:object}|null} params.earthState - parent body, AU / AU-per-day
+     * @param {number} params.epochDaysJ2000
+     * @returns {import('@navigation/TrajectoryState.js').TrajectoryState|null}
      */
-    _resolveHeliocentricOriginState({ parkingState, earthState }) {
-        const runtimeState = this.fleet?.runtimeState;
-
-        if (
-            runtimeState?.frame === REFERENCE_FRAME.HELIOCENTRIC_AU &&
-            isVector3(runtimeState.position) &&
-            isVector3(runtimeState.velocity)
-        ) {
-            return {
-                position: { ...runtimeState.position },
-                velocity: { ...runtimeState.velocity },
-            };
+    _resolveOriginTrajectoryState({ parkingState, earthState, epochDaysJ2000 }) {
+        let state;
+        try {
+            state = resolveHeliocentricOrigin({
+                runtimeState: this.fleet?.runtimeState,
+                parkingState,
+                parentEphemerisState: earthState,
+                epochDaysJ2000,
+            });
+        } catch (err) {
+            logger.warn(`[FleetNavigation] Could not build the departure TrajectoryState: ${err.message}`);
+            return null;
         }
 
-        if (!parkingState || !earthState) return {};
+        if (state && Math.abs(state.epochDaysJ2000 - epochDaysJ2000) > STALE_ORIGIN_STATE_WARN_DAYS) {
+            logger.warn(
+                `[FleetNavigation] Departure origin is a ${state.frame} state from epoch ` +
+                    `${state.epochDaysJ2000} but is being used at epoch ${epochDaysJ2000} without ` +
+                    'propagation'
+            );
+        }
 
-        return geocentricToHeliocentric({
-            position: parkingState.position,
-            velocity: parkingState.velocity,
-            earthState,
-        });
+        return state;
     }
 
     _handleCandidateSelected(candidateId) {
