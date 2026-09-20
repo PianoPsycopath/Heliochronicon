@@ -25,9 +25,16 @@ import { FlightPlanRenderer } from '@rendering/FlightPlanRenderer.js';
 import { FleetMarkerRenderer } from '@rendering/FleetMarkerRenderer.js';
 import { applyArrivalCapture } from '@navigation/ArrivalCapture.js';
 import {
+    heliocentricStateFromAuPerDay,
     heliocentricStateToAuPerDay,
+    parentBodyFromRuntimeState,
     resolveHeliocentricOrigin,
+    trajectoryStateFromRuntimeState,
 } from '@navigation/TrajectoryState.js';
+import {
+    createHeliocentricPositionResolver,
+    resolveCurrentParent,
+} from '@navigation/PatchedConicFrame.js';
 import { bodyMuKm3PerS2, bodyRadiusKm } from '@core/BodyPhysicalConstants.js';
 import { logger } from '@core/logger.js';
 
@@ -118,6 +125,14 @@ export class FleetNavigationController {
         this.fallbackAltitudeKm = fallbackAltitudeKm;
         this.fleetDataUrl = fleetDataUrl;
         this.runtimeStore = runtimeStore;
+
+        this._heliocentricPositionAu = createHeliocentricPositionResolver({
+            getBodyDataByName,
+            getPositionAu: (bodyData, epochDaysJ2000) =>
+                EphemerisAdapter.getPosition(bodyData, epochDaysJ2000),
+        });
+        this._lastLoggedParentBody = null;
+        this._warnedParentResolutions = new Set();
 
         this.fleet = null;
         this.candidates = [];
@@ -367,15 +382,19 @@ export class FleetNavigationController {
         }
 
         const runtimeState = this.fleet.runtimeState;
-        const originBodyName =
-            runtimeState?.frame === REFERENCE_FRAME.BODY_CENTERED_KM
-                ? runtimeState.parentBody
-                : 'EARTH';
-        const originBodyData = this.getBodyDataByName(originBodyName);
         const target = Target.create({ bodyName: targetBodyData.name });
         const currentEpochDaysJ2000 = this.getCurrentEpochDaysJ2000();
 
         const parkingState = this._parkingStateAt(currentEpochDaysJ2000);
+
+        const originBodyName =
+            parentBodyFromRuntimeState(runtimeState) ??
+            this._resolveFleetParent(currentEpochDaysJ2000, {
+                parkingState,
+                extraCandidateNames: [targetBodyData.name],
+            })?.parentBody ??
+            null;
+        const originBodyData = originBodyName ? this.getBodyDataByName(originBodyName) : null;
         const earthState = originBodyData
             ? EphemerisAdapter.getState(originBodyData, currentEpochDaysJ2000)
             : null;
@@ -424,6 +443,114 @@ export class FleetNavigationController {
             this.panel.clearFlightPlan();
             this.panel.hideConfirmActions();
         }
+    }
+
+    /**
+     * @param {number} epochDaysJ2000
+     * @param {{position:object, velocity:object}|null} [parkingState] - already
+     *   propagated to `epochDaysJ2000`; computed here when omitted (pass null
+     *   to say there is none)
+     * @returns {import('@navigation/TrajectoryState.js').TrajectoryState|null}
+     */
+    _currentTrajectoryState(epochDaysJ2000, parkingState = this._parkingStateAt(epochDaysJ2000)) {
+        const runtimeState = this.fleet?.runtimeState;
+        if (!runtimeState) return null;
+
+        try {
+            if (runtimeState.state === FLEET_STATE.INFLIGHT && this.activePlan) {
+                const position = positionAlongPlan({
+                    plan: this.activePlan,
+                    currentEpochDaysJ2000: epochDaysJ2000,
+                });
+                const sample = this._sampleAlongActivePlan(epochDaysJ2000);
+                if (!position || !sample) return null;
+
+                return heliocentricStateFromAuPerDay({
+                    epochDaysJ2000,
+                    position,
+                    velocity: sample.velocity,
+                });
+            }
+
+            if (parkingState) {
+                return trajectoryStateFromRuntimeState({
+                    ...runtimeState,
+                    position: parkingState.position,
+                    velocity: parkingState.velocity,
+                    epochDaysJ2000,
+                });
+            }
+
+            if (runtimeState.frame === REFERENCE_FRAME.HELIOCENTRIC_AU) {
+                return trajectoryStateFromRuntimeState(runtimeState, {
+                    fallbackEpochDaysJ2000: epochDaysJ2000,
+                });
+            }
+        } catch (err) {
+            logger.warn(
+                `[FleetNavigation] Could not build the current TrajectoryState: ${err.message}`
+            );
+        }
+
+        return null;
+    }
+
+    /**
+     * @param {number} epochDaysJ2000
+     * @param {object} [options]
+     * @param {{position:object, velocity:object}|null} [options.parkingState]
+     * @param {string[]} [options.extraCandidateNames]
+     * @returns {ReturnType<typeof resolveCurrentParent>|null} null when the
+     *   state or body data cannot support a resolution (logged once)
+     */
+    _resolveFleetParent(epochDaysJ2000, { parkingState, extraCandidateNames = [] } = {}) {
+        const state = this._currentTrajectoryState(epochDaysJ2000, parkingState);
+        if (!state) return null;
+
+        const candidateBodyNames = [
+            parentBodyFromRuntimeState(this.fleet?.runtimeState),
+            this.fleet?.runtimeState?.target?.bodyName,
+            this.activePlan?.target?.bodyName,
+            ...extraCandidateNames,
+        ].filter((name) => typeof name === 'string' && name.trim().length > 0);
+
+        try {
+            const resolution = resolveCurrentParent({
+                state,
+                candidateBodyNames,
+                getBodyDataByName: this.getBodyDataByName,
+                getBodyHeliocentricPositionAu: this._heliocentricPositionAu,
+            });
+            this._logParentTransition(resolution);
+            return resolution;
+        } catch (err) {
+            if (!this._warnedParentResolutions.has(err.message)) {
+                this._warnedParentResolutions.add(err.message);
+                logger.warn(
+                    `[FleetNavigation] Could not resolve the fleet's parent body: ${err.message} ` +
+                        '(expected briefly during initial load, before the body registry ' +
+                        'finishes populating)'
+                );
+            }
+            return null;
+        }
+    }
+
+    _logParentTransition({ parentBody, isRoot, soiKm, distanceKm }) {
+        if (parentBody === this._lastLoggedParentBody) return;
+        this._lastLoggedParentBody = parentBody;
+
+        const declaredParent = parentBodyFromRuntimeState(this.fleet?.runtimeState);
+        const soi = isRoot ? 'outside every candidate SOI' : `SOI ${Math.round(soiKm)} km`;
+        const frameNote =
+            declaredParent && declaredParent !== parentBody
+                ? `; runtime state is expressed relative to ${declaredParent}`
+                : '';
+
+        logger.info(
+            `[FleetNavigation] Fleet parent body: ${parentBody} ` +
+                `(${soi}, ${Math.round(distanceKm)} km from its centre${frameNote})`
+        );
     }
 
     /**
@@ -667,11 +794,8 @@ export class FleetNavigationController {
             return isVector3(runtimeState.position) ? { ...runtimeState.position } : null;
         }
 
-        const parentName =
-            runtimeState.frame === REFERENCE_FRAME.BODY_CENTERED_KM
-                ? runtimeState.parentBody
-                : 'EARTH';
-        const parentBodyData = this.getBodyDataByName(parentName);
+        const parentName = parentBodyFromRuntimeState(runtimeState);
+        const parentBodyData = parentName ? this.getBodyDataByName(parentName) : null;
 
         const parkingState = this._parkingStateAt(epochDaysJ2000);
         if (!parkingState || !parentBodyData) return null;
@@ -781,6 +905,8 @@ export class FleetNavigationController {
             altitudeKm: null,
             distanceFromSunAu: null,
             daysToArrival: null,
+            parentBody: null,
+            parentSoiKm: null,
         };
 
         if (runtimeState.state === FLEET_STATE.INFLIGHT && this.activePlan) {
@@ -801,6 +927,12 @@ export class FleetNavigationController {
         const heliocentric = this.marker.position;
         if (heliocentric) {
             status.distanceFromSunAu = magnitude(heliocentric);
+        }
+
+        const parent = this._resolveFleetParent(epochDaysJ2000, { parkingState });
+        if (parent) {
+            status.parentBody = parent.parentBody;
+            status.parentSoiKm = Number.isFinite(parent.soiKm) ? parent.soiKm : null;
         }
 
         this.fleetPanel.setStatus(status);

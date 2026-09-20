@@ -237,6 +237,33 @@ export function heliocentricToBodyCentered(state, parentState, parentBody) {
 
 // --- fleet runtime-state boundary ------------------------------------------
 
+function isBodyCenteredRuntimeFrame(frame) {
+    return (
+        frame === REFERENCE_FRAME.BODY_CENTERED_KM ||
+        frame === REFERENCE_FRAME.EARTH_CENTERED_KM ||
+        frame === undefined ||
+        frame === null
+    );
+}
+
+/**
+ * @param {object|null} runtimeState
+ * @returns {string|null} null for a heliocentric state, an unrecognised frame,
+ *   a missing state, or a body-centered state that names no parent
+ */
+export function parentBodyFromRuntimeState(runtimeState) {
+    if (!runtimeState || typeof runtimeState !== 'object') return null;
+
+    const { frame } = runtimeState;
+    if (frame === REFERENCE_FRAME.BODY_CENTERED_KM) {
+        return isNonEmptyString(runtimeState.parentBody) ? runtimeState.parentBody : null;
+    }
+    if (isBodyCenteredRuntimeFrame(frame)) {
+        return LEGACY_EARTH_CENTERED_PARENT_BODY;
+    }
+    return null;
+}
+
 /**
  *   EARTH_CENTERED_KM  -> BODY_CENTERED, parent "EARTH"   (legacy)
  *   (no frame at all)  -> same as EARTH_CENTERED_KM       (legacy)
@@ -263,12 +290,7 @@ export function trajectoryStateFromRuntimeState(runtimeState, { fallbackEpochDay
         return heliocentricStateFromAuPerDay({ epochDaysJ2000, position, velocity });
     }
 
-    let parentBody;
-    if (frame === REFERENCE_FRAME.BODY_CENTERED_KM) {
-        parentBody = runtimeState.parentBody;
-    } else if (frame === REFERENCE_FRAME.EARTH_CENTERED_KM || frame === undefined || frame === null) {
-        parentBody = LEGACY_EARTH_CENTERED_PARENT_BODY;
-    } else {
+    if (!isBodyCenteredRuntimeFrame(frame)) {
         throw new Error(
             `trajectoryStateFromRuntimeState does not recognise runtime frame ${JSON.stringify(frame)}`
         );
@@ -279,7 +301,7 @@ export function trajectoryStateFromRuntimeState(runtimeState, { fallbackEpochDay
         position,
         velocity,
         frame: TRAJECTORY_FRAME.BODY_CENTERED,
-        parentBody,
+        parentBody: parentBodyFromRuntimeState(runtimeState),
     });
 }
 

@@ -12,6 +12,10 @@
  * @property {number} M - Mean anomaly (degrees)
  * @property {number} [period_days] - Orbital period in days
  * @property {number} [n] - Mean motion (degrees per day)
+ * @property {number} mass - Mass in 1e24 kg. Rows with no mass get a tiny placeholder so
+ *   rendering and gravity wells never divide by zero; use `massIsKnown` to tell them apart.
+ * @property {boolean} massIsKnown - true only when the source row supplied a positive mass.
+ *   A missing mass means "no gravity" for navigation (no SOI), not the placeholder value.
  */
 import { kmToAU } from '@physics/OrbitalMath.js';
 
@@ -71,6 +75,9 @@ export class PlanetaryDataProcessor {
                 mass = 0.000001;
             }
 
+            // `mass` above is padded for rendering; navigation must not read it as real.
+            const massIsKnown = parseF(row.mass_10_24_kg, 0) > 0;
+
             let radius_km = parseF(row.radius_km);
 
             if (radius_km <= 0) {
@@ -101,6 +108,7 @@ export class PlanetaryDataProcessor {
                 period,
                 n,
                 mass,
+                massIsKnown,
                 radius_km,
                 symbol,
                 pole_ra,

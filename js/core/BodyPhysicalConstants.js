@@ -1,5 +1,6 @@
 // js/core/BodyPhysicalConstants.js
 
+import { AU_IN_KM } from '@core/constants.js';
 
 const GRAVITATIONAL_CONSTANT_KM3_PER_KG_S2 = 6.674e-20; // G, in km^3 kg^-1 s^-2
 const MASS_UNIT_KG = 1e24; // bodyData.mass is expressed in units of this
@@ -24,6 +25,22 @@ export function bodyRadiusKm(bodyData) {
         throw new Error('bodyRadiusKm requires bodyData.radius_km');
     }
     return bodyData.radius_km;
+}
+
+/**
+ * @param {object} bodyData - processed body data (see PlanetaryDataProcessor)
+ * @returns {number} semi-major axis about the parent, km
+ */
+export function bodySemiMajorAxisKm(bodyData) {
+    if (
+        !bodyData ||
+        typeof bodyData.a !== 'number' ||
+        !Number.isFinite(bodyData.a) ||
+        bodyData.a <= 0
+    ) {
+        throw new Error('bodySemiMajorAxisKm requires a positive bodyData.a (AU)');
+    }
+    return bodyData.a * AU_IN_KM;
 }
 
 /**

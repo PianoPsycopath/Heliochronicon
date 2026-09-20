@@ -9,6 +9,7 @@ import {
     bodyCenteredToHeliocentric,
     heliocentricToBodyCentered,
     trajectoryStateFromRuntimeState,
+    parentBodyFromRuntimeState,
     resolveHeliocentricOrigin,
 } from '@navigation/TrajectoryState.js';
 import { geocentricToHeliocentric } from '@navigation/FleetPropagator.js';
@@ -356,6 +357,60 @@ describe('TrajectoryState', () => {
                 })
             ).toThrow(/frame/);
             expect(() => trajectoryStateFromRuntimeState(null)).toThrow();
+        });
+    });
+
+    describe('parentBodyFromRuntimeState', () => {
+        const at = { position: { x: 7000, y: 0, z: 0 }, velocity: { x: 0, y: 7.5, z: 0 } };
+
+        it('reads the parent of a body-centered runtime state', () => {
+            expect(
+                parentBodyFromRuntimeState({
+                    ...at,
+                    frame: REFERENCE_FRAME.BODY_CENTERED_KM,
+                    parentBody: 'MARS',
+                })
+            ).toBe('MARS');
+        });
+
+        it('maps the legacy Earth-centered frame, and a missing frame, to EARTH', () => {
+            expect(
+                parentBodyFromRuntimeState({ ...at, frame: REFERENCE_FRAME.EARTH_CENTERED_KM })
+            ).toBe('EARTH');
+            expect(parentBodyFromRuntimeState({ ...at })).toBe('EARTH');
+        });
+
+        it('has no declared parent for a heliocentric, unrecognised or missing state', () => {
+            expect(
+                parentBodyFromRuntimeState({ ...at, frame: REFERENCE_FRAME.HELIOCENTRIC_AU })
+            ).toBeNull();
+            expect(parentBodyFromRuntimeState({ ...at, frame: 'galactic' })).toBeNull();
+            expect(parentBodyFromRuntimeState(null)).toBeNull();
+        });
+
+        it('has no declared parent for a body-centered state that names none', () => {
+            expect(
+                parentBodyFromRuntimeState({ ...at, frame: REFERENCE_FRAME.BODY_CENTERED_KM })
+            ).toBeNull();
+            expect(
+                parentBodyFromRuntimeState({
+                    ...at,
+                    frame: REFERENCE_FRAME.BODY_CENTERED_KM,
+                    parentBody: '  ',
+                })
+            ).toBeNull();
+        });
+
+        it('agrees with trajectoryStateFromRuntimeState for every recognised frame', () => {
+            for (const runtimeState of [
+                { ...at, frame: REFERENCE_FRAME.EARTH_CENTERED_KM, epochDaysJ2000: 1 },
+                { ...at, epochDaysJ2000: 1 },
+                { ...at, frame: REFERENCE_FRAME.BODY_CENTERED_KM, parentBody: 'MARS', epochDaysJ2000: 1 },
+            ]) {
+                expect(trajectoryStateFromRuntimeState(runtimeState).parentBody).toBe(
+                    parentBodyFromRuntimeState(runtimeState)
+                );
+            }
         });
     });
 

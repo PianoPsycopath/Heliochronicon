@@ -46,6 +46,8 @@ export class FleetStatusPanel {
      * @param {number} [status.fuelRemaining]
      * @param {number|null} [status.altitudeKm] - when parked in a geocentric orbit
      * @param {number|null} [status.distanceFromSunAu] - when in a heliocentric state
+     * @param {string|null} [status.parentBody] - body whose sphere of influence the fleet is in
+     * @param {number|null} [status.parentSoiKm] - that body's SOI radius; null when unbounded (the Sun)
      * @param {number|null} [status.arrivalEpochDaysJ2000]
      * @param {number|null} [status.daysToArrival]
      */
@@ -64,6 +66,12 @@ export class FleetStatusPanel {
             ['FUEL', formatNumber(status.fuelRemaining, 1)],
         ];
 
+        if (typeof status.parentBody === 'string' && status.parentBody) {
+            rows.push(['PARENT', status.parentBody.toUpperCase()]);
+            if (Number.isFinite(status.parentSoiKm)) {
+                rows.push(['SOI', `${formatNumber(status.parentSoiKm, 0)} KM`]);
+            }
+        }
         if (Number.isFinite(status.altitudeKm)) {
             rows.push(['ALTITUDE', `${formatNumber(status.altitudeKm, 0)} KM`]);
         }
