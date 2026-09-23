@@ -3,9 +3,12 @@ import { describe, it, expect } from 'vitest';
 import { Fleet } from '@navigation/Fleet.js';
 import {
     FLEET_STATE,
+    REFERENCE_FRAME,
     totalFuelVolume,
     resolveDefaultAltitudeKm,
+    resolveDefaultOrbit,
     createDefaultRuntimeState,
+    createRuntimeStateFromOrbitalElements,
 } from '@navigation/DefaultFleetState.js';
 import userFleetData from '../../public/data/fleets/userfleet.json';
 
@@ -67,6 +70,80 @@ describe('DefaultFleetState', () => {
         it('throws when earthRadiusKm or altitudeKm is missing', () => {
             expect(() => createDefaultRuntimeState({ fleet, altitudeKm: 400 })).toThrow();
             expect(() => createDefaultRuntimeState({ fleet, earthRadiusKm: 6378 })).toThrow();
+        });
+    });
+
+    describe('resolveDefaultOrbit (Phase B1 data contract)', () => {
+        it('reads the full Keplerian contract from the real fleet data file', () => {
+            const orbit = resolveDefaultOrbit(userFleetData);
+
+            expect(orbit).toEqual({
+                epochDaysJ2000: 0,
+                parentBody: 'EARTH',
+                aKm: 6678.137,
+                e: 0,
+                iRad: 0,
+                raanRad: 0,
+                argPeriapsisRad: 0,
+                meanAnomalyRad: 0,
+            });
+        });
+
+        it('fills in omitted optional fields with zero', () => {
+            const orbit = resolveDefaultOrbit({
+                defaultOrbit: { parentBody: 'MARS', aKm: 4000 },
+            });
+
+            expect(orbit).toEqual({
+                epochDaysJ2000: 0,
+                parentBody: 'MARS',
+                aKm: 4000,
+                e: 0,
+                iRad: 0,
+                raanRad: 0,
+                argPeriapsisRad: 0,
+                meanAnomalyRad: 0,
+            });
+        });
+
+        it('returns null for the legacy altitude-only shape (no parentBody/aKm)', () => {
+            expect(resolveDefaultOrbit({ defaultOrbit: { altitudeKm: 400 } })).toBeNull();
+        });
+
+        it('returns null when there is no defaultOrbit at all', () => {
+            expect(resolveDefaultOrbit({ id: 'x' })).toBeNull();
+            expect(resolveDefaultOrbit(null)).toBeNull();
+        });
+    });
+
+    describe('createRuntimeStateFromOrbitalElements (Phase B1 data contract)', () => {
+        const EARTH_MU_KM3_S2 = 398600.4418;
+
+        it('builds a body-centered, fully fueled, parked runtime state from the orbit contract', () => {
+            const orbit = resolveDefaultOrbit(userFleetData);
+            const state = createRuntimeStateFromOrbitalElements({
+                fleet,
+                orbit,
+                muKm3PerS2: EARTH_MU_KM3_S2,
+            });
+
+            expect(state.frame).toBe(REFERENCE_FRAME.BODY_CENTERED_KM);
+            expect(state.parentBody).toBe('EARTH');
+            expect(state.epochDaysJ2000).toBe(0);
+            expect(state.fuelRemaining).toBe(totalFuelVolume(fleet));
+            expect(state.target).toBeNull();
+            expect(state.state).toBe(FLEET_STATE.PARKED);
+
+            const r = Math.hypot(state.position.x, state.position.y, state.position.z);
+            const speed = Math.hypot(state.velocity.x, state.velocity.y, state.velocity.z);
+            expect(r).toBeCloseTo(6678.137, 6);
+            expect(speed).toBeCloseTo(Math.sqrt(EARTH_MU_KM3_S2 / 6678.137), 6);
+        });
+
+        it('throws when no orbit contract is supplied', () => {
+            expect(() =>
+                createRuntimeStateFromOrbitalElements({ fleet, orbit: null, muKm3PerS2: EARTH_MU_KM3_S2 })
+            ).toThrow(/orbit/);
         });
     });
 });

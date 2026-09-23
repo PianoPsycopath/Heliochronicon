@@ -1,5 +1,7 @@
 // js/navigation/DefaultFleetState.js
 
+import { stateVectorFromKeplerianElements } from '@navigation/KeplerianElements.js';
+
 export const FLEET_STATE = Object.freeze({
     PARKED: 'parked',
     INFLIGHT: 'inflight',
@@ -35,13 +37,82 @@ export function resolveDefaultAltitudeKm(fleetData) {
 }
 
 /**
+ * @param {object} fleetData
+ * @returns {{
+ *   epochDaysJ2000: number,
+ *   parentBody: string,
+ *   aKm: number,
+ *   e: number,
+ *   iRad: number,
+ *   raanRad: number,
+ *   argPeriapsisRad: number,
+ *   meanAnomalyRad: number,
+ * }|null}
+ */
+export function resolveDefaultOrbit(fleetData) {
+    const orbit = fleetData?.defaultOrbit;
+    if (!orbit || typeof orbit !== 'object') return null;
+    if (typeof orbit.parentBody !== 'string' || orbit.parentBody.trim().length === 0) return null;
+    if (typeof orbit.aKm !== 'number' || !Number.isFinite(orbit.aKm)) return null;
+
+    const numeric = (value, fallback) =>
+        typeof value === 'number' && Number.isFinite(value) ? value : fallback;
+
+    return {
+        epochDaysJ2000: numeric(orbit.epochDaysJ2000, 0),
+        parentBody: orbit.parentBody,
+        aKm: orbit.aKm,
+        e: numeric(orbit.e, 0),
+        iRad: numeric(orbit.iRad, 0),
+        raanRad: numeric(orbit.raanRad, 0),
+        argPeriapsisRad: numeric(orbit.argPeriapsisRad, 0),
+        meanAnomalyRad: numeric(orbit.meanAnomalyRad, 0),
+    };
+}
+
+/**
  * @param {object} params
  * @param {object} params.fleet
- * @param {number} params.earthRadiusKm 
- * @param {number} params.altitudeKm 
- * @param {number|null} [params.earthMuKm3PerS2] 
+ * @param {ReturnType<typeof resolveDefaultOrbit>} params.orbit
+ * @param {number} params.muKm3PerS2 - orbit.parentBody's gravitational parameter
+ * @returns {object} runtime state
+ */
+export function createRuntimeStateFromOrbitalElements({ fleet, orbit, muKm3PerS2 }) {
+    if (!orbit || typeof orbit !== 'object') {
+        throw new Error('createRuntimeStateFromOrbitalElements requires an "orbit" contract');
+    }
+
+    const { position, velocity } = stateVectorFromKeplerianElements({
+        aKm: orbit.aKm,
+        e: orbit.e,
+        iRad: orbit.iRad,
+        raanRad: orbit.raanRad,
+        argPeriapsisRad: orbit.argPeriapsisRad,
+        meanAnomalyRad: orbit.meanAnomalyRad,
+        muKm3PerS2,
+    });
+
+    return {
+        fuelRemaining: totalFuelVolume(fleet),
+        position,
+        velocity,
+        frame: REFERENCE_FRAME.BODY_CENTERED_KM,
+        parentBody: orbit.parentBody,
+        epochDaysJ2000: orbit.epochDaysJ2000,
+        target: null,
+        state: FLEET_STATE.PARKED,
+    };
+}
+
+/**
+ * @deprecated Use `resolveDefaultOrbit` instead. Kept for legacy compatibility.
+ * @param {object} params
+ * @param {object} params.fleet
+ * @param {number} params.earthRadiusKm
+ * @param {number} params.altitudeKm
+ * @param {number|null} [params.earthMuKm3PerS2]
  * @param {number|null} [params.epochDaysJ2000]
- * @returns {object} 
+ * @returns {object}
  */
 export function createDefaultRuntimeState({
     fleet,

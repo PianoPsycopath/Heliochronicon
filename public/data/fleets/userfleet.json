@@ -1,6 +1,16 @@
 {
   "id": "user-fleet",
   "name": "Astrum Domini",
+  "defaultOrbit": {
+    "epochDaysJ2000": 0,
+    "parentBody": "EARTH",
+    "aKm": 6678.137,
+    "e": 0,
+    "iRad": 0,
+    "raanRad": 0,
+    "argPeriapsisRad": 0,
+    "meanAnomalyRad": 0
+  },
   "ships": [
     {
       "id": "ship-1",

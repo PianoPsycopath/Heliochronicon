@@ -184,6 +184,7 @@ export class FleetNavigationController {
         this.fleet = await FleetService.loadFleetWithState({
             dataUrl: this.fleetDataUrl,
             store: this.runtimeStore,
+            getBodyDataByName: this.getBodyDataByName,
             earthRadiusKm: this.earthRadiusKm,
             fallbackAltitudeKm: this.fallbackAltitudeKm,
             earthMuKm3PerS2: this.earthMuKm3PerS2,
