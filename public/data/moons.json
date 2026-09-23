@@ -9109,28 +9109,6 @@
     "symbol": "○"
   },
   {
-    "name": "PUCK",
-    "parent": "URANUS",
-    "category": "MOON",
-    "a_au": null,
-    "a_km": 86004,
-    "e": 0,
-    "i_deg": 0.3,
-    "w_deg": 0,
-    "node_deg": 216.1,
-    "m_deg": 50.1,
-    "period_days": 0.761833,
-    "mass_10_24_kg": null,
-    "radius_km": null,
-    "pole_ra_deg": 257.31,
-    "pole_dec_deg": -15.18,
-    "pole_ra_rate_deg_per_cy": 0,
-    "pole_dec_rate_deg_per_cy": 0,
-    "pm_w_deg": 91.24,
-    "pm_w_rate_deg_per_day": -472.545069,
-    "symbol": "○"
-  },
-  {
     "name": "CORDELIA",
     "parent": "URANUS",
     "category": "MOON",
