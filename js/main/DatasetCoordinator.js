@@ -7,6 +7,7 @@ import { PopulationDensityFactory } from '@rendering/PopulationDensityFactory.js
 import { TutorialManager } from '@ui/TutorialManager.js';
 import { logger } from '@core/logger.js';
 import { LabelFactory } from '@rendering/LabelFactory.js';
+import { NavigationBodyCatalog } from '@navigation/NavigationBodyCatalog.js';
 
 const DATA_SOURCE_STORAGE_KEY = 'heliochronicon_dataSourcePath';
 const DEFAULT_DATA_BASE_PATH = 'data/';
@@ -39,6 +40,7 @@ export class DatasetCoordinator {
         dataBasePath,
         populationShapesBasePath = DEFAULT_POPULATION_SHAPES_BASE_PATH,
         asteroidPromotionService,
+        navigationBodyCatalog = new NavigationBodyCatalog(),
     }) {
         this.scene = scene;
         this.storage = storage;
@@ -51,6 +53,7 @@ export class DatasetCoordinator {
         this.datasetDisplayModes = this.storage.get('datasetDisplayModes', {});
         this.datasetsWithParticles = new Set();
         this.asteroidPromotionService = asteroidPromotionService;
+        this.navigationBodyCatalog = navigationBodyCatalog;
 
         this.dataBasePath = normalizeDataBasePath(dataBasePath);
         this.populationShapesBasePath = populationShapesBasePath;
@@ -187,6 +190,10 @@ export class DatasetCoordinator {
                     iconCategory,
                 });
             } else {
+                if (isCore) {
+                    await this.loadNavigationData(groupName, chunkUrls, firstChunkRows);
+                }
+
                 this.UI.addDatasetToggle(
                     groupName,
                     iconCategory,
@@ -273,6 +280,8 @@ export class DatasetCoordinator {
             if (processedData.length === 0) {
                 return;
             }
+            this.navigationBodyCatalog.registerMany(processedData);
+
             this.systemBuilder.buildSolarSystem(processedData);
             this.datasetsWithParticles.add(datasetName);
             this.loadDensityObjectFor(datasetName);
@@ -298,6 +307,32 @@ export class DatasetCoordinator {
             this.appState.removeInFlightDataset(datasetName);
         }
     }
+
+    /**
+     * @param {string} datasetName
+     * @param {string[]} chunkUrls
+     * @param {object[]} firstChunkRows - already fetched while classifying the dataset
+     */
+    async loadNavigationData(datasetName, chunkUrls, firstChunkRows = []) {
+        try {
+            const remainingChunks = await Promise.all(
+                chunkUrls.slice(1).map((url) => DataRepository.fetchJSONDataset(url))
+            );
+
+            const processedData = PlanetaryDataProcessor.processPlanetaryData(
+                [firstChunkRows, ...remainingChunks].flat(),
+                datasetName
+            );
+
+            this.navigationBodyCatalog.registerMany(processedData);
+        } catch (error) {
+            logger.warn(
+                `[Heliochronicon] Navigation data unavailable for hidden dataset "${datasetName}"`,
+                error
+            );
+        }
+    }
+
     async loadDensityObjectFor(datasetName) {
         if (!this.populationShapesManifest) return;
         if (this.bodyRegistry.getDensityObjectByDataset(datasetName)) return;
@@ -392,6 +427,7 @@ export class DatasetCoordinator {
 
     clearAll() {
         this.systemBuilder.clearSolarSystem();
+        this.navigationBodyCatalog.clear();
 
         this.appState.clearActiveDatasets();
         this.appState.clearInFlightDatasets();

@@ -47,6 +47,7 @@ import { PanelExtensionController } from '@ui/PanelExtensionController.js';
 import { ThemeManager } from '@ui/ThemeManager.js';
 import { FleetNavigationController } from '@main/FleetNavigationController.js';
 import { FleetRuntimeStore } from '@navigation/FleetRuntimeStore.js';
+import { NavigationBodyCatalog } from '@navigation/NavigationBodyCatalog.js';
 
 inject();
 injectSpeedInsights();
@@ -209,6 +210,8 @@ const asteroidPromotionService = new AsteroidPromotionService({
     systemBuilder,
 });
 
+const navigationBodyCatalog = new NavigationBodyCatalog();
+
 const datasetCoordinator = new DatasetCoordinator({
     scene,
     storage,
@@ -220,6 +223,7 @@ const datasetCoordinator = new DatasetCoordinator({
     savedColors,
     dataBasePath: dataSource,
     asteroidPromotionService,
+    navigationBodyCatalog,
 });
 
 const interactionController = new InteractionController({
@@ -515,7 +519,9 @@ const fleetNavigationController = new FleetNavigationController({
     timeController: UI.timeThrottle,
     panelContainer: flightPlanningPanelContainer,
     fleetPanelContainer: document.getElementById('fleet-status-container'),
-    getBodyDataByName: (name) => bodyRegistry.getByName(name)?.data ?? null,
+    getBodyDataByName: navigationBodyCatalog.asLookup(
+        (name) => bodyRegistry.getByName(name)?.data ?? null
+    ),
     getCurrentEpochDaysJ2000: () => PhysicsEngine.getJ2000Days(appState.systemDate),
     getCurrentOrigin: () => appState.currentOrigin,
     onFocusFleetRequested: focusOnFleet,
@@ -552,14 +558,19 @@ logger.info(`[Heliochronicon] Data source: ${datasetCoordinator.dataSourcePath}`
 async function startApplication() {
     renderingLoop.start();
 
-    const dataLoadPromise = datasetCoordinator.initialize().then(() => {
+    const datasetsReady = datasetCoordinator.initialize();
+
+    const dataLoadPromise = datasetsReady.then(() => {
         creditsManager.setAssetManifest(datasetCoordinator.manifest);
         updateCredits();
     });
 
-    fleetNavigationController.initialize().catch((err) => {
-        logger.error('[Heliochronicon] Failed to load fleet', err);
-    });
+    datasetsReady
+        .catch(() => false)
+        .then(() => fleetNavigationController.initialize())
+        .catch((err) => {
+            logger.error('[Heliochronicon] Failed to load fleet', err);
+        });
 
     await cinematicManager.run(dataLoadPromise);
 }
